@@ -107,7 +107,7 @@ public class BlockEventHandler implements Listener
 	    
 	    Player player = event.getPlayer();
 		if(player == null) return;
-		
+
 		StringBuilder lines = new StringBuilder(" placed a sign @ " + GriefPrevention.getfriendlyLocationString(event.getBlock().getLocation()));
 		boolean notEmpty = false;
 		for(int i = 0; i < event.getLines().length; i++)
@@ -129,13 +129,19 @@ public class BlockEventHandler implements Listener
             return;
         }
 		
-		//if not empty and wasn't the same as the last sign, log it and remember it for later
+		//if not empty, log it and remember it for later
 		PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-		if(notEmpty && (playerData.lastSignMessage == null || !playerData.lastSignMessage.equals(signMessage)))
-		{		
+		if(notEmpty)
+		{
+			playerData.lastSignMessage = signMessage;
+
+			//if same as the last sign, only log location
+			if (playerData.lastSignMessage != null && playerData.lastSignMessage.equals(signMessage))
+				signMessage = " placed a sign @ " + GriefPrevention.getfriendlyLocationString(event.getBlock().getLocation());
+
 			GriefPrevention.AddLogEntry(player.getName() + lines.toString().replace("\n  ", ";"), null);
 			PlayerEventHandler.makeSocialLogEntry(player.getName(), signMessage);
-			playerData.lastSignMessage = signMessage;
+
 			
 			if(!player.hasPermission("griefprevention.eavesdropsigns"))
 			{
