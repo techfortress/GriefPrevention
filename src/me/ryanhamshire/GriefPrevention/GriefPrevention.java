@@ -122,7 +122,7 @@ public class GriefPrevention extends JavaPlugin
 	public int config_claims_chestClaimExpirationDays;				//number of days of inactivity before an automatic chest claim will be deleted
 	public int config_claims_unusedClaimExpirationDays;				//number of days of inactivity before an unused (nothing build) claim will be deleted
 	public boolean config_claims_survivalAutoNatureRestoration;		//whether survival claims will be automatically restored to nature when auto-deleted
-	public boolean config_claims_adminclaimTrapped;					//whether it should be denied to use /trapped in adminclaims.
+	public boolean config_claims_allowTrappedInAdminClaims;			//whether it should be allowed to use /trapped in adminclaims.
 	
 	public Material config_claims_investigationTool;				//which material will be used to investigate claims with a right click
 	public Material config_claims_modificationTool;	  				//which material will be used to create/resize claims with a right click
@@ -555,7 +555,6 @@ public class GriefPrevention extends JavaPlugin
         this.config_claims_expirationExemptionTotalBlocks = config.getInt("GriefPrevention.Claims.Expiration.AllClaims.ExceptWhenOwnerHasTotalClaimBlocks", 10000);
         this.config_claims_expirationExemptionBonusBlocks = config.getInt("GriefPrevention.Claims.Expiration.AllClaims.ExceptWhenOwnerHasBonusClaimBlocks", 5000);
         this.config_claims_survivalAutoNatureRestoration = config.getBoolean("GriefPrevention.Claims.Expiration.AutomaticNatureRestoration.SurvivalWorlds", false);
-        this.config_claims_adminclaimTrapped = config.getBoolean("GriefPrevention.Claims.DisableAdminClaimTrapped", true);
         
         this.config_claims_maxClaimsPerPlayer = config.getInt("GriefPrevention.Claims.MaximumNumberOfClaimsPerPlayer", 0);
         this.config_claims_respectWorldGuard = config.getBoolean("GriefPrevention.Claims.CreationRequiresWorldGuardBuildPermission", true);
@@ -799,7 +798,7 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.Claims.Expiration.AllClaims.ExceptWhenOwnerHasTotalClaimBlocks", this.config_claims_expirationExemptionTotalBlocks);
         outConfig.set("GriefPrevention.Claims.Expiration.AllClaims.ExceptWhenOwnerHasBonusClaimBlocks", this.config_claims_expirationExemptionBonusBlocks);
         outConfig.set("GriefPrevention.Claims.Expiration.AutomaticNatureRestoration.SurvivalWorlds", this.config_claims_survivalAutoNatureRestoration);
-        outConfig.set("GriefPrevention.Claims.DisableAdminClaimTrapped", this.config_claims_adminclaimTrapped);
+        outConfig.set("GriefPrevention.Claims.AllowTrappedInAdminClaims", this.config_claims_allowTrappedInAdminClaims);
         outConfig.set("GriefPrevention.Claims.MaximumNumberOfClaimsPerPlayer", this.config_claims_maxClaimsPerPlayer);
         outConfig.set("GriefPrevention.Claims.CreationRequiresWorldGuardBuildPermission", this.config_claims_respectWorldGuard);
         outConfig.set("GriefPrevention.Claims.PortalGenerationRequiresPermission", this.config_claims_portalsRequirePermission);
@@ -2329,7 +2328,7 @@ public class GriefPrevention extends JavaPlugin
 				return true;
 			}
 			
-			if(GriefPrevention.instance.config_claims_adminclaimTrapped)
+			if(!GriefPrevention.instance.config_claims_allowTrappedInAdminClaims)
 			{
 				//if the player is in an administrative claim, he should contact an admin
 				if(claim.isAdminClaim() && event.getDestination() == null)
