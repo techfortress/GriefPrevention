@@ -2329,14 +2329,11 @@ public class GriefPrevention extends JavaPlugin
 				return true;
 			}
 			
-			if(!GriefPrevention.instance.config_claims_allowTrappedInAdminClaims)
+			//if the player is in an administrative claim and AllowTrappedInAdminClaims is false, he should contact an admin
+			if(!GriefPrevention.instance.config_claims_allowTrappedInAdminClaims && claim.isAdminClaim() && event.getDestination() == null)
 			{
-				//if the player is in an administrative claim, he should contact an admin
-				if(claim.isAdminClaim() && event.getDestination() == null)
-				{
-					GriefPrevention.sendMessage(player, TextMode.Err, Messages.TrappedWontWorkHere);
-					return true;
-				}
+				GriefPrevention.sendMessage(player, TextMode.Err, Messages.TrappedWontWorkHere);
+				return true;
 			}
 			//send instructions
 			GriefPrevention.sendMessage(player, TextMode.Instr, Messages.RescuePending);
