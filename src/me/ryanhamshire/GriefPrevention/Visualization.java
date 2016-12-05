@@ -283,26 +283,40 @@ public class Visualization
 	//helper method for above.  allows visualization blocks to sit underneath partly transparent blocks like grass and fence
 	private static boolean isTransparent(Block block, boolean waterIsTransparent)
 	{
-		return (	block.getType() != Material.SNOW && (
-				block.getType() == Material.AIR ||
-				block.getType() == Material.FENCE ||
-				block.getType() == Material.ACACIA_FENCE ||
-				block.getType() == Material.BIRCH_FENCE ||
-				block.getType() == Material.DARK_OAK_FENCE ||
-				block.getType() == Material.JUNGLE_FENCE ||
-				block.getType() == Material.NETHER_FENCE ||
-				block.getType() == Material.SPRUCE_FENCE ||
-				block.getType() == Material.FENCE_GATE ||
-				block.getType() == Material.ACACIA_FENCE_GATE ||
-				block.getType() == Material.BIRCH_FENCE_GATE ||
-				block.getType() == Material.DARK_OAK_FENCE_GATE ||
-				block.getType() == Material.SPRUCE_FENCE_GATE ||
-				block.getType() == Material.JUNGLE_FENCE_GATE ||
-				block.getType() == Material.SIGN ||
-				block.getType() == Material.SIGN_POST ||
-				block.getType() == Material.WALL_SIGN ||
-				(waterIsTransparent && block.getType() == Material.STATIONARY_WATER) || 
-				block.getType().isTransparent()));
+		//Blacklist
+		switch (block.getType())
+		{
+			case SNOW:
+				return false;
+		}
+
+		//Whitelist TODO: some of this might already be included in isTransparent()
+		switch (block.getType())
+		{
+			case AIR:
+			case FENCE:
+			case ACACIA_FENCE:
+			case BIRCH_FENCE:
+			case DARK_OAK_FENCE:
+			case JUNGLE_FENCE:
+			case NETHER_FENCE:
+			case SPRUCE_FENCE:
+			case FENCE_GATE:
+			case ACACIA_FENCE_GATE:
+			case BIRCH_FENCE_GATE:
+			case DARK_OAK_FENCE_GATE:
+			case SPRUCE_FENCE_GATE:
+			case JUNGLE_FENCE_GATE:
+			case SIGN:
+			case SIGN_POST:
+			case WALL_SIGN:
+				return true;
+		}
+
+		if ((waterIsTransparent && block.getType() == Material.STATIONARY_WATER) ||
+				block.getType().isTransparent())
+			return true;
+		return false;
 	}
 
     public static Visualization fromClaims(Iterable<Claim> claims, int height, VisualizationType type, Location locality)

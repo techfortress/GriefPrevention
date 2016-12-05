@@ -38,8 +38,7 @@ public class AccrueClaimBlocksEvent extends Event
     }
 
     /**
-     * Gets the amount of claim blocks GP will deliver to the player for this 10 minute interval
-     * @return
+     * @return amount of claim blocks GP will deliver to the player for this 10 minute interval
      */
     public int getBlocksToAccrue()
     {
