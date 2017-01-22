@@ -83,7 +83,9 @@ class DeliverClaimBlocksTask implements Runnable
                     if (event.isCancelled())
                     {
                         GriefPrevention.AddLogEntry(player.getName() + " claim block delivery was canceled by another plugin.", CustomLogEntryTypes.Debug, true);
-                    } else {
+                    }
+                    else
+                    {
                         accrualRate = event.getBlocksToAccrue();
                         if (accrualRate < 0) accrualRate = 0;
                         playerData.accrueBlocks(accrualRate);
