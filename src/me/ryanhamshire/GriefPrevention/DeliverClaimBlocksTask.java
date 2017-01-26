@@ -31,11 +31,13 @@ class DeliverClaimBlocksTask implements Runnable
 {	
     private Player player;
     private GriefPrevention instance;
+    private int idleThresholdSquared;
     
     public DeliverClaimBlocksTask(Player player, GriefPrevention instance)
     {
         this.player = player;
         this.instance = instance;
+        this.idleThresholdSquared = instance.config_claims_accruedIdleThreshold * instance.config_claims_accruedIdleThreshold;
     }
     
 	@Override
@@ -72,7 +74,7 @@ class DeliverClaimBlocksTask implements Runnable
                 //if he's not in a vehicle and has moved at least three blocks since the last check
                 //and he's not being pushed around by fluids
                 if(!player.isInsideVehicle() && 
-                   (lastLocation == null || lastLocation.distanceSquared(player.getLocation()) >= 0) &&
+                   (lastLocation == null || lastLocation.distanceSquared(player.getLocation()) > idleThresholdSquared) &&
                    !player.getLocation().getBlock().isLiquid())
                 {                   
                     //determine how fast blocks accrue for this player //RoboMWM: addons determine this instead
