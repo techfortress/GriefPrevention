@@ -97,7 +97,7 @@ class DeliverClaimBlocksTask implements Runnable
                     return; //idle accrual percentage is disabled
                 }
 
-                accrualRate = accrualRate * (instance.config_claims_accruedIdlePercent / 100);
+                accrualRate = (int) (accrualRate * (instance.config_claims_accruedIdlePercent / 100.0D));
             }
 
             //fire event for addons
