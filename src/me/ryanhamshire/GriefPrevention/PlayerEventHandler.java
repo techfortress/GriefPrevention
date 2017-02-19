@@ -924,8 +924,12 @@ class PlayerEventHandler implements Listener
 	//determines whether or not a login or logout notification should be silenced, depending on how many there have been in the last minute
 	private boolean shouldSilenceNotification()
 	{
+		if (instance.config_spam_loginLogoutNotificationsPerMinute <= 0)
+		{
+			return false; // not silencing login/logout notifications
+		}
+
 		final long ONE_MINUTE = 60000;
-		final int MAX_ALLOWED = 5;
 		Long now = Calendar.getInstance().getTimeInMillis();
 		
 		//eliminate any expired entries (longer than a minute ago)
@@ -945,7 +949,7 @@ class PlayerEventHandler implements Listener
 		//add the new entry
 		this.recentLoginLogoutNotifications.add(now);
 		
-		return this.recentLoginLogoutNotifications.size() > MAX_ALLOWED;
+		return this.recentLoginLogoutNotifications.size() > instance.config_spam_loginLogoutNotificationsPerMinute;
 	}
 
 	//when a player drops an item

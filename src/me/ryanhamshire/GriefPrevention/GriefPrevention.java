@@ -136,6 +136,7 @@ public class GriefPrevention extends JavaPlugin
 		
 	public boolean config_spam_enabled;								//whether or not to monitor for spam
 	public int config_spam_loginCooldownSeconds;					//how long players must wait between logins.  combats login spam.
+	public int config_spam_loginLogoutNotificationsPerMinute;		//how many login/logout notifications to show per minute (global, not per player)
 	public ArrayList<String> config_spam_monitorSlashCommands;  	//the list of slash commands monitored for spam
 	public boolean config_spam_banOffenders;						//whether or not to ban spammers automatically
 	public String config_spam_banMessage;							//message to show an automatically banned player
@@ -566,6 +567,7 @@ public class GriefPrevention extends JavaPlugin
         
         this.config_spam_enabled = config.getBoolean("GriefPrevention.Spam.Enabled", true);
         this.config_spam_loginCooldownSeconds = config.getInt("GriefPrevention.Spam.LoginCooldownSeconds", 60);
+        this.config_spam_loginLogoutNotificationsPerMinute = config.getInt("GriefPrevention.Spam.LoginLogoutNotificationsPerMinute", 5);
         this.config_spam_warningMessage = config.getString("GriefPrevention.Spam.WarningMessage", "Please reduce your noise level.  Spammers will be banned.");
         this.config_spam_allowedIpAddresses = config.getString("GriefPrevention.Spam.AllowedIpAddresses", "1.2.3.4; 5.6.7.8");
         this.config_spam_banOffenders = config.getBoolean("GriefPrevention.Spam.BanOffenders", true);       
@@ -820,6 +822,7 @@ public class GriefPrevention extends JavaPlugin
         
         outConfig.set("GriefPrevention.Spam.Enabled", this.config_spam_enabled);
         outConfig.set("GriefPrevention.Spam.LoginCooldownSeconds", this.config_spam_loginCooldownSeconds);
+        outConfig.set("GriefPrevention.Spam.LoginLogoutNotificationsPerMinute", this.config_spam_loginLogoutNotificationsPerMinute);
         outConfig.set("GriefPrevention.Spam.ChatSlashCommands", slashCommandsToMonitor);
         outConfig.set("GriefPrevention.Spam.WhisperSlashCommands", whisperCommandsToMonitor);     
         outConfig.set("GriefPrevention.Spam.WarningMessage", this.config_spam_warningMessage);
