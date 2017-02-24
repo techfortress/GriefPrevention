@@ -52,12 +52,7 @@ import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Hanging;
-import org.bukkit.entity.Horse;
-import org.bukkit.entity.Donkey;
-import org.bukkit.entity.Mule;
-import org.bukkit.entity.Llama;
-import org.bukkit.entity.SkeletonHorse;
-import org.bukkit.entity.ZombieHorse;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
@@ -1118,7 +1113,7 @@ class PlayerEventHandler implements Listener
 		if(!instance.claimsEnabledForWorld(entity.getWorld())) return;
 		
 		//allow horse protection to be overridden to allow management from other plugins
-        if (!instance.config_claims_protectHorses && ( entity instanceof Horse || entity instanceof Donkey || entity instanceof Mule || entity instanceof Llama || entity instanceof SkeletonHorse || entity instanceof ZombieHorse ) ) return;
+        if (!instance.config_claims_protectHorses && entity instanceof AbstractHorse ) return;
         
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         
