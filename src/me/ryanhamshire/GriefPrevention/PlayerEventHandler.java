@@ -52,7 +52,7 @@ import org.bukkit.entity.Creature;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Hanging;
-import org.bukkit.entity.Horse;
+import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
@@ -924,8 +924,12 @@ class PlayerEventHandler implements Listener
 	//determines whether or not a login or logout notification should be silenced, depending on how many there have been in the last minute
 	private boolean shouldSilenceNotification()
 	{
+		if (instance.config_spam_loginLogoutNotificationsPerMinute <= 0)
+		{
+			return false; // not silencing login/logout notifications
+		}
+
 		final long ONE_MINUTE = 60000;
-		final int MAX_ALLOWED = 5;
 		Long now = Calendar.getInstance().getTimeInMillis();
 		
 		//eliminate any expired entries (longer than a minute ago)
@@ -945,7 +949,7 @@ class PlayerEventHandler implements Listener
 		//add the new entry
 		this.recentLoginLogoutNotifications.add(now);
 		
-		return this.recentLoginLogoutNotifications.size() > MAX_ALLOWED;
+		return this.recentLoginLogoutNotifications.size() > instance.config_spam_loginLogoutNotificationsPerMinute;
 	}
 
 	//when a player drops an item
@@ -1109,7 +1113,7 @@ class PlayerEventHandler implements Listener
 		if(!instance.claimsEnabledForWorld(entity.getWorld())) return;
 		
 		//allow horse protection to be overridden to allow management from other plugins
-        if (!instance.config_claims_protectHorses && entity instanceof Horse) return;
+        if (!instance.config_claims_protectHorses && entity instanceof AbstractHorse ) return;
         
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         
@@ -1726,7 +1730,7 @@ class PlayerEventHandler implements Listener
 			Material materialInHand = itemInHand.getType();		
 			
 			//if it's bonemeal, armor stand, spawn egg, etc - check for build permission (ink sac == bone meal, must be a Bukkit bug?)
-			if(clickedBlock != null && (materialInHand == Material.INK_SACK || materialInHand == Material.ARMOR_STAND || materialInHand == Material.MONSTER_EGG || materialInHand == Material.END_CRYSTAL))
+			if(clickedBlock != null && (materialInHand == Material.INK_SACK || materialInHand == Material.ARMOR_STAND || (materialInHand == Material.MONSTER_EGG && GriefPrevention.instance.config_claims_preventGlobalMonsterEggs) || materialInHand == Material.END_CRYSTAL))
 			{
 				String noBuildReason = instance.allowBuild(player, clickedBlock.getLocation(), clickedBlockType);
 				if(noBuildReason != null)

@@ -24,12 +24,31 @@ public class AccrueClaimBlocksEvent extends Event
 
     private Player player;
     private int blocksToAccrue;
+    private boolean isIdle = false;
     private boolean cancelled = false;
 
+    /**
+     * @param player Player receiving accruals
+     * @param blocksToAccrue Blocks to accrue
+     *
+     * @deprecated Use {@link #AccrueClaimBlocksEvent(Player, int, boolean)} instead
+     */
     public AccrueClaimBlocksEvent(Player player, int blocksToAccrue)
     {
         this.player = player;
         this.blocksToAccrue = blocksToAccrue / 6;
+    }
+
+    /**
+     * @param player Player receiving accruals
+     * @param blocksToAccrue Blocks to accrue
+     * @param isIdle Whether player is detected as idle
+     */
+    public AccrueClaimBlocksEvent(Player player, int blocksToAccrue, boolean isIdle)
+    {
+        this.player = player;
+        this.blocksToAccrue = blocksToAccrue / 6;
+        this.isIdle = isIdle;
     }
 
     public Player getPlayer()
@@ -43,6 +62,13 @@ public class AccrueClaimBlocksEvent extends Event
     public int getBlocksToAccrue()
     {
         return this.blocksToAccrue;
+    }
+
+    /**
+     * @return whether the player was detected as idle (used for idle accrual percentage)
+     */
+    public boolean isIdle() {
+        return this.isIdle;
     }
 
     public boolean isCancelled()

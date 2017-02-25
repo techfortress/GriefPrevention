@@ -74,6 +74,7 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
+import org.bukkit.event.entity.EntityPortalExitEvent;
 import org.bukkit.event.entity.ExpBottleEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
@@ -209,12 +210,25 @@ public class EntityEventHandler implements Listener
 	}
 
 	//Used by "sand cannon" fix to ignore fallingblocks that fell through End Portals
+	//This is largely due to a CB issue with the above event
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onFallingBlockEnterPortal(EntityPortalEnterEvent event)
 	{
 		if (event.getEntityType() != EntityType.FALLING_BLOCK)
 			return;
 		event.getEntity().removeMetadata("GP_FALLINGBLOCK", instance);
+	}
+
+	//Don't let people drop in TNT through end portals
+	//Necessarily this shouldn't be an issue anyways since the platform is obsidian...
+	@EventHandler(ignoreCancelled = true)
+	void onTNTExitPortal(EntityPortalExitEvent event)
+	{
+		if (event.getEntityType() != EntityType.PRIMED_TNT)
+			return;
+		if (event.getTo().getWorld().getEnvironment() != Environment.THE_END)
+			return;
+		event.getEntity().remove();
 	}
 	
 	//don't allow zombies to break down doors
