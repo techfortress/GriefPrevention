@@ -20,13 +20,10 @@ package me.ryanhamshire.GriefPrevention;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.Date;
 
 import org.bukkit.*;
 
@@ -38,6 +35,16 @@ public class DatabaseDataStore extends DataStore
 	private String databaseUrl;
 	private String userName;
 	private String password;
+
+	private PreparedStatement updateNameStmnt;
+    private PreparedStatement insertClaimStmnt;
+    private PreparedStatement deleteClaimStmnt;
+    private PreparedStatement getPlayerDataStmnt;
+    private PreparedStatement deletePlayerDataStmnt;
+    private PreparedStatement insertPlayerDataStmnt;
+    private PreparedStatement insertNextClaimIdStmnt;
+    private PreparedStatement deleteGroupBonusStmnt;
+	private PreparedStatement insertSchemaVerStmnt;
 	
 	DatabaseDataStore(String url, String userName, String password) throws Exception
 	{
@@ -76,7 +83,7 @@ public class DatabaseDataStore extends DataStore
 		{
 			//ensure the data tables exist
 			Statement statement = databaseConnection.createStatement();
-			
+
 			statement.execute("CREATE TABLE IF NOT EXISTS griefprevention_nextclaimid (nextid INT(15));");
 			
 			statement.execute("CREATE TABLE IF NOT EXISTS griefprevention_claimdata (id INT(15), owner VARCHAR(50), lessercorner VARCHAR(100), greatercorner VARCHAR(100), builders TEXT, containers TEXT, accessors TEXT, managers TEXT, parentid INT(15));");
@@ -105,7 +112,17 @@ public class DatabaseDataStore extends DataStore
 			e3.printStackTrace();
 			throw e3;
 		}
-		
+
+		this.updateNameStmnt = this.databaseConnection.prepareStatement("UPDATE griefprevention_playerdata SET name = ? WHERE name = ?");
+		this.insertClaimStmnt = this.databaseConnection.prepareStatement("INSERT INTO griefprevention_claimdata (id, owner, lessercorner, greatercorner, builders, containers, accessors, managers, parentid) VALUES(?,?,?,?,?,?,?,?,?);");
+		this.deleteClaimStmnt = this.databaseConnection.prepareStatement("DELETE FROM griefprevention_claimdata WHERE id=?;");
+        this.getPlayerDataStmnt = this.databaseConnection.prepareStatement("SELECT * FROM griefprevention_playerdata WHERE name=?;");
+        this.deletePlayerDataStmnt = this.databaseConnection.prepareStatement("DELETE FROM griefprevention_playerdata WHERE name=?;");
+        this.insertPlayerDataStmnt = this.databaseConnection.prepareStatement("INSERT INTO griefprevention_playerdata (name, lastlogin, accruedblocks, bonusblocks) VALUES (?,?,?,?);");
+        this.insertNextClaimIdStmnt = this.databaseConnection.prepareStatement("INSERT INTO griefprevention_nextclaimid VALUES (?);");
+        this.deleteGroupBonusStmnt = this.databaseConnection.prepareStatement("DELETE FROM griefprevention_playerdata WHERE name=?;");
+		this.insertSchemaVerStmnt = this.databaseConnection.prepareStatement("INSERT INTO griefprevention_schemaversion VALUES (?);");
+
 		//load group data into memory
 		Statement statement = databaseConnection.createStatement();
 		ResultSet results = statement.executeQuery("SELECT * FROM griefprevention_playerdata;");
@@ -207,8 +224,10 @@ public class DatabaseDataStore extends DataStore
                 {
                     try
                     {
-                        statement = this.databaseConnection.createStatement();
-                        statement.execute("UPDATE griefprevention_playerdata SET name = '" + changes.get(name).toString() + "' WHERE name = '" + name + "';");
+						this.updateNameStmnt.clearParameters();
+						this.updateNameStmnt.setString(1, changes.get(name).toString());
+						this.updateNameStmnt.setString(2, name);
+						this.updateNameStmnt.executeUpdate();
                     }
                     catch(SQLException e)
                     {
@@ -357,9 +376,9 @@ public class DatabaseDataStore extends DataStore
             childClaim.inDataStore = true;
         }
 		
-		for(int i = 0; i < claimsToRemove.size(); i++)
+		for(Claim claim : claimsToRemove)
 		{
-			this.deleteClaimFromSecondaryStorage(claimsToRemove.get(i));
+			this.deleteClaimFromSecondaryStorage(claim);
 		}
 		
 		if(this.getSchemaVersion() <= 2)
@@ -407,56 +426,27 @@ public class DatabaseDataStore extends DataStore
 		
 		claim.getPermissions(builders, containers, accessors, managers);
 		
-		String buildersString = "";
-		for(int i = 0; i < builders.size(); i++)
-		{
-			buildersString += builders.get(i) + ";";
-		}
+		String buildersString = this.storageStringBuilder(builders);
+		String containersString = this.storageStringBuilder(containers);
+		String accessorsString = this.storageStringBuilder(accessors);
+		String managersString = this.storageStringBuilder(managers);
 		
-		String containersString = "";
-		for(int i = 0; i < containers.size(); i++)
-		{
-			containersString += containers.get(i) + ";";
-		}
-		
-		String accessorsString = "";
-		for(int i = 0; i < accessors.size(); i++)
-		{
-			accessorsString += accessors.get(i) + ";";
-		}
+		long parentId = claim.parent == null ? -1 : claim.parent.id;
 
-		String managersString = "";
-		for(int i = 0; i < managers.size(); i++)
-		{
-			managersString += managers.get(i) + ";";
-		}
-		
-		long parentId;
-		if(claim.parent == null)
-		{
-			parentId = -1;
-		}
-		else
-		{
-			parentId = claim.parent.id;
-		}
-		
 		try
 		{
 			this.refreshDataConnection();
-			
-			Statement statement = databaseConnection.createStatement();
-			statement.execute("INSERT INTO griefprevention_claimdata (id, owner, lessercorner, greatercorner, builders, containers, accessors, managers, parentid) VALUES(" +
-					claim.id + ", '" +
-					owner + "', '" +
-					lesserCornerString + "', '" +
-					greaterCornerString + "', '" +
-					buildersString + "', '" +
-					containersString + "', '" +
-					accessorsString + "', '" +
-					managersString + "', " +
-					parentId +		
-					");");
+            this.insertClaimStmnt.clearParameters();
+            this.insertClaimStmnt.setLong(1, claim.id);
+            this.insertClaimStmnt.setString(2, owner);
+            this.insertClaimStmnt.setString(3, lesserCornerString);
+            this.insertClaimStmnt.setString(4, greaterCornerString);
+            this.insertClaimStmnt.setString(5, buildersString);
+            this.insertClaimStmnt.setString(6, containersString);
+            this.insertClaimStmnt.setString(7, accessorsString);
+            this.insertClaimStmnt.setString(8, managersString);
+            this.insertClaimStmnt.setLong(9, parentId);
+            this.insertClaimStmnt.executeUpdate();
 		}
 		catch(SQLException e)
 		{
@@ -472,10 +462,9 @@ public class DatabaseDataStore extends DataStore
 	    try
 		{
 			this.refreshDataConnection();
-
-						
-			Statement statement = this.databaseConnection.createStatement();
-			statement.execute("DELETE FROM griefprevention_claimdata WHERE id='" + claim.id + "';");
+            this.deleteClaimStmnt.clearParameters();
+            this.deleteClaimStmnt.setLong(1, claim.id);
+            this.deleteClaimStmnt.executeUpdate();
 		}
 		catch(SQLException e)
 		{
@@ -494,9 +483,9 @@ public class DatabaseDataStore extends DataStore
 		try
 		{
 			this.refreshDataConnection();
-			
-			Statement statement = this.databaseConnection.createStatement();
-			ResultSet results = statement.executeQuery("SELECT * FROM griefprevention_playerdata WHERE name='" + playerID.toString() + "';");
+            this.getPlayerDataStmnt.clearParameters();
+            this.getPlayerDataStmnt.setString(1, playerID.toString());
+			ResultSet results = this.getPlayerDataStmnt.executeQuery();
 		
 			//if data for this player exists, use it
 			if(results.next())
@@ -534,12 +523,17 @@ public class DatabaseDataStore extends DataStore
 			
 			SimpleDateFormat sqlFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 			String dateString = sqlFormat.format(new Date(player.getLastPlayed()));
-			
-			Statement statement = databaseConnection.createStatement();
-			statement.execute("DELETE FROM griefprevention_playerdata WHERE name='" + playerID.toString() + "';");
-			statement = databaseConnection.createStatement();
-			statement.execute("INSERT INTO griefprevention_playerdata (name, lastlogin, accruedblocks, bonusblocks) VALUES ('" + playerID.toString() + "', '" + dateString + "', " + playerData.getAccruedClaimBlocks() + ", " + playerData.getBonusClaimBlocks() + ");");
-		}
+            this.deletePlayerDataStmnt.clearParameters();
+            this.deletePlayerDataStmnt.setString(1, playerID.toString());
+            this.deletePlayerDataStmnt.executeUpdate();
+
+            this.insertPlayerDataStmnt.clearParameters();
+            this.insertPlayerDataStmnt.setString(1, playerID.toString());
+            this.insertPlayerDataStmnt.setString(2, dateString);
+            this.insertPlayerDataStmnt.setInt(3, playerData.getAccruedClaimBlocks());
+            this.insertPlayerDataStmnt.setInt(4, playerData.getBonusClaimBlocks());
+            this.insertPlayerDataStmnt.executeUpdate();
+}
 		catch(SQLException e)
 		{
 		    StringWriter errors = new StringWriter();
@@ -562,10 +556,12 @@ public class DatabaseDataStore extends DataStore
 		try
 		{
 			this.refreshDataConnection();
-			
 			Statement statement = databaseConnection.createStatement();
 			statement.execute("DELETE FROM griefprevention_nextclaimid;");
-			statement.execute("INSERT INTO griefprevention_nextclaimid VALUES (" + nextID + ");");
+
+            this.insertNextClaimIdStmnt.clearParameters();
+            this.insertNextClaimIdStmnt.setLong(1, nextID);
+            this.insertNextClaimIdStmnt.executeUpdate();
 		}
 		catch(SQLException e)
 		{
@@ -585,12 +581,17 @@ public class DatabaseDataStore extends DataStore
             
             SimpleDateFormat sqlFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             String dateString = sqlFormat.format(new Date());
-            
-            Statement statement = databaseConnection.createStatement();
-            statement.execute("DELETE FROM griefprevention_playerdata WHERE name='$" + groupName + "';");
-            statement = databaseConnection.createStatement();
-            statement.execute("INSERT INTO griefprevention_playerdata (name, lastlogin, accruedblocks, bonusblocks) VALUES ('$" + groupName + "', '" + dateString + "', " + "0" + ", " + String.valueOf(currentValue) + ");");
-        }
+            this.deleteGroupBonusStmnt.clearParameters();
+            this.deleteGroupBonusStmnt.setString(1, '$' + groupName);
+            this.deleteGroupBonusStmnt.executeUpdate();
+
+            this.insertPlayerDataStmnt.clearParameters();
+            this.insertPlayerDataStmnt.setString(1, '$' + groupName);
+            this.insertPlayerDataStmnt.setString(2, dateString);
+            this.insertPlayerDataStmnt.setInt(3, 0);
+            this.insertPlayerDataStmnt.setInt(4, currentValue);
+            this.insertPlayerDataStmnt.executeUpdate();
+            }
         catch(SQLException e)
         {
             GriefPrevention.AddLogEntry("Unable to save data for group " + groupName + ".  Details:");
@@ -643,7 +644,6 @@ public class DatabaseDataStore extends DataStore
         try
         {
             this.refreshDataConnection();
-            
             Statement statement = this.databaseConnection.createStatement();
             ResultSet results = statement.executeQuery("SELECT * FROM griefprevention_schemaversion;");
             
@@ -676,10 +676,11 @@ public class DatabaseDataStore extends DataStore
         try
         {
             this.refreshDataConnection();
-            
             Statement statement = databaseConnection.createStatement();
             statement.execute("DELETE FROM griefprevention_schemaversion;");
-            statement.execute("INSERT INTO griefprevention_schemaversion VALUES (" + versionToSet + ");");
+			this.insertSchemaVerStmnt.clearParameters();
+			this.insertSchemaVerStmnt.setInt(1, versionToSet);
+			this.insertSchemaVerStmnt.executeUpdate();
         }
         catch(SQLException e)
         {
@@ -687,4 +688,17 @@ public class DatabaseDataStore extends DataStore
             GriefPrevention.AddLogEntry(e.getMessage());
         }
     }
+
+	/**
+	 * Concats an array to a string divided with the ; sign
+	 * @param input Arraylist with strings to concat
+	 * @return String with all values from input array
+	 */
+	private String storageStringBuilder(ArrayList<String> input) {
+		String output = "";
+		for(String string : input) {
+			output += string + ";";
+		}
+		return output;
+	}
 }
