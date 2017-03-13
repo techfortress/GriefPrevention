@@ -18,7 +18,11 @@
  
  package me.ryanhamshire.GriefPrevention;
 
+import me.ryanhamshire.GriefPrevention.events.VisualizationEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+
+import java.util.Collections;
 
 //applies a visualization for a player by sending him block change packets
 class VisualizationReversionTask implements Runnable 
@@ -39,6 +43,9 @@ class VisualizationReversionTask implements Runnable
 	{
 		//don't do anything if the player's current visualization is different from the one scheduled to revert
 	    if(playerData.currentVisualization != visualization) return;
+
+		// alert plugins of a visualization
+		Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, Collections.<Claim>emptySet()));
 	    
 	    Visualization.Revert(player);
 	}
