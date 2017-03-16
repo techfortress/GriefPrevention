@@ -247,6 +247,7 @@ permissions:
             griefprevention.deleteclaimsinworld: true
             griefprevention.siegeteleport: true
             griefprevention.unlockothersdrops: true
+            griefprevention.seeclaimsize: true
     griefprevention.siegeimmune:
         description: Makes a player immune to /Siege.
         default: op
@@ -321,6 +322,9 @@ permissions:
         default: true
     griefprevention.visualizenearbyclaims:
         description: Allows a player to see all nearby claims at once.
+        default: op
+    griefprevention.seeclaimsize:
+        description: Allows a player to see claim size for other players claims when right clicking with investigation tool
         default: op
     griefprevention.gpblockinfo:
         description: Grants access to /GPBlockInfo.
