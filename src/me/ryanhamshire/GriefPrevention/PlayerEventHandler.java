@@ -1891,11 +1891,7 @@ class PlayerEventHandler implements Listener
 
 					Visualization.Apply(player, visualization);
 
-					//if can resize this claim, tell about the boundaries
-					if(claim.allowEdit(player) == null)
-					{
-						instance.sendMessage(player, TextMode.Info, "  " + claim.getWidth() + "x" + claim.getHeight() + "=" + claim.getArea());
-					}
+                                        instance.sendMessage(player, TextMode.Info, "  " + claim.getWidth() + "x" + claim.getHeight() + "=" + claim.getArea());
 
 					//if permission, tell about the player's offline time
 					if(!claim.isAdminClaim() && (player.hasPermission("griefprevention.deleteclaims") || player.hasPermission("griefprevention.seeinactivity")))
