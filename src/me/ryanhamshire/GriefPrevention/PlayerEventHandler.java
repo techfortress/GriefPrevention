@@ -1891,7 +1891,7 @@ class PlayerEventHandler implements Listener
 
 					Visualization.Apply(player, visualization);
 
-					if (player.hasPermission('griefprevention.seeclaimsize')) {
+					if (player.hasPermission("griefprevention.seeclaimsize")) {
 						instance.sendMessage(player, TextMode.Info, "  " + claim.getWidth() + "x" + claim.getHeight() + "=" + claim.getArea());
 					}
 
