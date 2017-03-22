@@ -1891,9 +1891,7 @@ class PlayerEventHandler implements Listener
 
 					Visualization.Apply(player, visualization);
 
-					//if can resize this claim, tell about the boundaries
-					if(claim.allowEdit(player) == null)
-					{
+					if (player.hasPermission("griefprevention.seeclaimsize")) {
 						instance.sendMessage(player, TextMode.Info, "  " + claim.getWidth() + "x" + claim.getHeight() + "=" + claim.getArea());
 					}
 
