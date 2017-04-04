@@ -336,8 +336,9 @@ public class BlockEventHandler implements Listener
 		else if(!this.trashBlocks.contains(block.getType()) && GriefPrevention.instance.claimsEnabledForWorld(block.getWorld()))
 		{
 			if(!playerData.warnedAboutBuildingOutsideClaims && !player.hasPermission("griefprevention.adminclaims")
-			   && ((playerData.lastClaim == null && playerData.getClaims().size() == 0)
-			   || (playerData.lastClaim != null && playerData.lastClaim.isNear(player.getLocation(), 15))))
+				&& player.hasPermission("griefprevention.createclaims") && ((playerData.lastClaim == null
+				&& playerData.getClaims().size() == 0) || (playerData.lastClaim != null
+				&& playerData.lastClaim.isNear(player.getLocation(), 15))))
 			{
 				Long now = null;
 			    if(playerData.buildWarningTimestamp == null || (now = System.currentTimeMillis()) - playerData.buildWarningTimestamp > 600000)  //10 minute cooldown
