@@ -55,6 +55,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Hanging;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
 import org.bukkit.entity.Vehicle;
@@ -1169,8 +1170,8 @@ class PlayerEventHandler implements Listener
             }
         }
         
-        //don't allow interaction with item frames or armor stands in claimed areas without build permission
-		if(entity.getType() == EntityType.ARMOR_STAND || entity instanceof Hanging)
+                //don't allow interaction with armor stands in claimed areas without build permission
+		if(entity.getType() == EntityType.ARMOR_STAND)
 		{
 			String noBuildReason = instance.allowBuild(player, entity.getLocation(), Material.ITEM_FRAME); 
 			if(noBuildReason != null)
@@ -1180,6 +1181,17 @@ class PlayerEventHandler implements Listener
 				return;
 			}			
 		}
+                
+                //don't allow interaction with item frames in claimed areas without container permission
+                if (entity instanceof ItemFrame) {
+                    Claim claim = this.dataStore.getClaimAt(entity.getLocation(), false, playerData.lastClaim);
+                    String noContainerReason = claim.allowContainers(player);
+                    if (noContainerReason != null) {
+                        instance.sendMessage(player, TextMode.Err, noContainerReason);
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
 		
 		//limit armor placements when entity count is too high
 		if(entity.getType() == EntityType.ARMOR_STAND && instance.creativeRulesApply(player.getLocation()))
