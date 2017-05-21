@@ -1502,6 +1502,11 @@ public class GriefPrevention extends JavaPlugin
 		        ChatColor.GREEN + this.dataStore.getMessage(Messages.Containers) + " " + 
 		        ChatColor.BLUE + this.dataStore.getMessage(Messages.Access));
 			
+			if(claim.getSubclaimRestrictions())
+			{
+				GriefPrevention.sendMessage(player, TextMode.Err, Messages.HasSubclaimRestriction);
+			}
+
 			return true;
 		}
 		
@@ -1692,6 +1697,37 @@ public class GriefPrevention extends JavaPlugin
 			return true;
 		}
 		
+		//restrictsubclaim
+		else if (cmd.getName().equalsIgnoreCase("restrictsubclaim") && player != null)
+		{
+			PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+			Claim claim = this.dataStore.getClaimAt(player.getLocation(), true, playerData.lastClaim);
+			if(claim == null || claim.parent == null)
+			{
+				GriefPrevention.sendMessage(player, TextMode.Err, Messages.StandInSubclaim);
+				return true;
+			}
+
+			if(claim.allowGrantPermission(player) != null)
+			{
+				GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoPermissionTrust, claim.getOwnerName());
+				return true;
+			}
+
+			if(claim.getSubclaimRestrictions())
+			{
+				claim.setSubclaimRestrictions(false);
+				GriefPrevention.sendMessage(player, TextMode.Success, Messages.SubclaimUnrestricted);
+			}
+			else
+			{
+				claim.setSubclaimRestrictions(true);
+				GriefPrevention.sendMessage(player, TextMode.Success, Messages.SubclaimRestricted);
+			}
+			this.dataStore.saveClaim(claim);
+			return true;
+		}
+
 		//buyclaimblocks
 		else if(cmd.getName().equalsIgnoreCase("buyclaimblocks") && player != null)
 		{
