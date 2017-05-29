@@ -1708,9 +1708,9 @@ public class GriefPrevention extends JavaPlugin
 				return true;
 			}
 
-			if(claim.allowGrantPermission(player) != null)
+			if(!player.getUniqueId().equals(claim.parent.ownerID))
 			{
-				GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoPermissionTrust, claim.getOwnerName());
+				GriefPrevention.sendMessage(player, TextMode.Err, Messages.OnlyOwnersModifyClaims, claim.getOwnerName());
 				return true;
 			}
 
