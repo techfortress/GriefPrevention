@@ -251,5 +251,5 @@ public enum Messages
     TooMuchIpOverlap,
     StandInSubclaim,
     SubclaimRestricted,
-    SubclaimUnrestricted,
+    SubclaimUnrestricted
 }
