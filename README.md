@@ -1,4 +1,34 @@
-[![Downloads](https://img.shields.io/github/downloads/TechFortress/GriefPrevention/total.svg)](https://github.com/TechFortress/GriefPrevention/releases)
+# GriefPrevention - Minecraft anti-griefing plugin
+
+Stop responding to grief and prevent it instead. Grief Prevention will solve
+your grief problems without a roster of trained administrators, without 10
+different anti-grief plugins, and without disabling any standard game features.
+Because Grief Prevention teaches players for you, you won't have to publish a
+training manual or tutorial for players, or add explanatory signs to your world.
+
+Grief Prevention stops grief before it starts automatically without any effort
+from administrators, and with very little (self service) effort from players.
+Solve all your grief problems with a single anti grief download, no database,
+and (for most servers) no configuration customization.
+
+Want to get started?  Downloads are at: [![Downloads](https://img.shields.io/github/downloads/TechFortress/GriefPrevention/total.svg)](https://github.com/TechFortress/GriefPrevention/releases)
+
+Found a problem?  Use the issues tab above to raise an issue.  Please include
+all the information requested in the issue template, unless you're certain it's
+not relevant.
+
+### Wiki
+
+The [GriefPrevention wiki here on GitHub](https://github.com/TechFortress/GriefPrevention/wiki)
+contains documentation on using Grief Prevention, its range of commands and
+permissions, etc.
+
+### See also
+
+[Grief Prevention on spigotmc.org](https://www.spigotmc.org/resources/griefprevention.1884/)
+
+[Grief Prevention on dev.bukkit.org](https://dev.bukkit.org/projects/grief-prevention)
+
 
 ### Adding GriefPrevention as a gradle/maven/sbt/leiningen dependency
 
