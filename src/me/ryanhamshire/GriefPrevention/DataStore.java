@@ -18,16 +18,15 @@
 
 package me.ryanhamshire.GriefPrevention;
 
-import java.io.*;
-import java.nio.charset.Charset;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Pattern;
-
+import com.google.common.io.Files;
 import me.ryanhamshire.GriefPrevention.events.ClaimDeletedEvent;
-
-import me.ryanhamshire.GriefPrevention.events.DeniedMessageEvent;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.AnimalTamer;
@@ -37,7 +36,26 @@ import org.bukkit.entity.Tameable;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
-import com.google.common.io.Files;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Pattern;
 
 //singleton class which manages all GriefPrevention data (except for config options)
 public abstract class DataStore 
@@ -1686,12 +1704,6 @@ public abstract class DataStore
 			message = message.replace("{" + i + "}", param);
 		}
 
-		if (Bukkit.isPrimaryThread())
-        {
-            DeniedMessageEvent event = new DeniedMessageEvent(messageID, message);
-            Bukkit.getPluginManager().callEvent(event);
-            return event.getMessage();
-        }
 		return message;
 	}
 	

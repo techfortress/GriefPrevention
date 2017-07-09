@@ -18,6 +18,8 @@
  
 package me.ryanhamshire.GriefPrevention;
 
+import me.ryanhamshire.GriefPrevention.events.PlayerKickBanEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 //kicks or bans a player
@@ -48,6 +50,14 @@ class PlayerKickBanTask implements Runnable
 	@Override
 	public void run()
 	{
+		PlayerKickBanEvent kickBanEvent = new PlayerKickBanEvent(player, reason, source, ban);
+		Bukkit.getPluginManager().callEvent(kickBanEvent);
+
+		if (kickBanEvent.isCancelled())
+		{
+			return; // cancelled by a plugin
+		}
+
 		if(this.ban)
 		{		
 			//ban

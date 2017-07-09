@@ -1,3 +1,5 @@
+[![Downloads](https://img.shields.io/github/downloads/TechFortress/GriefPrevention/total.svg)](https://github.com/TechFortress/GriefPrevention/releases)
+
 ### Adding GriefPrevention as a gradle/maven/sbt/leiningen dependency
 
 Apparently there's this neat thing called JitPack [![](https://jitpack.io/v/TechFortress/GriefPrevention.svg)](https://jitpack.io/#TechFortress/GriefPrevention) that makes a public maven repo for public Github repos on the fly.
