@@ -72,7 +72,6 @@ commands:
       description: Deletes the claim you're standing in, even if it's not your claim.
       usage: /DeleteClaim
       permission: griefprevention.deleteclaims
-      aliases: dc
     deleteallclaims:
       description: Deletes all of another player's claims.
       usage: /DeleteAllClaims <player>
