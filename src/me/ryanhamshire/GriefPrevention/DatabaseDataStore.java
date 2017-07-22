@@ -79,7 +79,7 @@ public class DatabaseDataStore extends DataStore
 			
 			statement.execute("CREATE TABLE IF NOT EXISTS griefprevention_nextclaimid (nextid INT(15));");
 			
-			statement.execute("CREATE TABLE IF NOT EXISTS griefprevention_claimdata (id INT(15), owner VARCHAR(50), lessercorner VARCHAR(100), greatercorner VARCHAR(100), builders TEXT, containers TEXT, accessors TEXT, managers TEXT, parentid INT(15));");
+			statement.execute("CREATE TABLE IF NOT EXISTS griefprevention_claimdata (id INT(15), owner VARCHAR(50), lessercorner VARCHAR(100), greatercorner VARCHAR(100), builders TEXT, containers TEXT, accessors TEXT, managers TEXT, inheritnothing BOOLEAN, parentid INT(15));");
 			
 			statement.execute("CREATE TABLE IF NOT EXISTS griefprevention_playerdata (name VARCHAR(50), lastlogin DATETIME, accruedblocks INT(15), bonusblocks INT(15));");
 			
@@ -224,6 +224,13 @@ public class DatabaseDataStore extends DataStore
                 e.printStackTrace();
             }
         }
+
+		if(this.getSchemaVersion() <= 2)
+		{
+			statement = this.databaseConnection.createStatement();
+			statement.execute("ALTER TABLE griefprevention_claimdata ADD inheritNothing BOOLEAN DEFAULT 0 AFTER managers;");
+		}
+
 		
 		//load claims data into memory		
 		results = statement.executeQuery("SELECT * FROM griefprevention_claimdata;");
@@ -237,22 +244,23 @@ public class DatabaseDataStore extends DataStore
 		{
 			try
 			{
-			    //problematic claims will be removed from secondary storage, and never added to in-memory data store
-			    boolean removeClaim = false;
+				//problematic claims will be removed from secondary storage, and never added to in-memory data store
+				boolean removeClaim = false;
 			    
-			    long parentId = results.getLong("parentid");
+				long parentId = results.getLong("parentid");
 				claimID = results.getLong("id");
+				boolean inheritNothing = results.getBoolean("inheritNothing");
 					
 				Location lesserBoundaryCorner = null;
 				Location greaterBoundaryCorner = null;
 				String lesserCornerString = "(location not available)";
 				try
 				{
-    				lesserCornerString = results.getString("lessercorner");
-    				lesserBoundaryCorner = this.locationFromString(lesserCornerString, validWorlds);
-    				
-    				String greaterCornerString = results.getString("greatercorner");
-    				greaterBoundaryCorner = this.locationFromString(greaterCornerString, validWorlds);
+					lesserCornerString = results.getString("lessercorner");
+					lesserBoundaryCorner = this.locationFromString(lesserCornerString, validWorlds);
+					
+					String greaterCornerString = results.getString("greatercorner");
+					greaterBoundaryCorner = this.locationFromString(greaterCornerString, validWorlds);
 				}
 				catch(Exception e)
 				{
@@ -314,7 +322,7 @@ public class DatabaseDataStore extends DataStore
 				List<String> managerNames = Arrays.asList(managersString.split(";"));
 				managerNames = this.convertNameListToUUIDList(managerNames);
 				
-				Claim claim = new Claim(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderNames, containerNames, accessorNames, managerNames, claimID);
+				Claim claim = new Claim(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderNames, containerNames, accessorNames, managerNames, inheritNothing, claimID);
 				
 				if(removeClaim)
 				{
@@ -431,6 +439,8 @@ public class DatabaseDataStore extends DataStore
 			managersString += managers.get(i) + ";";
 		}
 		
+		boolean inheritNothing = claim.getSubclaimRestrictions();
+
 		long parentId;
 		if(claim.parent == null)
 		{
@@ -446,7 +456,7 @@ public class DatabaseDataStore extends DataStore
 			this.refreshDataConnection();
 			
 			Statement statement = databaseConnection.createStatement();
-			statement.execute("INSERT INTO griefprevention_claimdata (id, owner, lessercorner, greatercorner, builders, containers, accessors, managers, parentid) VALUES(" +
+			statement.execute("INSERT INTO griefprevention_claimdata (id, owner, lessercorner, greatercorner, builders, containers, accessors, managers, inheritnothing, parentid) VALUES(" +
 					claim.id + ", '" +
 					owner + "', '" +
 					lesserCornerString + "', '" +
@@ -455,7 +465,8 @@ public class DatabaseDataStore extends DataStore
 					containersString + "', '" +
 					accessorsString + "', '" +
 					managersString + "', " +
-					parentId +		
+					inheritNothing + ", "+
+					parentId +
 					");");
 		}
 		catch(SQLException e)

@@ -65,6 +65,9 @@ public class Claim
 	//only used for claim subdivisions.  top level claims have null here
 	public Claim parent = null;
 	
+	// intended for subclaims - they inherit no permissions
+	private boolean inheritNothing = false;
+
 	//children (subdivisions)
 	//note subdivisions themselves never have children
 	public ArrayList<Claim> children = new ArrayList<Claim>();
@@ -187,7 +190,7 @@ public class Claim
 	}
 	
 	//main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-	Claim(Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> builderIDs, List<String> containerIDs, List<String> accessorIDs, List<String> managerIDs, Long id)
+	Claim(Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> builderIDs, List<String> containerIDs, List<String> accessorIDs, List<String> managerIDs, boolean inheritNothing, Long id)
 	{
 		//modification date
 		this.modifiedDate = Calendar.getInstance().getTime();
@@ -234,6 +237,13 @@ public class Claim
 				this.managers.add(managerID);
 			}
 		}
+
+		this.inheritNothing = inheritNothing;
+	}
+
+	Claim(Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> builderIDs, List<String> containerIDs, List<String> accessorIDs, List<String> managerIDs, Long id)
+	{
+		this(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderIDs, containerIDs, accessorIDs, managerIDs, false, id);
 	}
 	
 	//measurements.  all measurements are in blocks
@@ -254,7 +264,17 @@ public class Claim
 	{
 		return this.greaterBoundaryCorner.getBlockZ() - this.lesserBoundaryCorner.getBlockZ() + 1;		
 	}
-	
+
+	public boolean getSubclaimRestrictions()
+	{
+		return inheritNothing;
+	}
+
+	public void setSubclaimRestrictions(boolean inheritNothing)
+	{
+		this.inheritNothing = inheritNothing;
+	}
+
 	//distance check for claims, distance in this case is a band around the outside of the claim rather then euclidean distance
 	public boolean isNear(Location location, int howNear)
 	{
@@ -301,7 +321,12 @@ public class Claim
 		
 		//permission inheritance for subdivisions
 		if(this.parent != null)
-			return this.parent.allowEdit(player);
+		{
+			if (player.getUniqueId().equals(this.parent.ownerID))
+				return null;
+			if (!inheritNothing)
+				return this.parent.allowEdit(player);
+		}
 		
 		//error message if all else fails
 		return GriefPrevention.instance.dataStore.getMessage(Messages.OnlyOwnersModifyClaims, this.getOwnerName());
@@ -371,7 +396,12 @@ public class Claim
 		
 		//subdivision permission inheritance
 		if(this.parent != null)
-			return this.parent.allowBuild(player, material);
+		{
+			if (player.getUniqueId().equals(this.parent.ownerID))
+				return null;
+			if (!inheritNothing)
+				return this.parent.allowBuild(player, material);
+		}
 		
 		//failure message for all other cases
 		String reason = GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildPermission, this.getOwnerName());
@@ -471,7 +501,12 @@ public class Claim
 		
 		//permission inheritance for subdivisions
 		if(this.parent != null)
-			return this.parent.allowAccess(player);
+		{
+			if (player.getUniqueId().equals(this.parent.ownerID))
+				return null;
+			if (!inheritNothing)
+				return this.parent.allowAccess(player);
+		}
 		
 		//catch-all error message for all other cases
 		String reason = GriefPrevention.instance.dataStore.getMessage(Messages.NoAccessPermission, this.getOwnerName());
@@ -514,7 +549,12 @@ public class Claim
 		
 		//permission inheritance for subdivisions
 		if(this.parent != null)
-			return this.parent.allowContainers(player);
+		{
+			if (player.getUniqueId().equals(this.parent.ownerID))
+				return null;
+			if (!inheritNothing)
+				return this.parent.allowContainers(player);
+		}
 		
 		//error message for all other cases
 		String reason = GriefPrevention.instance.dataStore.getMessage(Messages.NoContainersPermission, this.getOwnerName());
@@ -548,7 +588,12 @@ public class Claim
 		
 		//permission inheritance for subdivisions
 		if(this.parent != null)
-			return this.parent.allowGrantPermission(player);
+		{
+			if (player.getUniqueId().equals(this.parent.ownerID))
+				return null;
+			if (!inheritNothing)
+				return this.parent.allowGrantPermission(player);
+		}
 		
 		//generic error message
 		String reason = GriefPrevention.instance.dataStore.getMessage(Messages.NoPermissionTrust, this.getOwnerName());

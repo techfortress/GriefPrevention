@@ -90,7 +90,7 @@ public abstract class DataStore
 	final static String bannedWordsFilePath = dataLayerFolderPath + File.separator + "bannedWords.txt";
 
     //the latest version of the data schema implemented here
-	protected static final int latestSchemaVersion = 2;
+	protected static final int latestSchemaVersion = 3;
 	
 	//reading and writing the schema version to the data store
 	abstract int getSchemaVersionFromStorage();
@@ -1607,6 +1607,7 @@ public abstract class DataStore
 		this.addDefault(defaults, Messages.Build, "Build", null);
 		this.addDefault(defaults, Messages.Containers, "Containers", null);
 		this.addDefault(defaults, Messages.Access, "Access", null);
+		this.addDefault(defaults, Messages.HasSubclaimRestriction, "This subclaim does not inherit permissions from the parent", null);
 		this.addDefault(defaults, Messages.StartBlockMath, "{0} blocks from play + {1} bonus = {2} total.", null);
 		this.addDefault(defaults, Messages.ClaimsListHeader, "Claims:", null);
 		this.addDefault(defaults, Messages.ContinueBlockMath, " (-{0} blocks)", null);
@@ -1637,7 +1638,11 @@ public abstract class DataStore
 		this.addDefault(defaults, Messages.ConsoleOnlyCommand, "That command may only be executed from the server console.", null);
 		this.addDefault(defaults, Messages.WorldNotFound, "World not found.", null);
 		this.addDefault(defaults, Messages.TooMuchIpOverlap, "Sorry, there are too many players logged in with your IP address.", null);
-		
+
+		this.addDefault(defaults, Messages.StandInSubclaim, "You need to be standing in a subclaim to restrict it", null);
+		this.addDefault(defaults, Messages.SubclaimRestricted, "This subclaim's permissions will no longer inherit from the parent claim", null);
+		this.addDefault(defaults, Messages.SubclaimUnrestricted, "This subclaim's permissions will now inherit from the parent claim", null);
+
 		//load the config file
 		FileConfiguration config = YamlConfiguration.loadConfiguration(new File(messagesFilePath));
 		
