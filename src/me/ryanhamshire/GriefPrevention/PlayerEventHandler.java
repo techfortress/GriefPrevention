@@ -252,9 +252,25 @@ class PlayerEventHandler implements Listener
 		
 		//FEATURE: automatically educate players about the /trapped command
 		//check for "trapped" or "stuck" to educate players about the /trapped command
-		if(!message.contains("/trapped") && (message.contains("trapped") || message.contains("stuck") || message.contains(this.dataStore.getMessage(Messages.TrappedChatKeyword))))
-		{
-			instance.sendMessage(player, TextMode.Info, Messages.TrappedInstructions, 10L);
+		String trappedwords = this.dataStore.getMessage(
+		    Messages.TrappedChatKeyword
+		);
+		if (!trappedwords.isEmpty()) {
+		    String[] checkWords = trappedwords.split(",");
+
+		    for (String checkWord : checkWords) {
+			if (!message.contains("/trapped")
+			    && message.contains(checkWord))
+			{
+			    instance.sendMessage(
+				    player,
+				    TextMode.Info, 
+				    Messages.TrappedInstructions,
+				    10L
+			    );
+			    break;
+			}
+		    }
 		}
 		
 		//FEATURE: monitor for chat and command spam
