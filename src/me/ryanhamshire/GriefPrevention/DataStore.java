@@ -1497,7 +1497,7 @@ public abstract class DataStore
 		this.addDefault(defaults, Messages.RemainingBlocks, "You may claim up to {0} more blocks.", "0: remaining blocks");
 		this.addDefault(defaults, Messages.CreativeBasicsVideo2, "Click for Land Claim Help: {0}", "{0}: video URL");
 		this.addDefault(defaults, Messages.SurvivalBasicsVideo2, "Click for Land Claim Help: {0}", "{0}: video URL");
-		this.addDefault(defaults, Messages.TrappedChatKeyword, "trapped", "When mentioned in chat, players get information about the /trapped command.");
+		this.addDefault(defaults, Messages.TrappedChatKeyword, "trapped,stuck", "When mentioned in chat, players get information about the /trapped command (multiple words can be pipe-separated)");
 		this.addDefault(defaults, Messages.TrappedInstructions, "Are you trapped in someone's land claim?  Try the /trapped command.", null);
 		this.addDefault(defaults, Messages.PvPNoDrop, "You can't drop items while in PvP combat.", null);
 		this.addDefault(defaults, Messages.SiegeNoTeleport, "You can't teleport out of a besieged area.", null);
