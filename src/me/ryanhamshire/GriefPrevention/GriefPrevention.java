@@ -21,6 +21,7 @@ package me.ryanhamshire.GriefPrevention;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -258,12 +259,28 @@ public class GriefPrevention extends JavaPlugin
 		AddLogEntry("Finished loading configuration.");
 
                 // Check we can run with this Minecraft version
-                if (!Bukkit.getVersion().startsWith("1.12")) {
+                final String[] supportedVersions = {
+                   "1.11.2", "1.12", "1.12.1"
+                }; 
+
+                String serverVersion = this.getServer().getVersion();
+
+                boolean supportedVersion = false;
+                for (String s : supportedVersions) {
+                    if (s.equals(serverVersion)) {
+                        supportedVersion = true;
+                        break;
+                    }
+                }
+                if (!supportedVersion) {
+                    String supportedVersionList = Arrays.toString(supportedVersions);
                     AddLogEntry(
-                            "WARNING: this GriefPrevention version may not work"
-                            + " with Bukkit API version "
-                            + Bukkit.getVersion()
-                            + " - download an appropriate GP version"
+                        "WARNING: this GriefPrevention version may not work"
+                        + " with Bukkit API version " + serverVersion
+                        + " - it is known to work with "
+                        + supportedVersionList
+                        + " - download an appropriate GP version from "
+                        + "https://github.com/TechFortress/GriefPrevention/releases"
                     );
                     return;
                 }
