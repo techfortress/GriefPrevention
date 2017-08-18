@@ -256,7 +256,7 @@ class PlayerEventHandler implements Listener
 		    Messages.TrappedChatKeyword
 		);
 		if (!trappedwords.isEmpty()) {
-		    String[] checkWords = trappedwords.split(",");
+		    String[] checkWords = trappedwords.split(";");
 
 		    for (String checkWord : checkWords) {
 			if (!message.contains("/trapped")
