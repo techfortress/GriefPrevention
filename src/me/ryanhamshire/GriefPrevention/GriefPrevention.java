@@ -282,7 +282,6 @@ public class GriefPrevention extends JavaPlugin
                         + " - download an appropriate GP version from "
                         + "https://github.com/TechFortress/GriefPrevention/releases"
                     );
-                    return;
                 }
 		
 		//when datastore initializes, it loads player and claim data, and posts some stats to the log
