@@ -88,8 +88,8 @@ public class DatabaseDataStore extends DataStore
 			Statement statement = databaseConnection.createStatement();
 
 			statement.execute("CREATE TABLE IF NOT EXISTS griefprevention_nextclaimid (nextid INT(15));");
-
-			statement.execute("CREATE TABLE IF NOT EXISTS griefprevention_claimdata (id INT(15), owner VARCHAR(50), lessercorner VARCHAR(100), greatercorner VARCHAR(100), builders TEXT, containers TEXT, accessors TEXT, managers TEXT, parentid INT(15));");
+			
+			statement.execute("CREATE TABLE IF NOT EXISTS griefprevention_claimdata (id INT(15), owner VARCHAR(50), lessercorner VARCHAR(100), greatercorner VARCHAR(100), builders TEXT, containers TEXT, accessors TEXT, managers TEXT, inheritnothing BOOLEAN, parentid INT(15));");
 
 			statement.execute("CREATE TABLE IF NOT EXISTS griefprevention_playerdata (name VARCHAR(50), lastlogin DATETIME, accruedblocks INT(15), bonusblocks INT(15));");
 
@@ -117,7 +117,7 @@ public class DatabaseDataStore extends DataStore
 		}
 
 		this.updateNameSQL = "UPDATE griefprevention_playerdata SET name = ? WHERE name = ?;";
-		this.insertClaimSQL = "INSERT INTO griefprevention_claimdata (id, owner, lessercorner, greatercorner, builders, containers, accessors, managers, parentid) VALUES(?,?,?,?,?,?,?,?,?);";
+		this.insertClaimSQL = "INSERT INTO griefprevention_claimdata (id, owner, lessercorner, greatercorner, builders, containers, accessors, managers, inheritnothing, parentid) VALUES(?,?,?,?,?,?,?,?,?,?);";
 		this.deleteClaimSQL = "DELETE FROM griefprevention_claimdata WHERE id=?;";
 		this.getPlayerDataSQL = "SELECT * FROM griefprevention_playerdata WHERE name=?;";
 		this.deletePlayerDataSQL = "DELETE FROM griefprevention_playerdata WHERE name=?;";
@@ -248,7 +248,14 @@ public class DatabaseDataStore extends DataStore
 			}
 		}
 
+		if(this.getSchemaVersion() <= 2)
+		{
+			statement = this.databaseConnection.createStatement();
+			statement.execute("ALTER TABLE griefprevention_claimdata ADD inheritNothing BOOLEAN DEFAULT 0 AFTER managers;");
+		}
+
 		//load claims data into memory
+
 		results = statement.executeQuery("SELECT * FROM griefprevention_claimdata;");
 
 		ArrayList<Claim> claimsToRemove = new ArrayList<Claim>();
@@ -265,7 +272,7 @@ public class DatabaseDataStore extends DataStore
 
 				long parentId = results.getLong("parentid");
 				claimID = results.getLong("id");
-
+				boolean inheritNothing = results.getBoolean("inheritNothing");
 				Location lesserBoundaryCorner = null;
 				Location greaterBoundaryCorner = null;
 				String lesserCornerString = "(location not available)";
@@ -273,7 +280,6 @@ public class DatabaseDataStore extends DataStore
 				{
 					lesserCornerString = results.getString("lessercorner");
 					lesserBoundaryCorner = this.locationFromString(lesserCornerString, validWorlds);
-
 					String greaterCornerString = results.getString("greatercorner");
 					greaterBoundaryCorner = this.locationFromString(greaterCornerString, validWorlds);
 				}
@@ -336,8 +342,7 @@ public class DatabaseDataStore extends DataStore
 				String managersString = results.getString("managers");
 				List<String> managerNames = Arrays.asList(managersString.split(";"));
 				managerNames = this.convertNameListToUUIDList(managerNames);
-
-				Claim claim = new Claim(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderNames, containerNames, accessorNames, managerNames, claimID);
+				Claim claim = new Claim(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderNames, containerNames, accessorNames, managerNames, inheritNothing, claimID);
 
 				if(removeClaim)
 				{
@@ -434,7 +439,7 @@ public class DatabaseDataStore extends DataStore
 		String containersString = this.storageStringBuilder(containers);
 		String accessorsString = this.storageStringBuilder(accessors);
 		String managersString = this.storageStringBuilder(managers);
-
+		boolean inheritNothing = claim.getSubclaimRestrictions();
 		long parentId = claim.parent == null ? -1 : claim.parent.id;
 
 		try (PreparedStatement insertStmt = this.databaseConnection.prepareStatement(this.getInsertClaimSQL())) {
@@ -447,7 +452,8 @@ public class DatabaseDataStore extends DataStore
 			insertStmt.setString(6, containersString);
 			insertStmt.setString(7, accessorsString);
 			insertStmt.setString(8, managersString);
-			insertStmt.setLong(9, parentId);
+			insertStmt.setBoolean(9, inheritNothing);
+			insertStmt.setLong(10, parentId);
 			insertStmt.executeUpdate();
 		}
 		catch(SQLException e)

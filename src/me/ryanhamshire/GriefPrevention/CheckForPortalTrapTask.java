@@ -23,6 +23,7 @@ import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
 
 //players can be "trapped" in a portal frame if they don't have permission to break
@@ -35,24 +36,25 @@ class CheckForPortalTrapTask extends BukkitRunnable
 	private Player player;
 	
 	//where to send the player back to if he hasn't left the portal frame
-	//private Location returnLocation;
+	private Location returnLocation;
 	
-	public CheckForPortalTrapTask(Player player, GriefPrevention plugin)
+	public CheckForPortalTrapTask(Player player, GriefPrevention plugin, Location locationToReturn)
 	{
 		this.player = player;
 		this.instance = plugin;
+		this.returnLocation = locationToReturn;
+		player.setMetadata("GP_PORTALRESCUE", new FixedMetadataValue(instance, locationToReturn));
 	}
 	
 	@Override
 	public void run()
 	{
-	    //if player has logged out, do nothing
-	    if(!player.isOnline())
+	    if(player.isOnline() && player.getPortalCooldown() >= 10)
 		{
-			instance.portalReturnTaskMap.remove(player.getUniqueId());
-			return;
+			instance.AddLogEntry("Rescued " + player.getName() + " from a nether portal.\nTeleported from " + player.getLocation().toString() + " to " + ((Location)player.getMetadata("GP_PORTALRESCUE").get(0).value()).toString(), CustomLogEntryTypes.Debug);
+			player.teleport(returnLocation);
+			player.removeMetadata("GP_PORTALRESCUE", instance);
 		}
-		player.setPortalCooldown(0);
         instance.portalReturnTaskMap.remove(player.getUniqueId());
 	}
 }

@@ -48,6 +48,11 @@ commands:
       usage: /SubdivideClaims
       aliases: [sc, subdivideclaim]
       permission: griefprevention.claims
+    restrictsubclaim:
+      description: Restricts a subclaim, so that it inherits no permissions from the parent claim
+      usage: /restrictsubclaim
+      aliases: rsc
+      permission: griefprevention.claims
     adjustbonusclaimblocks:
       description: Adds or subtracts bonus claim blocks for a player.
       usage: /AdjustBonusClaimBlocks <player> <amount>
@@ -67,7 +72,6 @@ commands:
       description: Deletes the claim you're standing in, even if it's not your claim.
       usage: /DeleteClaim
       permission: griefprevention.deleteclaims
-      aliases: dc
     deleteallclaims:
       description: Deletes all of another player's claims.
       usage: /DeleteAllClaims <player>

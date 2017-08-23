@@ -1502,6 +1502,11 @@ public class GriefPrevention extends JavaPlugin
 		        ChatColor.GREEN + this.dataStore.getMessage(Messages.Containers) + " " + 
 		        ChatColor.BLUE + this.dataStore.getMessage(Messages.Access));
 			
+			if(claim.getSubclaimRestrictions())
+			{
+				GriefPrevention.sendMessage(player, TextMode.Err, Messages.HasSubclaimRestriction);
+			}
+
 			return true;
 		}
 		
@@ -1692,6 +1697,37 @@ public class GriefPrevention extends JavaPlugin
 			return true;
 		}
 		
+		//restrictsubclaim
+		else if (cmd.getName().equalsIgnoreCase("restrictsubclaim") && player != null)
+		{
+			PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+			Claim claim = this.dataStore.getClaimAt(player.getLocation(), true, playerData.lastClaim);
+			if(claim == null || claim.parent == null)
+			{
+				GriefPrevention.sendMessage(player, TextMode.Err, Messages.StandInSubclaim);
+				return true;
+			}
+
+			if(!player.getUniqueId().equals(claim.parent.ownerID))
+			{
+				GriefPrevention.sendMessage(player, TextMode.Err, Messages.OnlyOwnersModifyClaims, claim.getOwnerName());
+				return true;
+			}
+
+			if(claim.getSubclaimRestrictions())
+			{
+				claim.setSubclaimRestrictions(false);
+				GriefPrevention.sendMessage(player, TextMode.Success, Messages.SubclaimUnrestricted);
+			}
+			else
+			{
+				claim.setSubclaimRestrictions(true);
+				GriefPrevention.sendMessage(player, TextMode.Success, Messages.SubclaimRestricted);
+			}
+			this.dataStore.saveClaim(claim);
+			return true;
+		}
+
 		//buyclaimblocks
 		else if(cmd.getName().equalsIgnoreCase("buyclaimblocks") && player != null)
 		{
@@ -3280,7 +3316,16 @@ public class GriefPrevention extends JavaPlugin
 	static void sendMessage(Player player, ChatColor color, String message, long delayInTicks)
 	{
 		SendPlayerMessageTask task = new SendPlayerMessageTask(player, color, message);
-		GriefPrevention.instance.getServer().getScheduler().runTaskLater(GriefPrevention.instance, task, delayInTicks);
+
+		//Only schedule if there should be a delay. Otherwise, send the message right now, else the message will appear out of order.
+		if(delayInTicks > 0)
+		{
+			GriefPrevention.instance.getServer().getScheduler().runTaskLater(GriefPrevention.instance, task, delayInTicks);
+		}
+		else
+		{
+			task.run();
+		}
 	}
 	
 	//checks whether players can create claims in a world
@@ -3659,10 +3704,10 @@ public class GriefPrevention extends JavaPlugin
 
 	//Track scheduled "rescues" so we can cancel them if the player happens to teleport elsewhere so we can cancel it.
 	ConcurrentHashMap<UUID, BukkitTask> portalReturnTaskMap = new ConcurrentHashMap<UUID, BukkitTask>();
-	public void startRescueTask(Player player)
+	public void startRescueTask(Player player, Location location)
 	{
-		//Schedule task to reset player's portal cooldown after 20 seconds
-		BukkitTask task = new CheckForPortalTrapTask(player, this).runTaskLater(GriefPrevention.instance, 400L);
+		//Schedule task to reset player's portal cooldown after 30 seconds (Maximum timeout time for client, in case their network is slow and taking forever to load chunks)
+		BukkitTask task = new CheckForPortalTrapTask(player, this, location).runTaskLater(GriefPrevention.instance, 600L);
 
 		//Cancel existing rescue task
 		if (portalReturnTaskMap.containsKey(player.getUniqueId()))

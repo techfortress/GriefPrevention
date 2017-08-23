@@ -216,6 +216,7 @@ public enum Messages
     Build,
     Containers,
     Access,
+    HasSubclaimRestriction,
     StartBlockMath,
     ClaimsListHeader,
     ContinueBlockMath,
@@ -247,5 +248,9 @@ public enum Messages
     ConsoleOnlyCommand,
     WorldNotFound,
     AdjustBlocksAllSuccess,
-    TooMuchIpOverlap
+    TooMuchIpOverlap,
+    StandInSubclaim,
+    SubclaimRestricted,
+    SubclaimUnrestricted,
+    NetherPortalTrapDetectionMessage
 }
