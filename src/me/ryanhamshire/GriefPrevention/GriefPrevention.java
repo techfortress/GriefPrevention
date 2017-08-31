@@ -134,6 +134,7 @@ public class GriefPrevention extends JavaPlugin
 	
 	public ArrayList<World> config_siege_enabledWorlds;				//whether or not /siege is enabled on this server
 	public ArrayList<Material> config_siege_blocks;					//which blocks will be breakable in siege mode
+        public int config_siege_doorsOpenSeconds;  // how before claim is re-secured after siege win
 		
 	public boolean config_spam_enabled;								//whether or not to monitor for spam
 	public int config_spam_loginCooldownSeconds;					//how long players must wait between logins.  combats login spam.
