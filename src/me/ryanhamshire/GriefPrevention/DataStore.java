@@ -870,6 +870,7 @@ public abstract class DataStore
 		}
 
 		ClaimCreatedEvent event = new ClaimCreatedEvent(newClaim);
+		Bukkit.getPluginManager().callEvent(event);
 		if(event.isCancelled()) {
 			result.succeeded = false;
 			result.claim = null;
