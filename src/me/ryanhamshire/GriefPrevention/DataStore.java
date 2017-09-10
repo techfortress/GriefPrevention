@@ -19,6 +19,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import com.google.common.io.Files;
+import me.ryanhamshire.GriefPrevention.events.ClaimCreatedEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimDeletedEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -866,6 +867,14 @@ public abstract class DataStore
                 result.claim = null;
                 return result;
             }
+		}
+
+		ClaimCreatedEvent event = new ClaimCreatedEvent(newClaim);
+		Bukkit.getPluginManager().callEvent(event);
+		if(event.isCancelled()) {
+			result.succeeded = false;
+			result.claim = null;
+			return result;
 		}
 
 		//otherwise add this new claim to the data store to make it effective
