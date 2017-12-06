@@ -19,14 +19,17 @@
 package me.ryanhamshire.GriefPrevention;
 
 //represents a material or collection of materials
+
+import org.bukkit.Material;
+
 public class MaterialInfo
 {
-	int typeID;
+	Material typeID;
 	byte data;
 	boolean allDataValues;
 	String description;
 	
-	public MaterialInfo(int typeID, byte data, String description)
+	public MaterialInfo(Material typeID, byte data, String description)
 	{
 		this.typeID = typeID;
 		this.data = data;
@@ -34,7 +37,7 @@ public class MaterialInfo
 		this.description = description;
 	}
 	
-	public MaterialInfo(int typeID, String description)
+	public MaterialInfo(Material typeID, String description)
 	{
 		this.typeID = typeID;
 		this.data = 0;
@@ -42,7 +45,7 @@ public class MaterialInfo
 		this.description = description;
 	}
 	
-	private MaterialInfo(int typeID, byte data, boolean allDataValues, String description)
+	private MaterialInfo(Material typeID, byte data, boolean allDataValues, String description)
 	{
 		this.typeID = typeID;
 		this.data = data;
@@ -68,7 +71,7 @@ public class MaterialInfo
 		
 		try
 		{
-			int typeID = Integer.parseInt(parts[0]);
+			Material typeID = Material.matchMaterial(parts[0]);
 		
 			byte data;
 			boolean allDataValues;

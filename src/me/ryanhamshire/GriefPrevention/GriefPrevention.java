@@ -635,7 +635,7 @@ public class GriefPrevention extends JavaPlugin
         //default values for container trust mod blocks
         if(containerTrustStrings == null || containerTrustStrings.size() == 0)
         {
-            containerTrustStrings.add(new MaterialInfo(99999, "Example - ID 99999, all data values.").toString());
+            // containerTrustStrings.add(new MaterialInfo(99999, "Example - ID 99999, all data values.").toString());
         }
         
         //parse the strings from the config file
@@ -2640,10 +2640,10 @@ public class GriefPrevention extends JavaPlugin
 		else if(cmd.getName().equalsIgnoreCase("gpblockinfo") && player != null)
 		{
 		    ItemStack inHand = player.getItemInHand();
-		    player.sendMessage("In Hand: " + String.format("%s(%d:%d)", inHand.getType().name(), inHand.getTypeId(), inHand.getData().getData()));
+		    player.sendMessage("In Hand: " + String.format("%s(%d:%s)", inHand.getType().name(), inHand.getType(), inHand.getData().getData()));
 		    
 		    Block inWorld = GriefPrevention.getTargetNonAirBlock(player, 300);
-		    player.sendMessage("In World: " + String.format("%s(%d:%d)", inWorld.getType().name(), inWorld.getTypeId(), inWorld.getData()));
+		    player.sendMessage("In World: " + String.format("%s(%d:%s)", inWorld.getType().name(), inWorld.getType(), inWorld.getData()));
 		    
 		    return true;
 		}
@@ -3487,7 +3487,7 @@ public class GriefPrevention extends JavaPlugin
 				for(int y = 0; y < snapshots[0].length; y++)
 				{
 					Block block = chunk.getWorld().getBlockAt(startLocation.getBlockX() + x, startLocation.getBlockY() + y, startLocation.getBlockZ() + z);
-					snapshots[x][y][z] = new BlockSnapshot(block.getLocation(), block.getTypeId(), block.getData());
+					snapshots[x][y][z] = new BlockSnapshot(block.getLocation(), block.getType(), block.getData());
 				}
 			}
 		}

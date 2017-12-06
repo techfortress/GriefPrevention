@@ -71,7 +71,7 @@ class RestoreNatureExecutionTask implements Runnable
 				{
 					BlockSnapshot blockUpdate = this.snapshots[x][y][z];
 					Block currentBlock = blockUpdate.location.getBlock();
-					if(blockUpdate.typeId != currentBlock.getTypeId() || blockUpdate.data != currentBlock.getData())
+					if(blockUpdate.typeId != currentBlock.getType()|| blockUpdate.data != currentBlock.getData())
 					{
 						Claim claim = GriefPrevention.instance.dataStore.getClaimAt(blockUpdate.location, false, cachedClaim);
 						if(claim != null)
@@ -82,7 +82,8 @@ class RestoreNatureExecutionTask implements Runnable
 						
 						try
 						{
-						    currentBlock.setTypeIdAndData(blockUpdate.typeId, blockUpdate.data, false);
+						    currentBlock.setType(blockUpdate.typeId, false);
+                            currentBlock.setData(blockUpdate.data, false);
 						}
 						catch(IllegalArgumentException e)
 						{

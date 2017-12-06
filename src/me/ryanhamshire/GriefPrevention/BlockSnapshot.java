@@ -19,16 +19,17 @@
 package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 
 //basically, just a few data points from a block conveniently encapsulated in a class
 //this is used only by the RestoreNature code
 public class BlockSnapshot 
 {
 	public Location location;
-	public int typeId;
+	public Material typeId;
 	public byte data;	
 	
-	public BlockSnapshot(Location location, int typeId, byte data)
+	public BlockSnapshot(Location location, Material typeId, byte data)
 	{
 		this.location = location;
 		this.typeId = typeId;

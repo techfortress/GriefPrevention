@@ -47,8 +47,8 @@ class RestoreNatureProcessingTask implements Runnable
 	private boolean aggressiveMode;
 	
 	//two lists of materials
-	private ArrayList<Integer> notAllowedToHang;    //natural blocks which don't naturally hang in their air
-	private ArrayList<Integer> playerBlocks;		//a "complete" list of player-placed blocks.  MUST BE MAINTAINED as patches introduce more
+	private ArrayList<Material> notAllowedToHang;    //natural blocks which don't naturally hang in their air
+	private ArrayList<Material> playerBlocks;		//a "complete" list of player-placed blocks.  MUST BE MAINTAINED as patches introduce more
 	
 	@SuppressWarnings("deprecation")
     public RestoreNatureProcessingTask(BlockSnapshot[][][] snapshots, int miny, Environment environment, Biome biome, Location lesserBoundaryCorner, Location greaterBoundaryCorner, int seaLevel, boolean aggressiveMode, boolean creativeMode, Player player)
@@ -65,19 +65,19 @@ class RestoreNatureProcessingTask implements Runnable
 		this.player = player;
 		this.creativeMode = creativeMode;
 		
-		this.notAllowedToHang = new ArrayList<Integer>();
-		this.notAllowedToHang.add(Material.DIRT.getId());
-		this.notAllowedToHang.add(Material.LONG_GRASS.getId());
-		this.notAllowedToHang.add(Material.SNOW.getId());
-		this.notAllowedToHang.add(Material.LOG.getId());
+		this.notAllowedToHang = new ArrayList<Material>();
+		this.notAllowedToHang.add(Material.DIRT);
+		this.notAllowedToHang.add(Material.LONG_GRASS);
+		this.notAllowedToHang.add(Material.SNOW);
+		this.notAllowedToHang.add(Material.LOG);
 		
 		if(this.aggressiveMode)
 		{
-			this.notAllowedToHang.add(Material.GRASS.getId());			
-			this.notAllowedToHang.add(Material.STONE.getId());
+			this.notAllowedToHang.add(Material.GRASS);			
+			this.notAllowedToHang.add(Material.STONE);
 		}
 		
-		this.playerBlocks = new ArrayList<Integer>();
+		this.playerBlocks = new ArrayList<Material>();
 		this.playerBlocks.addAll(RestoreNatureProcessingTask.getPlayerBlocks(this.environment, this.biome));
 		
 		//in aggressive or creative world mode, also treat these blocks as user placed, to be removed
@@ -85,25 +85,25 @@ class RestoreNatureProcessingTask implements Runnable
 		//like a single-block tower of iron ore or a giant penis constructed with melons
 		if(this.aggressiveMode || this.creativeMode)
 		{
-			this.playerBlocks.add(Material.IRON_ORE.getId());
-			this.playerBlocks.add(Material.GOLD_ORE.getId());
-			this.playerBlocks.add(Material.DIAMOND_ORE.getId());
-			this.playerBlocks.add(Material.MELON_BLOCK.getId());
-			this.playerBlocks.add(Material.MELON_STEM.getId());
-			this.playerBlocks.add(Material.BEDROCK.getId());
-			this.playerBlocks.add(Material.COAL_ORE.getId());
-			this.playerBlocks.add(Material.PUMPKIN.getId());
-			this.playerBlocks.add(Material.PUMPKIN_STEM.getId());
-			this.playerBlocks.add(Material.MELON.getId());
+			this.playerBlocks.add(Material.IRON_ORE);
+			this.playerBlocks.add(Material.GOLD_ORE);
+			this.playerBlocks.add(Material.DIAMOND_ORE);
+			this.playerBlocks.add(Material.MELON_BLOCK);
+			this.playerBlocks.add(Material.MELON_STEM);
+			this.playerBlocks.add(Material.BEDROCK);
+			this.playerBlocks.add(Material.COAL_ORE);
+			this.playerBlocks.add(Material.PUMPKIN);
+			this.playerBlocks.add(Material.PUMPKIN_STEM);
+			this.playerBlocks.add(Material.MELON);
 		}
 		
 		if(this.aggressiveMode)
 		{
-			this.playerBlocks.add(Material.LEAVES.getId());
-			this.playerBlocks.add(Material.LEAVES_2.getId());
-			this.playerBlocks.add(Material.LOG.getId());
-			this.playerBlocks.add(Material.LOG_2.getId());
-			this.playerBlocks.add(Material.VINE.getId());
+			this.playerBlocks.add(Material.LEAVES);
+			this.playerBlocks.add(Material.LEAVES_2);
+			this.playerBlocks.add(Material.LOG);
+			this.playerBlocks.add(Material.LOG_2);
+			this.playerBlocks.add(Material.VINE);
 		}
 	}
 	
@@ -163,9 +163,9 @@ class RestoreNatureProcessingTask implements Runnable
 				{
 					//note: see minecraft wiki data values for leaves
 					BlockSnapshot block = snapshots[x][y][z];
-					if(block.typeId == Material.LEAVES.getId() && (block.data & 0x4) != 0)
+					if(block.typeId == Material.LEAVES && (block.data & 0x4) != 0)
 					{
-						block.typeId = Material.AIR.getId();
+						block.typeId = Material.AIR;
 					}
 				}
 			}
@@ -182,7 +182,7 @@ class RestoreNatureProcessingTask implements Runnable
 			{
 				for(int y = snapshots[0].length - 2; y > miny; y--)
 				{
-					if(snapshots[x][y][z].typeId != Material.SANDSTONE.getId()) continue;
+					if(snapshots[x][y][z].typeId != Material.SANDSTONE) continue;
 					
 					BlockSnapshot leftBlock = this.snapshots[x + 1][y][z];
 					BlockSnapshot rightBlock = this.snapshots[x - 1][y][z];
@@ -192,21 +192,21 @@ class RestoreNatureProcessingTask implements Runnable
 					BlockSnapshot aboveBlock = this.snapshots[x][y + 1][z];
 					
 					//skip blocks which may cause a cave-in
-					if(aboveBlock.typeId == Material.SAND.getId() && underBlock.typeId == Material.AIR.getId()) continue;
+					if(aboveBlock.typeId == Material.SAND && underBlock.typeId == Material.AIR) continue;
 					
 					//count adjacent non-air/non-leaf blocks
-					if(	leftBlock.typeId == Material.SAND.getId() || 
-						rightBlock.typeId == Material.SAND.getId() ||
-						upBlock.typeId == Material.SAND.getId() ||
-						downBlock.typeId == Material.SAND.getId() ||
-						aboveBlock.typeId == Material.SAND.getId() ||
-						underBlock.typeId == Material.SAND.getId())
+					if(	leftBlock.typeId == Material.SAND || 
+						rightBlock.typeId == Material.SAND ||
+						upBlock.typeId == Material.SAND ||
+						downBlock.typeId == Material.SAND ||
+						aboveBlock.typeId == Material.SAND ||
+						underBlock.typeId == Material.SAND)
 					{
-						snapshots[x][y][z].typeId = Material.SAND.getId();
+						snapshots[x][y][z].typeId = Material.SAND;
 					}
 					else
 					{
-						snapshots[x][y][z].typeId = Material.AIR.getId();
+						snapshots[x][y][z].typeId = Material.AIR;
 					}					
 				}				
 			}
@@ -224,7 +224,7 @@ class RestoreNatureProcessingTask implements Runnable
 			{
 				int thisy = this.highestY(x, z, true);
 				
-				while(thisy > this.seaLevel - 1 && (this.snapshots[x][thisy][z].typeId == Material.STONE.getId() || this.snapshots[x][thisy][z].typeId == Material.SANDSTONE.getId()))
+				while(thisy > this.seaLevel - 1 && (this.snapshots[x][thisy][z].typeId == Material.STONE || this.snapshots[x][thisy][z].typeId == Material.SANDSTONE))
 				{
 					BlockSnapshot leftBlock = this.snapshots[x + 1][thisy][z];
 					BlockSnapshot rightBlock = this.snapshots[x - 1][thisy][z];
@@ -233,26 +233,26 @@ class RestoreNatureProcessingTask implements Runnable
 					
 					//count adjacent non-air/non-leaf blocks
 					byte adjacentBlockCount = 0;
-					if(leftBlock.typeId != Material.AIR.getId() && leftBlock.typeId != Material.LEAVES.getId() && leftBlock.typeId != Material.VINE.getId())
+					if(leftBlock.typeId != Material.AIR && leftBlock.typeId != Material.LEAVES && leftBlock.typeId != Material.VINE)
 					{
 						adjacentBlockCount++;
 					}
-					if(rightBlock.typeId != Material.AIR.getId() && rightBlock.typeId != Material.LEAVES.getId() && rightBlock.typeId != Material.VINE.getId())
+					if(rightBlock.typeId != Material.AIR && rightBlock.typeId != Material.LEAVES && rightBlock.typeId != Material.VINE)
 					{
 						adjacentBlockCount++;
 					}
-					if(downBlock.typeId != Material.AIR.getId() && downBlock.typeId != Material.LEAVES.getId() && downBlock.typeId != Material.VINE.getId())
+					if(downBlock.typeId != Material.AIR && downBlock.typeId != Material.LEAVES && downBlock.typeId != Material.VINE)
 					{
 						adjacentBlockCount++;
 					}
-					if(upBlock.typeId != Material.AIR.getId() && upBlock.typeId != Material.LEAVES.getId() && upBlock.typeId != Material.VINE.getId())
+					if(upBlock.typeId != Material.AIR && upBlock.typeId != Material.LEAVES && upBlock.typeId != Material.VINE)
 					{
 						adjacentBlockCount++;
 					}
 					
 					if(adjacentBlockCount < 3)
 					{
-						this.snapshots[x][thisy][z].typeId = Material.AIR.getId();
+						this.snapshots[x][thisy][z].typeId = Material.AIR;
 					}
 
 					thisy--;
@@ -278,8 +278,8 @@ class RestoreNatureProcessingTask implements Runnable
 					BlockSnapshot block = snapshots[x][y][z];
 					
 					//skip non-logs
-					if(block.typeId != Material.LOG.getId()) continue;
-					if(block.typeId != Material.LOG_2.getId()) continue;
+					if(block.typeId != Material.LOG) continue;
+					if(block.typeId != Material.LOG_2) continue;
 					
 					//if in jungle biome, skip jungle logs
 					if(jungleBiome && block.data == 3) continue;
@@ -291,9 +291,9 @@ class RestoreNatureProcessingTask implements Runnable
 					BlockSnapshot downBlock = this.snapshots[x][y][z - 1];
 					
 					//if any, remove the log
-					if(leftBlock.typeId == Material.LOG.getId() || rightBlock.typeId == Material.LOG.getId() || upBlock.typeId == Material.LOG.getId() || downBlock.typeId == Material.LOG.getId())
+					if(leftBlock.typeId == Material.LOG || rightBlock.typeId == Material.LOG || upBlock.typeId == Material.LOG || downBlock.typeId == Material.LOG)
 					{
-						this.snapshots[x][y][z].typeId = Material.AIR.getId();
+						this.snapshots[x][y][z].typeId = Material.AIR;
 					}
 				}				
 			}
@@ -316,7 +316,7 @@ class RestoreNatureProcessingTask implements Runnable
 					BlockSnapshot block = snapshots[x][y][z];
 					if(this.playerBlocks.contains(block.typeId))
 					{
-						block.typeId = Material.AIR.getId();
+						block.typeId = Material.AIR;
 					}
 				}
 			}
@@ -338,11 +338,11 @@ class RestoreNatureProcessingTask implements Runnable
 					BlockSnapshot block = snapshots[x][y][z];
 					BlockSnapshot underBlock = snapshots[x][y - 1][z];
 					
-					if(underBlock.typeId == Material.AIR.getId() || underBlock.typeId == Material.STATIONARY_WATER.getId() || underBlock.typeId == Material.STATIONARY_LAVA.getId() || underBlock.typeId == Material.LEAVES.getId())
+					if(underBlock.typeId == Material.AIR || underBlock.typeId == Material.STATIONARY_WATER || underBlock.typeId == Material.STATIONARY_LAVA || underBlock.typeId == Material.LEAVES)
 					{
 						if(this.notAllowedToHang.contains(block.typeId))
 						{
-							block.typeId = Material.AIR.getId();
+							block.typeId = Material.AIR;
 						}
 					}
 				}
@@ -353,24 +353,24 @@ class RestoreNatureProcessingTask implements Runnable
 	@SuppressWarnings("deprecation")
     private void removeWallsAndTowers()
 	{
-		int [] excludedBlocksArray = new int []
+		Material [] excludedBlocksArray = new Material []
 		{
-			Material.CACTUS.getId(),
-			Material.LONG_GRASS.getId(),
-			Material.RED_MUSHROOM.getId(),
-			Material.BROWN_MUSHROOM.getId(),
-			Material.DEAD_BUSH.getId(),
-			Material.SAPLING.getId(),
-			Material.YELLOW_FLOWER.getId(),
-			Material.RED_ROSE.getId(),
-			Material.SUGAR_CANE_BLOCK.getId(),
-			Material.VINE.getId(),
-			Material.PUMPKIN.getId(),
-			Material.WATER_LILY.getId(),
-			Material.LEAVES.getId()
+			Material.CACTUS,
+			Material.LONG_GRASS,
+			Material.RED_MUSHROOM,
+			Material.BROWN_MUSHROOM,
+			Material.DEAD_BUSH,
+			Material.SAPLING,
+			Material.YELLOW_FLOWER,
+			Material.RED_ROSE,
+			Material.SUGAR_CANE_BLOCK,
+			Material.VINE,
+			Material.PUMPKIN,
+			Material.WATER_LILY,
+			Material.LEAVES
 		};
 		
-		ArrayList<Integer> excludedBlocks = new ArrayList<Integer>();
+		ArrayList<Material> excludedBlocks = new ArrayList<Material>();
 		for(int i = 0; i < excludedBlocksArray.length; i++) excludedBlocks.add(excludedBlocksArray[i]);
 		
 		boolean changed;
@@ -388,7 +388,7 @@ class RestoreNatureProcessingTask implements Runnable
 					int lefty = this.highestY(x - 1, z, false);
 					while(lefty < thisy && righty < thisy)
 					{
-						this.snapshots[x][thisy--][z].typeId = Material.AIR.getId();
+						this.snapshots[x][thisy--][z].typeId = Material.AIR;
 						changed = true;
 					}
 					
@@ -396,7 +396,7 @@ class RestoreNatureProcessingTask implements Runnable
 					int downy = this.highestY(x, z - 1, false);
 					while(upy < thisy && downy < thisy)
 					{
-						this.snapshots[x][thisy--][z].typeId = Material.AIR.getId();
+						this.snapshots[x][thisy--][z].typeId = Material.AIR;
 						changed = true;
 					}
 				}
@@ -414,15 +414,15 @@ class RestoreNatureProcessingTask implements Runnable
 				int y = this.highestY(x, z, true);
 				BlockSnapshot block = snapshots[x][y][z];
 				
-				if(block.typeId == Material.STONE.getId() || block.typeId == Material.GRAVEL.getId() || block.typeId == Material.SOIL.getId() || block.typeId == Material.DIRT.getId() || block.typeId == Material.SANDSTONE.getId())
+				if(block.typeId == Material.STONE || block.typeId == Material.GRAVEL || block.typeId == Material.SOIL || block.typeId == Material.DIRT || block.typeId == Material.SANDSTONE)
 				{
 					if(this.biome == Biome.DESERT || this.biome == Biome.DESERT_HILLS || this.biome == Biome.BEACHES)
 					{
-						this.snapshots[x][y][z].typeId = Material.SAND.getId();
+						this.snapshots[x][y][z].typeId = Material.SAND;
 					}
 					else
 					{
-						this.snapshots[x][y][z].typeId = Material.GRASS.getId();
+						this.snapshots[x][y][z].typeId = Material.GRASS;
 					}
 				}
 			}
@@ -432,19 +432,19 @@ class RestoreNatureProcessingTask implements Runnable
 	@SuppressWarnings("deprecation")
     private void fillHolesAndTrenches()
 	{
-		ArrayList<Integer> fillableBlocks = new ArrayList<Integer>();
-		fillableBlocks.add(Material.AIR.getId());
-		fillableBlocks.add(Material.STATIONARY_WATER.getId());
-		fillableBlocks.add(Material.STATIONARY_LAVA.getId());
-		fillableBlocks.add(Material.LONG_GRASS.getId());
+		ArrayList<Material> fillableBlocks = new ArrayList<Material>();
+		fillableBlocks.add(Material.AIR);
+		fillableBlocks.add(Material.STATIONARY_WATER);
+		fillableBlocks.add(Material.STATIONARY_LAVA);
+		fillableBlocks.add(Material.LONG_GRASS);
 		
-		ArrayList<Integer> notSuitableForFillBlocks = new ArrayList<Integer>();
-		notSuitableForFillBlocks.add(Material.LONG_GRASS.getId());
-		notSuitableForFillBlocks.add(Material.CACTUS.getId());
-		notSuitableForFillBlocks.add(Material.STATIONARY_WATER.getId());
-		notSuitableForFillBlocks.add(Material.STATIONARY_LAVA.getId());
-		notSuitableForFillBlocks.add(Material.LOG.getId());
-		notSuitableForFillBlocks.add(Material.LOG_2.getId());
+		ArrayList<Material> notSuitableForFillBlocks = new ArrayList<Material>();
+		notSuitableForFillBlocks.add(Material.LONG_GRASS);
+		notSuitableForFillBlocks.add(Material.CACTUS);
+		notSuitableForFillBlocks.add(Material.STATIONARY_WATER);
+		notSuitableForFillBlocks.add(Material.STATIONARY_LAVA);
+		notSuitableForFillBlocks.add(Material.LOG);
+		notSuitableForFillBlocks.add(Material.LOG_2);
 		
 		boolean changed;
 		do
@@ -505,11 +505,11 @@ class RestoreNatureProcessingTask implements Runnable
 				{
 					BlockSnapshot block = this.snapshots[x][y][z];
 					BlockSnapshot underBlock = this.snapshots[x][y][z];
-					if(block.typeId == Material.STATIONARY_WATER.getId() || block.typeId == Material.STATIONARY_LAVA.getId())
+					if(block.typeId == Material.STATIONARY_WATER || block.typeId == Material.STATIONARY_LAVA)
 					{
-						if(underBlock.typeId == Material.AIR.getId() || (underBlock.data != 0))
+						if(underBlock.typeId == Material.AIR || (underBlock.data != 0))
 						{
-							block.typeId = Material.AIR.getId();
+							block.typeId = Material.AIR;
 						}
 					}
 				}
@@ -529,7 +529,7 @@ class RestoreNatureProcessingTask implements Runnable
 						BlockSnapshot block = snapshots[x][y][z];
 						
 						//only consider air blocks and flowing water blocks for upgrade to water source blocks
-						if(block.typeId == Material.AIR.getId() || (block.typeId == Material.STATIONARY_WATER.getId() && block.data != 0))
+						if(block.typeId == Material.AIR || (block.typeId == Material.STATIONARY_WATER && block.data != 0))
 						{
 							BlockSnapshot leftBlock = this.snapshots[x + 1][y][z];
 							BlockSnapshot rightBlock = this.snapshots[x - 1][y][z];
@@ -538,23 +538,23 @@ class RestoreNatureProcessingTask implements Runnable
 							BlockSnapshot underBlock = this.snapshots[x][y - 1][z];
 							
 							//block underneath MUST be source water
-							if(underBlock.typeId != Material.STATIONARY_WATER.getId() || underBlock.data != 0) continue;
+							if(underBlock.typeId != Material.STATIONARY_WATER || underBlock.data != 0) continue;
 							
 							//count adjacent source water blocks
 							byte adjacentSourceWaterCount = 0;
-							if(leftBlock.typeId == Material.STATIONARY_WATER.getId() && leftBlock.data == 0)
+							if(leftBlock.typeId == Material.STATIONARY_WATER && leftBlock.data == 0)
 							{
 								adjacentSourceWaterCount++;
 							}
-							if(rightBlock.typeId == Material.STATIONARY_WATER.getId() && rightBlock.data == 0)
+							if(rightBlock.typeId == Material.STATIONARY_WATER && rightBlock.data == 0)
 							{
 								adjacentSourceWaterCount++;
 							}
-							if(upBlock.typeId == Material.STATIONARY_WATER.getId() && upBlock.data == 0)
+							if(upBlock.typeId == Material.STATIONARY_WATER && upBlock.data == 0)
 							{
 								adjacentSourceWaterCount++;
 							}
-							if(downBlock.typeId == Material.STATIONARY_WATER.getId() && downBlock.data == 0)
+							if(downBlock.typeId == Material.STATIONARY_WATER && downBlock.data == 0)
 							{
 								adjacentSourceWaterCount++;
 							}
@@ -562,7 +562,7 @@ class RestoreNatureProcessingTask implements Runnable
 							//at least two adjacent blocks must be source water
 							if(adjacentSourceWaterCount >= 2)
 							{
-								block.typeId = Material.STATIONARY_WATER.getId();
+								block.typeId = Material.STATIONARY_WATER;
 								block.data = 0;
 								changed = true;
 							}
@@ -588,10 +588,10 @@ class RestoreNatureProcessingTask implements Runnable
 				for(int y = this.seaLevel - 1; y < snapshots[0].length - 1; y++)
 				{
 					BlockSnapshot block = snapshots[x][y][z];
-					if(block.typeId == Material.STATIONARY_WATER.getId() || block.typeId == Material.STATIONARY_LAVA.getId() ||
-					   block.typeId == Material.WATER.getId() || block.typeId == Material.LAVA.getId())
+					if(block.typeId == Material.STATIONARY_WATER || block.typeId == Material.STATIONARY_LAVA ||
+					   block.typeId == Material.WATER || block.typeId == Material.LAVA)
 					{
-						block.typeId = Material.AIR.getId();
+						block.typeId = Material.AIR;
 					}
 				}
 			}
@@ -605,14 +605,14 @@ class RestoreNatureProcessingTask implements Runnable
 		for(y = snapshots[0].length - 1; y > 0; y--)
 		{
 			BlockSnapshot block = this.snapshots[x][y][z];
-			if(block.typeId != Material.AIR.getId() &&
-			!(ignoreLeaves && block.typeId == Material.SNOW.getId()) &&
-			!(ignoreLeaves && block.typeId == Material.LEAVES.getId()) &&
-			!(ignoreLeaves && block.typeId == Material.LEAVES_2.getId()) &&
-			!(block.typeId == Material.STATIONARY_WATER.getId()) &&
-			!(block.typeId == Material.WATER.getId()) &&
-			!(block.typeId == Material.LAVA.getId()) &&
-			!(block.typeId == Material.STATIONARY_LAVA.getId()))
+			if(block.typeId != Material.AIR &&
+			!(ignoreLeaves && block.typeId == Material.SNOW) &&
+			!(ignoreLeaves && block.typeId == Material.LEAVES) &&
+			!(ignoreLeaves && block.typeId == Material.LEAVES_2) &&
+			!(block.typeId == Material.STATIONARY_WATER) &&
+			!(block.typeId == Material.WATER) &&
+			!(block.typeId == Material.LAVA) &&
+			!(block.typeId == Material.STATIONARY_LAVA))
 			{
 				return y;
 			}
@@ -622,187 +622,187 @@ class RestoreNatureProcessingTask implements Runnable
 	}
 	
 	@SuppressWarnings("deprecation")
-    static ArrayList<Integer> getPlayerBlocks(Environment environment, Biome biome) 
+    static ArrayList<Material> getPlayerBlocks(Environment environment, Biome biome) 
 	{
 		//NOTE on this list.  why not make a list of natural blocks?
 		//answer: better to leave a few player blocks than to remove too many natural blocks.  remember we're "restoring nature"
 		//a few extra player blocks can be manually removed, but it will be impossible to guess exactly which natural materials to use in manual repair of an overzealous block removal
-		ArrayList<Integer> playerBlocks = new ArrayList<Integer>();
-		playerBlocks.add(Material.FIRE.getId());
-		playerBlocks.add(Material.BED_BLOCK.getId());
-		playerBlocks.add(Material.WOOD.getId());
-		playerBlocks.add(Material.BOOKSHELF.getId());
-		playerBlocks.add(Material.BREWING_STAND.getId());
-		playerBlocks.add(Material.BRICK.getId());
-		playerBlocks.add(Material.COBBLESTONE.getId());
-		playerBlocks.add(Material.GLASS.getId());
-		playerBlocks.add(Material.LAPIS_BLOCK.getId());
-		playerBlocks.add(Material.DISPENSER.getId());
-		playerBlocks.add(Material.NOTE_BLOCK.getId());
-		playerBlocks.add(Material.POWERED_RAIL.getId());
-		playerBlocks.add(Material.DETECTOR_RAIL.getId());
-		playerBlocks.add(Material.PISTON_STICKY_BASE.getId());
-		playerBlocks.add(Material.PISTON_BASE.getId());
-		playerBlocks.add(Material.PISTON_EXTENSION.getId());
-		playerBlocks.add(Material.WOOL.getId());
-		playerBlocks.add(Material.PISTON_MOVING_PIECE.getId());
-		playerBlocks.add(Material.GOLD_BLOCK.getId());
-		playerBlocks.add(Material.IRON_BLOCK.getId());
-		playerBlocks.add(Material.DOUBLE_STEP.getId());
-		playerBlocks.add(Material.STEP.getId());
-		playerBlocks.add(Material.CROPS.getId());
-		playerBlocks.add(Material.TNT.getId());
-		playerBlocks.add(Material.MOSSY_COBBLESTONE.getId());
-		playerBlocks.add(Material.TORCH.getId());
-		playerBlocks.add(Material.FIRE.getId());
-		playerBlocks.add(Material.WOOD_STAIRS.getId());
-		playerBlocks.add(Material.CHEST.getId());
-		playerBlocks.add(Material.REDSTONE_WIRE.getId());
-		playerBlocks.add(Material.DIAMOND_BLOCK.getId());
-		playerBlocks.add(Material.WORKBENCH.getId());
-		playerBlocks.add(Material.FURNACE.getId());
-		playerBlocks.add(Material.BURNING_FURNACE.getId());
-		playerBlocks.add(Material.WOODEN_DOOR.getId());
-		playerBlocks.add(Material.SIGN_POST.getId());
-		playerBlocks.add(Material.LADDER.getId());
-		playerBlocks.add(Material.RAILS.getId());
-		playerBlocks.add(Material.COBBLESTONE_STAIRS.getId());
-		playerBlocks.add(Material.WALL_SIGN.getId());
-		playerBlocks.add(Material.STONE_PLATE.getId());
-		playerBlocks.add(Material.LEVER.getId());
-		playerBlocks.add(Material.IRON_DOOR_BLOCK.getId());
-		playerBlocks.add(Material.WOOD_PLATE.getId());
-		playerBlocks.add(Material.REDSTONE_TORCH_ON.getId());
-		playerBlocks.add(Material.REDSTONE_TORCH_OFF.getId());
-		playerBlocks.add(Material.STONE_BUTTON.getId());
-		playerBlocks.add(Material.SNOW_BLOCK.getId());
-		playerBlocks.add(Material.JUKEBOX.getId());
-		playerBlocks.add(Material.FENCE.getId());
-		playerBlocks.add(Material.PORTAL.getId());
-		playerBlocks.add(Material.JACK_O_LANTERN.getId());
-		playerBlocks.add(Material.CAKE_BLOCK.getId());
-		playerBlocks.add(Material.DIODE_BLOCK_ON.getId());
-		playerBlocks.add(Material.DIODE_BLOCK_OFF.getId());
-		playerBlocks.add(Material.TRAP_DOOR.getId());
-		playerBlocks.add(Material.SMOOTH_BRICK.getId());
-		playerBlocks.add(Material.HUGE_MUSHROOM_1.getId());
-		playerBlocks.add(Material.HUGE_MUSHROOM_2.getId());
-		playerBlocks.add(Material.IRON_FENCE.getId());
-		playerBlocks.add(Material.THIN_GLASS.getId());
-		playerBlocks.add(Material.MELON_STEM.getId());
-		playerBlocks.add(Material.FENCE_GATE.getId());
-		playerBlocks.add(Material.BRICK_STAIRS.getId());
-		playerBlocks.add(Material.SMOOTH_STAIRS.getId());
-		playerBlocks.add(Material.ENCHANTMENT_TABLE.getId());
-		playerBlocks.add(Material.BREWING_STAND.getId());
-		playerBlocks.add(Material.CAULDRON.getId());
-		playerBlocks.add(Material.DIODE_BLOCK_ON.getId());
-		playerBlocks.add(Material.DIODE_BLOCK_ON.getId());		
-		playerBlocks.add(Material.WEB.getId());
-		playerBlocks.add(Material.SPONGE.getId());
-		playerBlocks.add(Material.GRAVEL.getId());
-		playerBlocks.add(Material.EMERALD_BLOCK.getId());
-		playerBlocks.add(Material.SANDSTONE.getId());
-		playerBlocks.add(Material.WOOD_STEP.getId());
-		playerBlocks.add(Material.WOOD_DOUBLE_STEP.getId());
-		playerBlocks.add(Material.ENDER_CHEST.getId());
-		playerBlocks.add(Material.SANDSTONE_STAIRS.getId());
-		playerBlocks.add(Material.SPRUCE_WOOD_STAIRS.getId());
-		playerBlocks.add(Material.JUNGLE_WOOD_STAIRS.getId());
-		playerBlocks.add(Material.COMMAND.getId());
-		playerBlocks.add(Material.BEACON.getId());
-		playerBlocks.add(Material.COBBLE_WALL.getId());
-		playerBlocks.add(Material.FLOWER_POT.getId());
-		playerBlocks.add(Material.CARROT.getId());
-		playerBlocks.add(Material.POTATO.getId());
-		playerBlocks.add(Material.WOOD_BUTTON.getId());
-		playerBlocks.add(Material.SKULL.getId());
-		playerBlocks.add(Material.ANVIL.getId());
-		playerBlocks.add(Material.SPONGE.getId());
-		playerBlocks.add(Material.DOUBLE_STONE_SLAB2.getId());
-		playerBlocks.add(Material.STAINED_GLASS.getId());
-		playerBlocks.add(Material.STAINED_GLASS_PANE.getId());
-		playerBlocks.add(Material.BANNER.getId());
-		playerBlocks.add(Material.STANDING_BANNER.getId());
-		playerBlocks.add(Material.ACACIA_STAIRS.getId());
-		playerBlocks.add(Material.BIRCH_WOOD_STAIRS.getId());
-		playerBlocks.add(Material.DARK_OAK_STAIRS.getId());
-		playerBlocks.add(Material.TRAPPED_CHEST.getId());
-		playerBlocks.add(Material.GOLD_PLATE.getId());
-		playerBlocks.add(Material.IRON_PLATE.getId());
-		playerBlocks.add(Material.REDSTONE_COMPARATOR_OFF.getId());
-		playerBlocks.add(Material.REDSTONE_COMPARATOR_ON.getId());
-		playerBlocks.add(Material.DAYLIGHT_DETECTOR.getId());
-		playerBlocks.add(Material.DAYLIGHT_DETECTOR_INVERTED.getId());
-		playerBlocks.add(Material.REDSTONE_BLOCK.getId());
-		playerBlocks.add(Material.HOPPER.getId());
-		playerBlocks.add(Material.QUARTZ_BLOCK.getId());
-		playerBlocks.add(Material.QUARTZ_STAIRS.getId());
-		playerBlocks.add(Material.DROPPER.getId());
-		playerBlocks.add(Material.SLIME_BLOCK.getId());
-		playerBlocks.add(Material.IRON_TRAPDOOR.getId());
-		playerBlocks.add(Material.PRISMARINE.getId());
-		playerBlocks.add(Material.HAY_BLOCK.getId());
-		playerBlocks.add(Material.CARPET.getId());
-		playerBlocks.add(Material.SEA_LANTERN.getId());
-		playerBlocks.add(Material.RED_SANDSTONE_STAIRS.getId());
-		playerBlocks.add(Material.STONE_SLAB2.getId());
-		playerBlocks.add(Material.ACACIA_FENCE.getId());
-		playerBlocks.add(Material.ACACIA_FENCE_GATE.getId());
-		playerBlocks.add(Material.BIRCH_FENCE.getId());
-		playerBlocks.add(Material.BIRCH_FENCE_GATE.getId());
-		playerBlocks.add(Material.DARK_OAK_FENCE.getId());
-		playerBlocks.add(Material.DARK_OAK_FENCE_GATE.getId());
-		playerBlocks.add(Material.JUNGLE_FENCE.getId());
-        playerBlocks.add(Material.JUNGLE_FENCE_GATE.getId());
-        playerBlocks.add(Material.SPRUCE_FENCE.getId());
-        playerBlocks.add(Material.SPRUCE_FENCE_GATE.getId());
-        playerBlocks.add(Material.ACACIA_DOOR.getId());
-        playerBlocks.add(Material.SPRUCE_DOOR.getId());
-        playerBlocks.add(Material.DARK_OAK_DOOR.getId());
-        playerBlocks.add(Material.JUNGLE_DOOR.getId());
-        playerBlocks.add(Material.BIRCH_DOOR.getId());
-        playerBlocks.add(Material.COAL_BLOCK.getId());
-        playerBlocks.add(Material.REDSTONE_LAMP_OFF.getId());
-        playerBlocks.add(Material.REDSTONE_LAMP_ON.getId());
-        playerBlocks.add(Material.PURPUR_BLOCK.getId());
-        playerBlocks.add(Material.PURPUR_SLAB.getId());
-        playerBlocks.add(Material.PURPUR_DOUBLE_SLAB.getId());
-        playerBlocks.add(Material.PURPUR_PILLAR.getId());
-        playerBlocks.add(Material.PURPUR_STAIRS.getId());
-        playerBlocks.add(Material.NETHER_WART_BLOCK.getId());
-        playerBlocks.add(Material.RED_NETHER_BRICK.getId());
-        playerBlocks.add(Material.BONE_BLOCK.getId());
+		ArrayList<Material> playerBlocks = new ArrayList<Material>();
+		playerBlocks.add(Material.FIRE);
+		playerBlocks.add(Material.BED_BLOCK);
+		playerBlocks.add(Material.WOOD);
+		playerBlocks.add(Material.BOOKSHELF);
+		playerBlocks.add(Material.BREWING_STAND);
+		playerBlocks.add(Material.BRICK);
+		playerBlocks.add(Material.COBBLESTONE);
+		playerBlocks.add(Material.GLASS);
+		playerBlocks.add(Material.LAPIS_BLOCK);
+		playerBlocks.add(Material.DISPENSER);
+		playerBlocks.add(Material.NOTE_BLOCK);
+		playerBlocks.add(Material.POWERED_RAIL);
+		playerBlocks.add(Material.DETECTOR_RAIL);
+		playerBlocks.add(Material.PISTON_STICKY_BASE);
+		playerBlocks.add(Material.PISTON_BASE);
+		playerBlocks.add(Material.PISTON_EXTENSION);
+		playerBlocks.add(Material.WOOL);
+		playerBlocks.add(Material.PISTON_MOVING_PIECE);
+		playerBlocks.add(Material.GOLD_BLOCK);
+		playerBlocks.add(Material.IRON_BLOCK);
+		playerBlocks.add(Material.DOUBLE_STEP);
+		playerBlocks.add(Material.STEP);
+		playerBlocks.add(Material.CROPS);
+		playerBlocks.add(Material.TNT);
+		playerBlocks.add(Material.MOSSY_COBBLESTONE);
+		playerBlocks.add(Material.TORCH);
+		playerBlocks.add(Material.FIRE);
+		playerBlocks.add(Material.WOOD_STAIRS);
+		playerBlocks.add(Material.CHEST);
+		playerBlocks.add(Material.REDSTONE_WIRE);
+		playerBlocks.add(Material.DIAMOND_BLOCK);
+		playerBlocks.add(Material.WORKBENCH);
+		playerBlocks.add(Material.FURNACE);
+		playerBlocks.add(Material.BURNING_FURNACE);
+		playerBlocks.add(Material.WOODEN_DOOR);
+		playerBlocks.add(Material.SIGN_POST);
+		playerBlocks.add(Material.LADDER);
+		playerBlocks.add(Material.RAILS);
+		playerBlocks.add(Material.COBBLESTONE_STAIRS);
+		playerBlocks.add(Material.WALL_SIGN);
+		playerBlocks.add(Material.STONE_PLATE);
+		playerBlocks.add(Material.LEVER);
+		playerBlocks.add(Material.IRON_DOOR_BLOCK);
+		playerBlocks.add(Material.WOOD_PLATE);
+		playerBlocks.add(Material.REDSTONE_TORCH_ON);
+		playerBlocks.add(Material.REDSTONE_TORCH_OFF);
+		playerBlocks.add(Material.STONE_BUTTON);
+		playerBlocks.add(Material.SNOW_BLOCK);
+		playerBlocks.add(Material.JUKEBOX);
+		playerBlocks.add(Material.FENCE);
+		playerBlocks.add(Material.PORTAL);
+		playerBlocks.add(Material.JACK_O_LANTERN);
+		playerBlocks.add(Material.CAKE_BLOCK);
+		playerBlocks.add(Material.DIODE_BLOCK_ON);
+		playerBlocks.add(Material.DIODE_BLOCK_OFF);
+		playerBlocks.add(Material.TRAP_DOOR);
+		playerBlocks.add(Material.SMOOTH_BRICK);
+		playerBlocks.add(Material.HUGE_MUSHROOM_1);
+		playerBlocks.add(Material.HUGE_MUSHROOM_2);
+		playerBlocks.add(Material.IRON_FENCE);
+		playerBlocks.add(Material.THIN_GLASS);
+		playerBlocks.add(Material.MELON_STEM);
+		playerBlocks.add(Material.FENCE_GATE);
+		playerBlocks.add(Material.BRICK_STAIRS);
+		playerBlocks.add(Material.SMOOTH_STAIRS);
+		playerBlocks.add(Material.ENCHANTMENT_TABLE);
+		playerBlocks.add(Material.BREWING_STAND);
+		playerBlocks.add(Material.CAULDRON);
+		playerBlocks.add(Material.DIODE_BLOCK_ON);
+		playerBlocks.add(Material.DIODE_BLOCK_ON);		
+		playerBlocks.add(Material.WEB);
+		playerBlocks.add(Material.SPONGE);
+		playerBlocks.add(Material.GRAVEL);
+		playerBlocks.add(Material.EMERALD_BLOCK);
+		playerBlocks.add(Material.SANDSTONE);
+		playerBlocks.add(Material.WOOD_STEP);
+		playerBlocks.add(Material.WOOD_DOUBLE_STEP);
+		playerBlocks.add(Material.ENDER_CHEST);
+		playerBlocks.add(Material.SANDSTONE_STAIRS);
+		playerBlocks.add(Material.SPRUCE_WOOD_STAIRS);
+		playerBlocks.add(Material.JUNGLE_WOOD_STAIRS);
+		playerBlocks.add(Material.COMMAND);
+		playerBlocks.add(Material.BEACON);
+		playerBlocks.add(Material.COBBLE_WALL);
+		playerBlocks.add(Material.FLOWER_POT);
+		playerBlocks.add(Material.CARROT);
+		playerBlocks.add(Material.POTATO);
+		playerBlocks.add(Material.WOOD_BUTTON);
+		playerBlocks.add(Material.SKULL);
+		playerBlocks.add(Material.ANVIL);
+		playerBlocks.add(Material.SPONGE);
+		playerBlocks.add(Material.DOUBLE_STONE_SLAB2);
+		playerBlocks.add(Material.STAINED_GLASS);
+		playerBlocks.add(Material.STAINED_GLASS_PANE);
+		playerBlocks.add(Material.BANNER);
+		playerBlocks.add(Material.STANDING_BANNER);
+		playerBlocks.add(Material.ACACIA_STAIRS);
+		playerBlocks.add(Material.BIRCH_WOOD_STAIRS);
+		playerBlocks.add(Material.DARK_OAK_STAIRS);
+		playerBlocks.add(Material.TRAPPED_CHEST);
+		playerBlocks.add(Material.GOLD_PLATE);
+		playerBlocks.add(Material.IRON_PLATE);
+		playerBlocks.add(Material.REDSTONE_COMPARATOR_OFF);
+		playerBlocks.add(Material.REDSTONE_COMPARATOR_ON);
+		playerBlocks.add(Material.DAYLIGHT_DETECTOR);
+		playerBlocks.add(Material.DAYLIGHT_DETECTOR_INVERTED);
+		playerBlocks.add(Material.REDSTONE_BLOCK);
+		playerBlocks.add(Material.HOPPER);
+		playerBlocks.add(Material.QUARTZ_BLOCK);
+		playerBlocks.add(Material.QUARTZ_STAIRS);
+		playerBlocks.add(Material.DROPPER);
+		playerBlocks.add(Material.SLIME_BLOCK);
+		playerBlocks.add(Material.IRON_TRAPDOOR);
+		playerBlocks.add(Material.PRISMARINE);
+		playerBlocks.add(Material.HAY_BLOCK);
+		playerBlocks.add(Material.CARPET);
+		playerBlocks.add(Material.SEA_LANTERN);
+		playerBlocks.add(Material.RED_SANDSTONE_STAIRS);
+		playerBlocks.add(Material.STONE_SLAB2);
+		playerBlocks.add(Material.ACACIA_FENCE);
+		playerBlocks.add(Material.ACACIA_FENCE_GATE);
+		playerBlocks.add(Material.BIRCH_FENCE);
+		playerBlocks.add(Material.BIRCH_FENCE_GATE);
+		playerBlocks.add(Material.DARK_OAK_FENCE);
+		playerBlocks.add(Material.DARK_OAK_FENCE_GATE);
+		playerBlocks.add(Material.JUNGLE_FENCE);
+        playerBlocks.add(Material.JUNGLE_FENCE_GATE);
+        playerBlocks.add(Material.SPRUCE_FENCE);
+        playerBlocks.add(Material.SPRUCE_FENCE_GATE);
+        playerBlocks.add(Material.ACACIA_DOOR);
+        playerBlocks.add(Material.SPRUCE_DOOR);
+        playerBlocks.add(Material.DARK_OAK_DOOR);
+        playerBlocks.add(Material.JUNGLE_DOOR);
+        playerBlocks.add(Material.BIRCH_DOOR);
+        playerBlocks.add(Material.COAL_BLOCK);
+        playerBlocks.add(Material.REDSTONE_LAMP_OFF);
+        playerBlocks.add(Material.REDSTONE_LAMP_ON);
+        playerBlocks.add(Material.PURPUR_BLOCK);
+        playerBlocks.add(Material.PURPUR_SLAB);
+        playerBlocks.add(Material.PURPUR_DOUBLE_SLAB);
+        playerBlocks.add(Material.PURPUR_PILLAR);
+        playerBlocks.add(Material.PURPUR_STAIRS);
+        playerBlocks.add(Material.NETHER_WART_BLOCK);
+        playerBlocks.add(Material.RED_NETHER_BRICK);
+        playerBlocks.add(Material.BONE_BLOCK);
         
 		//these are unnatural in the standard world, but not in the nether
 		if(environment != Environment.NETHER)
 		{
-			playerBlocks.add(Material.NETHERRACK.getId());
-			playerBlocks.add(Material.SOUL_SAND.getId());
-			playerBlocks.add(Material.GLOWSTONE.getId());
-			playerBlocks.add(Material.NETHER_BRICK.getId());
-			playerBlocks.add(Material.NETHER_FENCE.getId());
-			playerBlocks.add(Material.NETHER_BRICK_STAIRS.getId());
-			playerBlocks.add(Material.MAGMA.getId());
+			playerBlocks.add(Material.NETHERRACK);
+			playerBlocks.add(Material.SOUL_SAND);
+			playerBlocks.add(Material.GLOWSTONE);
+			playerBlocks.add(Material.NETHER_BRICK);
+			playerBlocks.add(Material.NETHER_FENCE);
+			playerBlocks.add(Material.NETHER_BRICK_STAIRS);
+			playerBlocks.add(Material.MAGMA);
 		}
 		
 		//these are unnatural in the standard and nether worlds, but not in the end
 		if(environment != Environment.THE_END)
 		{
-			playerBlocks.add(Material.OBSIDIAN.getId());
-			playerBlocks.add(Material.ENDER_STONE.getId());
-			playerBlocks.add(Material.ENDER_PORTAL_FRAME.getId());
-			playerBlocks.add(Material.CHORUS_PLANT.getId());
-			playerBlocks.add(Material.CHORUS_FLOWER.getId());
+			playerBlocks.add(Material.OBSIDIAN);
+			playerBlocks.add(Material.ENDER_STONE);
+			playerBlocks.add(Material.ENDER_PORTAL_FRAME);
+			playerBlocks.add(Material.CHORUS_PLANT);
+			playerBlocks.add(Material.CHORUS_FLOWER);
 		}
 		
 		//these are unnatural in sandy biomes, but not elsewhere
 		if(biome == Biome.DESERT || biome == Biome.DESERT_HILLS || biome == Biome.BEACHES || environment != Environment.NORMAL)
 		{
-			playerBlocks.add(Material.LEAVES.getId());
-			playerBlocks.add(Material.LEAVES_2.getId());
-			playerBlocks.add(Material.LOG.getId());
-			playerBlocks.add(Material.LOG_2.getId());
+			playerBlocks.add(Material.LEAVES);
+			playerBlocks.add(Material.LEAVES_2);
+			playerBlocks.add(Material.LOG);
+			playerBlocks.add(Material.LOG_2);
 		}
 		
 		return playerBlocks;
