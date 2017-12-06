@@ -36,8 +36,7 @@ class AutoExtendClaimTask implements Runnable
     private int getLowestBuiltY()
     {
         int y = this.claim.getLesserBoundaryCorner().getBlockY();
-        return y;
-        /*
+        
         if(this.yTooSmall(y)) return y;
         
         for(ChunkSnapshot chunk : this.chunks)
@@ -53,11 +52,11 @@ class AutoExtendClaimTask implements Runnable
                 {
                     for(int z = 0; z < 16; z++)
                     {
-                        Material blockType = chunk.getBlockTypeId(x, y, z);
+                        Material blockType = chunk.getBlockType(x, y, z);
                         while(!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
                         {
                             ychanged = true;
-                            blockType = chunk.getBlockTypeId(x, --y, z);
+                            blockType = chunk.getBlockType(x, --y, z);
                         }
                         
                         if(this.yTooSmall(y)) return y;
@@ -68,7 +67,7 @@ class AutoExtendClaimTask implements Runnable
             if(this.yTooSmall(y)) return y;
         }
         
-        return y;*/
+        return y;
     }
 
     private boolean yTooSmall(int y)
