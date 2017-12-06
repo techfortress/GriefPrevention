@@ -1581,7 +1581,7 @@ class PlayerEventHandler implements Listener
                         {
                             event.setCancelled(true);
                             instance.sendMessage(player, TextMode.Err, noBuildReason);
-                            player.sendBlockChange(adjacentBlock.getLocation(), adjacentBlock.getTypeId(), adjacentBlock.getData());
+                            player.sendBlockChange(adjacentBlock.getLocation(), adjacentBlock.getType(), adjacentBlock.getData());
                             return;
                         }
                     }
@@ -1951,33 +1951,6 @@ class PlayerEventHandler implements Listener
 
 				return;
 			}
-
-			//if holding a non-vanilla item
-			else if(Material.getMaterial(itemInHand.getTypeId()) == null)
-            {
-                //assume it's a long range tool and project out ahead
-                if(action == Action.RIGHT_CLICK_AIR)
-                {
-                    //try to find a far away non-air block along line of sight
-                    clickedBlock = getTargetBlock(player, 100);
-                }
-
-                //if target is claimed, require build trust permission
-                if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
-                Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
-                if(claim != null)
-                {
-                    String reason = claim.allowBreak(player, Material.AIR);
-                    if(reason != null)
-                    {
-                        instance.sendMessage(player, TextMode.Err, reason);
-                        event.setCancelled(true);
-                        return;
-                    }
-                }
-
-                return;
-            }
 
 			//if it's a golden shovel
 			else if(materialInHand != instance.config_claims_modificationTool || hand != EquipmentSlot.HAND) return;
@@ -2518,11 +2491,11 @@ class PlayerEventHandler implements Listener
 	}
 	
     //determines whether a block type is an inventory holder.  uses a caching strategy to save cpu time
-	private ConcurrentHashMap<Integer, Boolean> inventoryHolderCache = new ConcurrentHashMap<Integer, Boolean>();
+	private ConcurrentHashMap<Material, Boolean> inventoryHolderCache = new ConcurrentHashMap<Material, Boolean>();
 	private boolean isInventoryHolder(Block clickedBlock)
 	{
 	    @SuppressWarnings("deprecation")
-        Integer cacheKey = clickedBlock.getTypeId();
+        Material cacheKey = clickedBlock.getType();
 	    Boolean cachedValue = this.inventoryHolderCache.get(cacheKey);
 	    if(cachedValue != null)
 	    {
