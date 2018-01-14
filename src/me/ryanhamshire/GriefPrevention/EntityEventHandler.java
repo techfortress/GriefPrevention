@@ -144,7 +144,7 @@ public class EntityEventHandler implements Listener
 		}
 	    
 	    //don't allow crops to be trampled, except by a player with build permission
-		else if(event.getTo() == Material.DIRT && event.getBlock().getType() == Material.SOIL)
+		else if(event.getTo() == Material.DIRT && event.getBlock().getType() == Material.FARMLAND)
 		{
 		    if(event.getEntityType() != EntityType.PLAYER)
 		    {
@@ -243,7 +243,7 @@ public class EntityEventHandler implements Listener
 	public void onEntityInteract(EntityInteractEvent event)
 	{
 		Material material = event.getBlock().getType();
-	    if(material == Material.SOIL)
+	    if(material == Material.FARMLAND)
 	    {
 	        if(!GriefPrevention.instance.config_creaturesTrampleCrops)
 	        {
