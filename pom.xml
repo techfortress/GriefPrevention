@@ -56,10 +56,11 @@
     <dependencies>
         <!--Bukkit API-->
         <dependency>
-                <groupId>org.bukkit</groupId>
-                <artifactId>bukkit</artifactId>
-                <version>1.12.2-R0.1-SNAPSHOT</version>
-                <scope>provided</scope>
+            <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
+            <!--See spigotmc.org for the preview-->
+            <version>18w02a-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
          <!--Worldguard dependency-->
         <dependency>
