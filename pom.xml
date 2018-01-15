@@ -28,6 +28,11 @@
             <id>vault-repo</id>
             <url>http://nexus.hc.to/content/repositories/pub_releases</url>
         </repository>
+        <repository>
+            <id>public</id>
+            <name>Public Repositories</name>
+            <url>http://repo.mvdw-software.be/content/groups/public/</url>
+        </repository>
 
     </repositories>
     <build>
@@ -58,7 +63,6 @@
         <dependency>
             <groupId>org.bukkit</groupId>
             <artifactId>bukkit</artifactId>
-            <!--See spigotmc.org for the preview-->
             <version>18w02a-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
