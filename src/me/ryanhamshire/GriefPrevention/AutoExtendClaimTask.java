@@ -71,34 +71,8 @@ class AutoExtendClaimTask implements Runnable
         catch (NoSuchMethodError e)
         {
             GriefPrevention.instance.getLogger().severe("You are running an outdated build of Craftbukkit/Spigot/Paper. Please update.");
-            for(ChunkSnapshot chunk : this.chunks)
-            {
-                Biome biome = chunk.getBiome(0,  0);
-                ArrayList<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
-
-                boolean ychanged = true;
-                while(!this.yTooSmall(y) && ychanged)
-                {
-                    ychanged = false;
-                    for(int x = 0; x < 16; x++)
-                    {
-                        for(int z = 0; z < 16; z++)
-                        {
-                            String blockType = chunk.getBlockType(x, y, z).name();
-                            while(!this.yTooSmall(y) && playerBlockIDs.contains(Material.getMaterial(blockType)))
-                            {
-                                ychanged = true;
-                                blockType = chunk.getBlockType(x, --y, z).name();
-                            }
-
-                            if(this.yTooSmall(y)) return y;
-                        }
-                    }
-                }
-
-                if(this.yTooSmall(y)) return y;
-            }
-
+            GriefPrevention.instance.AddLogEntry("Claim " + claim.getID() + " was auto-extended to maximum depth.", CustomLogEntryTypes.Debug, false);
+            return GriefPrevention.instance.config_claims_maxDepth;
         }
 
 
