@@ -291,7 +291,7 @@ public class GriefPrevention extends JavaPlugin
                         public void run() {
                             AddLogEntry(unsupportedVersionWarning);
                         }
-                    }.runTaskLater(this.plugin, 200);
+                    }.runTaskLater(this, 200);
                 }
 		
 		//when datastore initializes, it loads player and claim data, and posts some stats to the log
