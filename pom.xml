@@ -28,6 +28,11 @@
             <id>vault-repo</id>
             <url>http://nexus.hc.to/content/repositories/pub_releases</url>
         </repository>
+        <repository>
+            <id>public</id>
+            <name>Public Repositories</name>
+            <url>http://repo.mvdw-software.be/content/groups/public/</url>
+        </repository>
 
     </repositories>
     <build>
@@ -56,10 +61,10 @@
     <dependencies>
         <!--Bukkit API-->
         <dependency>
-                <groupId>org.bukkit</groupId>
-                <artifactId>bukkit</artifactId>
-                <version>1.12.2-R0.1-SNAPSHOT</version>
-                <scope>provided</scope>
+            <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
+            <version>18w02a-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
          <!--Worldguard dependency-->
         <dependency>

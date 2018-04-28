@@ -85,6 +85,9 @@ class PlayerEventHandler implements Listener
 	
 	//list of temporarily banned ip's
 	private ArrayList<IpBanInfo> tempBannedIps = new ArrayList<IpBanInfo>();
+
+	//spawneggs
+	private ArrayList<Material> spawneggs = new ArrayList<Material>();
 	
 	//number of milliseconds in a day
 	private final long MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24;
@@ -1296,7 +1299,7 @@ class PlayerEventHandler implements Listener
         }
 		
 		//if preventing theft, prevent leashing claimed creatures
-		if(instance.config_claims_preventTheft && entity instanceof Creature && instance.getItemInHand(player, event.getHand()).getType() == Material.LEASH)
+		if(instance.config_claims_preventTheft && entity instanceof Creature && instance.getItemInHand(player, event.getHand()).getType() == Material.LEAD)
 		{
 		    Claim claim = this.dataStore.getClaimAt(entity.getLocation(), false, playerData.lastClaim);
             if(claim != null)
@@ -1426,8 +1429,8 @@ class PlayerEventHandler implements Listener
 	}
 	
 	//block use of buckets within other players' claims
-	private HashSet<Material> commonAdjacentBlocks_water = new HashSet<Material>(Arrays.asList(Material.WATER, Material.STATIONARY_WATER, Material.SOIL, Material.DIRT, Material.STONE));
-	private HashSet<Material> commonAdjacentBlocks_lava = new HashSet<Material>(Arrays.asList(Material.LAVA, Material.STATIONARY_LAVA, Material.DIRT, Material.STONE));
+	private HashSet<Material> commonAdjacentBlocks_water = new HashSet<Material>(Arrays.asList(Material.WATER, Material.FLOWING_WATER, Material.FARMLAND, Material.DIRT, Material.STONE));
+	private HashSet<Material> commonAdjacentBlocks_lava = new HashSet<Material>(Arrays.asList(Material.LAVA, Material.FLOWING_LAVA, Material.DIRT, Material.STONE));
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onPlayerBucketEmpty (PlayerBucketEmptyEvent bucketEvent)
 	{
@@ -1605,7 +1608,7 @@ class PlayerEventHandler implements Listener
 						clickedBlockType == Material.CAULDRON ||
 						clickedBlockType == Material.JUKEBOX ||
 						clickedBlockType == Material.ANVIL ||
-						clickedBlockType == Material.CAKE_BLOCK ||
+						clickedBlockType == Material.CAKE ||
 						instance.config_mods_containerTrustIds.Contains(new MaterialInfo(clickedBlock.getType(), clickedBlock.getData(), null)))))
 		{			
 		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
@@ -1649,30 +1652,51 @@ class PlayerEventHandler implements Listener
 				instance.sendMessage(player, TextMode.Warn, Messages.PvPImmunityEnd);
 			}
 		}
-		
+
 		//otherwise apply rules for doors and beds, if configured that way
-		else if( clickedBlock != null && 
-		        
-		        (instance.config_claims_lockWoodenDoors && (
-	                        clickedBlockType == Material.WOODEN_DOOR   ||
-	                        clickedBlockType == Material.ACACIA_DOOR   || 
-	                        clickedBlockType == Material.BIRCH_DOOR    ||
-	                        clickedBlockType == Material.JUNGLE_DOOR   ||
-                            clickedBlockType == Material.SPRUCE_DOOR   ||
-	                        clickedBlockType == Material.DARK_OAK_DOOR)) ||
-		        
-                (instance.config_claims_preventButtonsSwitches && clickedBlockType == Material.BED_BLOCK) ||
-		        
-                (instance.config_claims_lockTrapDoors && (
-		                    clickedBlockType == Material.TRAP_DOOR)) ||
-				
-                (instance.config_claims_lockFenceGates && (
-    				        clickedBlockType == Material.FENCE_GATE          ||
-    				        clickedBlockType == Material.ACACIA_FENCE_GATE   || 
-                            clickedBlockType == Material.BIRCH_FENCE_GATE    ||
-                            clickedBlockType == Material.JUNGLE_FENCE_GATE   ||
-                            clickedBlockType == Material.SPRUCE_FENCE_GATE   ||
-                            clickedBlockType == Material.DARK_OAK_FENCE_GATE)))
+		else if( clickedBlock != null &&
+
+				(instance.config_claims_lockWoodenDoors && (
+						clickedBlockType == Material.OAK_DOOR   ||
+								clickedBlockType == Material.ACACIA_DOOR   ||
+								clickedBlockType == Material.BIRCH_DOOR    ||
+								clickedBlockType == Material.JUNGLE_DOOR   ||
+								clickedBlockType == Material.SPRUCE_DOOR   ||
+								clickedBlockType == Material.DARK_OAK_DOOR)) ||
+
+				(instance.config_claims_preventButtonsSwitches && (
+						clickedBlockType == Material.WHITE_BED   ||
+								clickedBlockType == Material.ORANGE_BED   ||
+								clickedBlockType == Material.MAGENTA_BED   ||
+								clickedBlockType == Material.LIGHT_BLUE_BED   ||
+								clickedBlockType == Material.YELLOW_BED   ||
+								clickedBlockType == Material.LIME_BED   ||
+								clickedBlockType == Material.PINK_BED   ||
+								clickedBlockType == Material.GRAY_BED   ||
+								clickedBlockType == Material.LIGHT_GRAY_BED   ||
+								clickedBlockType == Material.CYAN_BED   ||
+								clickedBlockType == Material.PURPLE_BED   ||
+								clickedBlockType == Material.BLUE_BED   ||
+								clickedBlockType == Material.BROWN_BED   ||
+								clickedBlockType == Material.GREEN_BED   ||
+								clickedBlockType == Material.RED_BED   ||
+								clickedBlockType == Material.BLACK_BED)) ||
+
+				(instance.config_claims_lockTrapDoors && (
+						clickedBlockType == Material.OAK_TRAPDOOR   ||
+								clickedBlockType == Material.SPRUCE_TRAPDOOR   ||
+								clickedBlockType == Material.BIRCH_TRAPDOOR   ||
+								clickedBlockType == Material.JUNGLE_TRAPDOOR   ||
+								clickedBlockType == Material.ACACIA_TRAPDOOR   ||
+								clickedBlockType == Material.DARK_OAK_TRAPDOOR)) ||
+
+				(instance.config_claims_lockFenceGates && (
+						clickedBlockType == Material.OAK_FENCE_GATE          ||
+								clickedBlockType == Material.ACACIA_FENCE_GATE   ||
+								clickedBlockType == Material.BIRCH_FENCE_GATE    ||
+								clickedBlockType == Material.JUNGLE_FENCE_GATE   ||
+								clickedBlockType == Material.SPRUCE_FENCE_GATE   ||
+								clickedBlockType == Material.DARK_OAK_FENCE_GATE)))
 		{
 		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -1689,9 +1713,9 @@ class PlayerEventHandler implements Listener
 				}
 			}
 		}
-		
+
 		//otherwise apply rules for buttons and switches
-		else if(clickedBlock != null && instance.config_claims_preventButtonsSwitches && (clickedBlockType == null || clickedBlockType == Material.STONE_BUTTON || clickedBlockType == Material.WOOD_BUTTON || clickedBlockType == Material.LEVER || instance.config_mods_accessTrustIds.Contains(new MaterialInfo(clickedBlock.getType(), clickedBlock.getData(), null))))
+		else if(clickedBlock != null && instance.config_claims_preventButtonsSwitches && (clickedBlockType == null || clickedBlockType == Material.STONE_BUTTON || clickedBlockType == Material.OAK_BUTTON || clickedBlockType == Material.SPRUCE_BUTTON || clickedBlockType == Material.BIRCH_BUTTON || clickedBlockType == Material.JUNGLE_BUTTON || clickedBlockType == Material.ACACIA_BUTTON || clickedBlockType == Material.DARK_OAK_BUTTON || clickedBlockType == Material.LEVER || instance.config_mods_accessTrustIds.Contains(new MaterialInfo(clickedBlock.getType(), clickedBlock.getData(), null))))
 		{
 		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -1710,7 +1734,7 @@ class PlayerEventHandler implements Listener
 		}
 		
 		//otherwise apply rule for cake
-        else if(clickedBlock != null && instance.config_claims_preventTheft && clickedBlockType == Material.CAKE_BLOCK)
+        else if(clickedBlock != null && instance.config_claims_preventTheft && clickedBlockType == Material.CAKE)
         {
             if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
             Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -1729,18 +1753,15 @@ class PlayerEventHandler implements Listener
         }
 		
 		//apply rule for note blocks and repeaters and daylight sensors //RoboMWM: Include flower pots
-		else if(clickedBlock != null && 
-		        (
-		                clickedBlockType == Material.NOTE_BLOCK || 
-		                clickedBlockType == Material.DIODE_BLOCK_ON || 
-		                clickedBlockType == Material.DIODE_BLOCK_OFF ||
-		                clickedBlockType == Material.DRAGON_EGG ||
-		                clickedBlockType == Material.DAYLIGHT_DETECTOR ||
-		                clickedBlockType == Material.DAYLIGHT_DETECTOR_INVERTED ||
-		                clickedBlockType == Material.REDSTONE_COMPARATOR_ON ||
-		                clickedBlockType == Material.REDSTONE_COMPARATOR_OFF ||
-						clickedBlockType == Material.FLOWER_POT
-		        ))
+		else if(clickedBlock != null &&
+				(
+						clickedBlockType == Material.NOTE_BLOCK ||
+								clickedBlockType == Material.REPEATER ||
+								clickedBlockType == Material.DRAGON_EGG ||
+								clickedBlockType == Material.DAYLIGHT_DETECTOR ||
+								clickedBlockType == Material.COMPARATOR ||
+								clickedBlockType == Material.FLOWER_POT
+				))
 		{
 		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -1765,10 +1786,56 @@ class PlayerEventHandler implements Listener
 			//what's the player holding?
 			EquipmentSlot hand = event.getHand();
 			ItemStack itemInHand = instance.getItemInHand(player, hand);
-			Material materialInHand = itemInHand.getType();		
-			
+			Material materialInHand = itemInHand.getType();
+
+			if (this.spawneggs.isEmpty()) {
+				this.spawneggs.add(Material.BAT_SPAWN_EGG);
+				this.spawneggs.add(Material.BLAZE_SPAWN_EGG);
+				this.spawneggs.add(Material.CAVE_SPIDER_SPAWN_EGG);
+				this.spawneggs.add(Material.CHICKEN_SPAWN_EGG);
+				this.spawneggs.add(Material.COW_SPAWN_EGG);
+				this.spawneggs.add(Material.CREEPER_SPAWN_EGG);
+				this.spawneggs.add(Material.DONKEY_SPAWN_EGG);
+				this.spawneggs.add(Material.ELDER_GUARDIAN_SPAWN_EGG);
+				this.spawneggs.add(Material.ENDERMAN_SPAWN_EGG);
+				this.spawneggs.add(Material.ENDERMITE_SPAWN_EGG);
+				this.spawneggs.add(Material.EVOCATION_ILLAGER_SPAWN_EGG);
+				this.spawneggs.add(Material.GHAST_SPAWN_EGG);
+				this.spawneggs.add(Material.GUARDIAN_SPAWN_EGG);
+				this.spawneggs.add(Material.HORSE_SPAWN_EGG);
+				this.spawneggs.add(Material.HUSK_SPAWN_EGG);
+				this.spawneggs.add(Material.LLAMA_SPAWN_EGG);
+				this.spawneggs.add(Material.MAGMA_CUBE_SPAWN_EGG);
+				this.spawneggs.add(Material.MOOSHROOM_SPAWN_EGG);
+				this.spawneggs.add(Material.MULE_SPAWN_EGG);
+				this.spawneggs.add(Material.OCELOT_SPAWN_EGG);
+				this.spawneggs.add(Material.PARROT_SPAWN_EGG);
+				this.spawneggs.add(Material.PIG_SPAWN_EGG);
+				this.spawneggs.add(Material.POLAR_BEAR_SPAWN_EGG);
+				this.spawneggs.add(Material.RABBIT_SPAWN_EGG);
+				this.spawneggs.add(Material.SHEEP_SPAWN_EGG);
+				this.spawneggs.add(Material.SHULKER_SPAWN_EGG);
+				this.spawneggs.add(Material.SILVERFISH_SPAWN_EGG);
+				this.spawneggs.add(Material.SKELETON_HORSE_SPAWN_EGG);
+				this.spawneggs.add(Material.SKELETON_SPAWN_EGG);
+				this.spawneggs.add(Material.SLIME_SPAWN_EGG);
+				this.spawneggs.add(Material.SPIDER_SPAWN_EGG);
+				this.spawneggs.add(Material.SQUID_SPAWN_EGG);
+				this.spawneggs.add(Material.STRAY_SPAWN_EGG);
+				this.spawneggs.add(Material.VEX_SPAWN_EGG);
+				this.spawneggs.add(Material.VILLAGER_SPAWN_EGG);
+				this.spawneggs.add(Material.VINDICATION_ILLAGER_SPAWN_EGG);
+				this.spawneggs.add(Material.WITCH_SPAWN_EGG);
+				this.spawneggs.add(Material.WITHER_SKELETON_SPAWN_EGG);
+				this.spawneggs.add(Material.WOLF_SPAWN_EGG);
+				this.spawneggs.add(Material.ZOMBIE_HORSE_SPAWN_EGG);
+				this.spawneggs.add(Material.ZOMBIE_PIGMAN_SPAWN_EGG);
+				this.spawneggs.add(Material.ZOMBIE_SPAWN_EGG);
+				this.spawneggs.add(Material.ZOMBIE_VILLAGER_SPAWN_EGG);
+			}
+
 			//if it's bonemeal, armor stand, spawn egg, etc - check for build permission (ink sac == bone meal, must be a Bukkit bug?)
-			if(clickedBlock != null && (materialInHand == Material.INK_SACK || materialInHand == Material.ARMOR_STAND || (materialInHand == Material.MONSTER_EGG && GriefPrevention.instance.config_claims_preventGlobalMonsterEggs) || materialInHand == Material.END_CRYSTAL))
+			if(clickedBlock != null && (materialInHand == Material.BONE_MEAL || materialInHand == Material.ARMOR_STAND || (this.spawneggs.contains(itemInHand.getType()) && GriefPrevention.instance.config_claims_preventGlobalMonsterEggs) || materialInHand == Material.END_CRYSTAL))
 			{
 				String noBuildReason = instance.allowBuild(player, clickedBlock.getLocation(), clickedBlockType);
 				if(noBuildReason != null)
@@ -1776,23 +1843,23 @@ class PlayerEventHandler implements Listener
 					instance.sendMessage(player, TextMode.Err, noBuildReason);
 					event.setCancelled(true);
 				}
-				
+
 				return;
 			}
-			
+
 			else if(clickedBlock != null && (
-			        materialInHand == Material.BOAT || 
-			        materialInHand == Material.BOAT_ACACIA || 
-			        materialInHand == Material.BOAT_BIRCH || 
-			        materialInHand == Material.BOAT_DARK_OAK || 
-			        materialInHand == Material.BOAT_JUNGLE ||
-			        materialInHand == Material.BOAT_SPRUCE))
+					materialInHand == Material.OAK_BOAT ||
+							materialInHand == Material.SPRUCE_BOAT ||
+							materialInHand == Material.BIRCH_BOAT ||
+							materialInHand == Material.JUNGLE_BOAT ||
+							materialInHand == Material.ACACIA_BOAT ||
+							materialInHand == Material.DARK_OAK_BOAT))
 			{
 			    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 			    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
 				if(claim != null)
 				{
-					String noBuildReason = claim.allowBuild(player, Material.BOAT);
+					String noBuildReason = claim.allowBuild(player, materialInHand);
 					if(noBuildReason != null)
 					{
 						instance.sendMessage(player, TextMode.Err, noBuildReason);
@@ -1802,12 +1869,12 @@ class PlayerEventHandler implements Listener
 				
 				return;
 			}
-			
+
 			//survival world minecart placement requires container trust, which is the permission required to remove the minecart later
 			else if(clickedBlock != null &&
-			        (materialInHand == Material.MINECART || materialInHand == Material.POWERED_MINECART || materialInHand == Material.STORAGE_MINECART || materialInHand == Material.EXPLOSIVE_MINECART || materialInHand == Material.HOPPER_MINECART) &&
-			        !instance.creativeRulesApply(clickedBlock.getLocation()))
-            {
+					(materialInHand == Material.MINECART || materialInHand == Material.HOPPER_MINECART || materialInHand == Material.CHEST_MINECART || materialInHand == Material.FURNACE_MINECART || materialInHand == Material.TNT_MINECART) &&
+					!instance.creativeRulesApply(clickedBlock.getLocation()))
+			{
                 if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
                 Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
                 if(claim != null)
@@ -1822,9 +1889,9 @@ class PlayerEventHandler implements Listener
                 
                 return;
             }
-			
+
 			//if it's a spawn egg, minecart, or boat, and this is a creative world, apply special rules
-			else if(clickedBlock != null && (materialInHand == Material.MINECART || materialInHand == Material.POWERED_MINECART || materialInHand == Material.STORAGE_MINECART || materialInHand == Material.ARMOR_STAND || materialInHand == Material.ITEM_FRAME || materialInHand == Material.MONSTER_EGG || materialInHand == Material.MONSTER_EGGS || materialInHand == Material.EXPLOSIVE_MINECART || materialInHand == Material.HOPPER_MINECART) && instance.creativeRulesApply(clickedBlock.getLocation()))
+			else if(clickedBlock != null && (materialInHand == Material.MINECART || materialInHand == Material.HOPPER_MINECART || materialInHand == Material.CHEST_MINECART || materialInHand == Material.FURNACE_MINECART || materialInHand == Material.TNT_MINECART || materialInHand == Material.ARMOR_STAND || materialInHand == Material.ITEM_FRAME || this.spawneggs.contains(materialInHand)) && instance.creativeRulesApply(clickedBlock.getLocation()))
 			{
 				//player needs build permission at this location
 				String noBuildReason = instance.allowBuild(player, clickedBlock.getLocation(), Material.MINECART);
@@ -2043,7 +2110,7 @@ class PlayerEventHandler implements Listener
 				}
 				else if(environment == Environment.THE_END)
 				{
-					allowedFillBlocks.add(Material.ENDER_STONE);
+					allowedFillBlocks.add(Material.END_STONE);
 				}
 				else
 				{
@@ -2084,7 +2151,7 @@ class PlayerEventHandler implements Listener
 						}
 
 						//if the player clicks on water, try to sink through the water to find something underneath that's useful for a filler
-						else if(centerBlock.getType() == Material.WATER || centerBlock.getType() == Material.STATIONARY_WATER)
+						else if(centerBlock.getType() == Material.WATER || centerBlock.getType() == Material.FLOWING_WATER)
 						{
 							Block block = centerBlock.getWorld().getBlockAt(centerBlock.getLocation());
 							while(!allowedFillBlocks.contains(block.getType()) && block.getY() > centerBlock.getY() - 10)
@@ -2111,7 +2178,7 @@ class PlayerEventHandler implements Listener
 							}
 
 							//only replace air, spilling water, snow, long grass
-							if(block.getType() == Material.AIR || block.getType() == Material.SNOW || (block.getType() == Material.STATIONARY_WATER && block.getData() != 0) || block.getType() == Material.LONG_GRASS)
+							if(block.getType() == Material.AIR || block.getType() == Material.SNOW || (block.getType() == Material.WATER && block.getData() != 0) || block.getType() == Material.TALL_GRASS)
 							{
 								//if the top level, always use the default filler picked above
 								if(y == maxHeight)
@@ -2513,41 +2580,45 @@ class PlayerEventHandler implements Listener
 	    }
     }
 
-    private boolean onLeftClickWatchList(Material material)
+	private boolean onLeftClickWatchList(Material material)
 	{
-	    switch(material)
-        {
-            case WOOD_BUTTON:
-            case STONE_BUTTON:
-            case LEVER:
-            case DIODE_BLOCK_ON:  //redstone repeater
-            case DIODE_BLOCK_OFF:
-            case CAKE_BLOCK:
-            case DRAGON_EGG:
-                return true;
-            default:
-                return false;
-        }
-    }
+		switch(material)
+		{
+			case OAK_BUTTON:
+			case SPRUCE_BUTTON:
+			case BIRCH_BUTTON:
+			case JUNGLE_BUTTON:
+			case ACACIA_BUTTON:
+			case DARK_OAK_BUTTON:
+			case STONE_BUTTON:
+			case LEVER:
+			case REPEATER:
+			case CAKE:
+			case DRAGON_EGG:
+				return true;
+			default:
+				return false;
+		}
+	}
 
-    static Block getTargetBlock(Player player, int maxDistance) throws IllegalStateException
+	static Block getTargetBlock(Player player, int maxDistance) throws IllegalStateException
 	{
-        Location eye = player.getEyeLocation();
-        Material eyeMaterial = eye.getBlock().getType();
-        boolean passThroughWater = (eyeMaterial == Material.WATER || eyeMaterial == Material.STATIONARY_WATER); 
-        BlockIterator iterator = new BlockIterator(player.getLocation(), player.getEyeHeight(), maxDistance);
-	    Block result = player.getLocation().getBlock().getRelative(BlockFace.UP);
-	    while (iterator.hasNext())
-	    {
-	        result = iterator.next();
-	        Material type = result.getType();
-	        if(type != Material.AIR && 
-	           (!passThroughWater || type != Material.STATIONARY_WATER) &&
-	           (!passThroughWater || type != Material.WATER) &&
-	           type != Material.LONG_GRASS &&
-               type != Material.SNOW) return result;
-	    }
-	    
-	    return result;
-    }
+		Location eye = player.getEyeLocation();
+		Material eyeMaterial = eye.getBlock().getType();
+		boolean passThroughWater = (eyeMaterial == Material.WATER || eyeMaterial == Material.FLOWING_WATER);
+		BlockIterator iterator = new BlockIterator(player.getLocation(), player.getEyeHeight(), maxDistance);
+		Block result = player.getLocation().getBlock().getRelative(BlockFace.UP);
+		while (iterator.hasNext())
+		{
+			result = iterator.next();
+			Material type = result.getType();
+			if(type != Material.AIR &&
+					(!passThroughWater || type != Material.WATER) &&
+					(!passThroughWater || type != Material.FLOWING_WATER) &&
+					type != Material.TALL_GRASS &&
+					type != Material.SNOW) return result;
+		}
+
+		return result;
+	}
 }
