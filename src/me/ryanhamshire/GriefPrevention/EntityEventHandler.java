@@ -137,7 +137,7 @@ public class EntityEventHandler implements Listener
             event.setCancelled(true);
         } else if(event.getEntityType() == EntityType.WITHER && GriefPrevention.instance.config_claims_worldModes.get(event.getBlock().getWorld()) != ClaimsMode.Disabled)
 		{
-			Claim claim = this.dataStore.getClaimAt(event.getBlock().getLocation(), false, cachedClaim);
+			Claim claim = this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null);
             if(claim == null || !claim.areExplosivesAllowed || !GriefPrevention.instance.config_blockClaimExplosions)
             {
                event.setCancelled(true);
