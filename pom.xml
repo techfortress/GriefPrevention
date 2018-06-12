@@ -10,6 +10,7 @@
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <repositories>
         <repository>
@@ -31,13 +32,14 @@
 
     </repositories>
     <build>
+
     <!--Maintain existing structure (as much as possible)-->
-        <sourceDirectory>${project.basedir}/src</sourceDirectory>
+        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
         <!--currently in same folder as source files...-->
-        <testSourceDirectory>${project.basedir}/tests/java</testSourceDirectory>
+        <testSourceDirectory>${project.basedir}/src/tests/java</testSourceDirectory>
         <testResources>
           <testResource>
-            <directory>${project.basedir}/tests/resources</directory>
+            <directory>${project.basedir}/src/tests/resources</directory>
           </testResource>
         </testResources>
         <finalName>${project.name}</finalName>
@@ -45,8 +47,9 @@
             <resource>
             <!-- Use plugin.yml in root directory-->
             <!-- This can also automatically update plugin.yml version from pom, if you use ${project.version} as version number-->
-                <directory>${basedir}</directory>
+                <directory>${project.basedir}/src/main/resources</directory>
                 <filtering>true</filtering>
+                <targetPath>.</targetPath>
                 <includes>
                     <include>plugin.yml</include>
                 </includes>
