@@ -135,12 +135,13 @@ public class EntityEventHandler implements Listener
 		else if(!GriefPrevention.instance.config_rabbitsEatCrops && event.getEntityType() == EntityType.RABBIT)
         {
             event.setCancelled(true);
-        }
-		
-		//don't allow the wither to break blocks, when the wither is determined, too expensive to constantly check for claimed blocks
-		else if(event.getEntityType() == EntityType.WITHER && GriefPrevention.instance.config_claims_worldModes.get(event.getBlock().getWorld()) != ClaimsMode.Disabled)
+        } else if(event.getEntityType() == EntityType.WITHER && GriefPrevention.instance.config_claims_worldModes.get(event.getBlock().getWorld()) != ClaimsMode.Disabled)
 		{
-			event.setCancelled(true);
+			Claim claim = this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null);
+            if(claim == null || !claim.areExplosivesAllowed || !GriefPrevention.instance.config_blockClaimExplosions)
+            {
+               event.setCancelled(true);
+            }
 		}
 	    
 	    //don't allow crops to be trampled, except by a player with build permission
