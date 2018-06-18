@@ -1718,7 +1718,9 @@ public class GriefPrevention extends JavaPlugin
 				return true;
 			}
 
-			if(!player.getUniqueId().equals(claim.parent.ownerID))
+			// If admin claim, fail if this user is not an admin
+			// If not an admin claim, fail if this user is not the owner
+			if(claim.isAdminClaim() ? !player.hasPermission("griefprevention.adminclaims") : !player.getUniqueId().equals(claim.parent.ownerID))
 			{
 				GriefPrevention.sendMessage(player, TextMode.Err, Messages.OnlyOwnersModifyClaims, claim.getOwnerName());
 				return true;
