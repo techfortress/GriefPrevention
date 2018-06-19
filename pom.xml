@@ -1,71 +1,83 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <groupId>me.ryanhamshire</groupId>
-    <artifactId>GriefPrevention</artifactId>
-    <version>16.5.1</version>
-    <properties>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
-    <repositories>
-        <repository>
-            <id>paper-repo</id>
-            <url>https://repo.destroystokyo.com/repository/maven-public/</url>
-        </repository>
-        <repository>
-            <id>spigot-repo</id> 
-            <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url> 
-        </repository>
-
-    </repositories>
-    <build>
-    <!--Maintain existing structure (as much as possible)-->
-        <sourceDirectory>${project.basedir}/src</sourceDirectory>
-        <!--currently in same folder as source files...-->
-        <testSourceDirectory>${project.basedir}/tests/java</testSourceDirectory>
-        <testResources>
-          <testResource>
-            <directory>${project.basedir}/tests/resources</directory>
-          </testResource>
-        </testResources>
-        <finalName>${project.name}</finalName>
-        <resources>
-            <resource>
-            <!-- Use plugin.yml in root directory-->
-            <!-- This can also automatically update plugin.yml version from pom, if you use ${project.version} as version number-->
-                <directory>${basedir}</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>plugin.yml</include>
-                </includes>
-            </resource>
-        </resources>
-    </build>
-    <dependencies>
-        <!--Bukkit API-->
-        <dependency>
-                <groupId>org.bukkit</groupId>
-                <artifactId>bukkit</artifactId>
-                <version>1.12-R0.1-SNAPSHOT</version>
-                <scope>provided</scope>
-        </dependency>
-        <!--Google stuff (probably included in CB)-->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>21.0</version>
-        </dependency>
-        <!--json stuff-->
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-            <version>1.1.1</version>
-        </dependency>
-
-    </dependencies>
-
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>me.ryanhamshire</groupId>
+	<artifactId>GriefPrevention</artifactId>
+	<version>16.8.dev</version>
+	<properties>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<repositories>
+		<repository>
+			<id>paper-repo</id>
+			<url>https://repo.destroystokyo.com/repository/maven-public/</url>
+		</repository>
+		<repository>
+			<id>spigot-repo</id> 
+			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url> 
+		</repository>
+		<repository>
+			<id>worldedit-worldguard-repo</id>
+			<url>http://maven.sk89q.com/repo/</url>
+		</repository>
+		<repository>
+			<id>vault-repo</id>
+			<url>http://nexus.hc.to/content/repositories/pub_releases</url>
+		</repository>
+	</repositories>
+	<build>
+		<sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+		<testSourceDirectory>${project.basedir}/src/tests/java</testSourceDirectory>
+		<testResources>
+			<testResource>
+				<directory>${project.basedir}/src/tests/resources</directory>
+			</testResource>
+		</testResources>
+		<finalName>${project.name}</finalName>
+		<resources>
+			<resource>
+				<directory>${project.basedir}/src/main/resources</directory>
+				<filtering>true</filtering>
+				<targetPath>.</targetPath>
+				<includes>
+					<include>plugin.yml</include>
+				</includes>
+			</resource>
+		</resources>
+	</build>
+	<dependencies>
+		<dependency>
+				<groupId>org.bukkit</groupId>
+				<artifactId>bukkit</artifactId>
+				<version>1.12.2-R0.1-SNAPSHOT</version>
+				<scope>provided</scope>
+		</dependency>
+		<dependency>
+				<groupId>com.sk89q</groupId>
+				<artifactId>worldguard</artifactId>
+				<version>6.1.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+				<groupId>com.sk89q.worldedit</groupId>
+				<artifactId>worldedit-bukkit</artifactId>
+				<version>6.1.4-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+				<groupId>net.milkbowl.vault</groupId>
+				<artifactId>VaultAPI</artifactId>
+				<version>1.6</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>21.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+	</dependencies>
 </project>
