@@ -133,33 +133,33 @@ public class EntityEventHandler implements Listener
 		}
 	    
 		else if(!GriefPrevention.instance.config_rabbitsEatCrops && event.getEntityType() == EntityType.RABBIT)
-        {
-            event.setCancelled(true);
-        } else if(event.getEntityType() == EntityType.WITHER && GriefPrevention.instance.config_claims_worldModes.get(event.getBlock().getWorld()) != ClaimsMode.Disabled)
+		{
+		    event.setCancelled(true);
+		} else if(event.getEntityType() == EntityType.WITHER && GriefPrevention.instance.config_claims_worldModes.get(event.getBlock().getWorld()) != ClaimsMode.Disabled)
 		{
 			Claim claim = this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null);
-            if(claim == null || !claim.areExplosivesAllowed || !GriefPrevention.instance.config_blockClaimExplosions)
-            {
-               event.setCancelled(true);
-            }
+			if(claim == null || !claim.areExplosivesAllowed || !GriefPrevention.instance.config_blockClaimExplosions)
+			{
+			   event.setCancelled(true);
+			}
 		}
 	    
-	    //don't allow crops to be trampled, except by a player with build permission
-		else if(event.getTo() == Material.DIRT && event.getBlock().getType() == Material.SOIL)
+		//don't allow crops to be trampled, except by a player with build permission
+		else if(event.getTo() == Material.DIRT && event.getBlock().getType() == Material.FARMLAND)
 		{
-		    if(event.getEntityType() != EntityType.PLAYER)
-		    {
-		        event.setCancelled(true);
-		    }
-		    else
-		    {
-		        Player player = (Player)event.getEntity();
-		        Block block = event.getBlock();
-		        if(GriefPrevention.instance.allowBreak(player, block, block.getLocation()) != null)
-		        {
-		            event.setCancelled(true);
-		        }
-		    }
+			if(event.getEntityType() != EntityType.PLAYER)
+			{
+				event.setCancelled(true);
+			}
+			else
+			{
+				Player player = (Player)event.getEntity();
+				Block block = event.getBlock();
+				if(GriefPrevention.instance.allowBreak(player, block, block.getLocation()) != null)
+				{
+					event.setCancelled(true);
+				}
+			}
 		}
 		
 		//sand cannon fix - when the falling block doesn't fall straight down, take additional anti-grief steps
@@ -201,7 +201,7 @@ public class EntityEventHandler implements Listener
 		                 //when not allowed, drop as item instead of forming a block
 		                 event.setCancelled(true);
 		                 @SuppressWarnings("deprecation")
-		                 ItemStack itemStack = new ItemStack(entity.getMaterial(), 1, entity.getBlockData());
+		                 ItemStack itemStack = new ItemStack(entity.getMaterial(), 1);
 		                 Item item = block.getWorld().dropItem(entity.getLocation(), itemStack);
 		                 item.setVelocity(new Vector());
 		             }
@@ -244,20 +244,20 @@ public class EntityEventHandler implements Listener
 	public void onEntityInteract(EntityInteractEvent event)
 	{
 		Material material = event.getBlock().getType();
-	    if(material == Material.SOIL)
-	    {
-	        if(!GriefPrevention.instance.config_creaturesTrampleCrops)
-	        {
-	            event.setCancelled(true);
-	        }
-	        else
-	        {
-	            Entity rider = event.getEntity().getPassenger();
-	            if(rider != null && rider.getType() == EntityType.PLAYER)
-	            {
-	                event.setCancelled(true);
-	            }
-	        }
+		if(material == Material.FARMLAND)
+		{
+			if(!GriefPrevention.instance.config_creaturesTrampleCrops)
+			{
+				event.setCancelled(true);
+			}
+			else
+			{
+				Entity rider = event.getEntity().getPassenger();
+				if(rider != null && rider.getType() == EntityType.PLAYER)
+				{
+					event.setCancelled(true);
+				}
+			}
 		}
 	}
 	
