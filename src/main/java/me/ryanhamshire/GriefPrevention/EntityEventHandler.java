@@ -294,7 +294,6 @@ public class EntityEventHandler implements Listener
             for(int i = 0; i < blocks.size(); i++)
             {
                 Block block = blocks.get(i);
-                if(GriefPrevention.instance.config_mods_explodableIds.Contains(new MaterialInfo(block.getType(), block.getData(), null))) continue;
                 
                 blocks.remove(i--);
             }
@@ -311,13 +310,6 @@ public class EntityEventHandler implements Listener
             
             //always ignore air blocks
             if(block.getType() == Material.AIR) continue;
-            
-            //always allow certain block types to explode
-            if(GriefPrevention.instance.config_mods_explodableIds.Contains(new MaterialInfo(block.getType(), block.getData(), null)))
-            {
-                explodedBlocks.add(block);
-                continue;
-            }
             
             //is it in a land claim?
             Claim claim = this.dataStore.getClaimAt(block.getLocation(), false, cachedClaim);

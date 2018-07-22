@@ -189,11 +189,6 @@ public class GriefPrevention extends JavaPlugin
 	public int config_ipLimit;                                      //how many players can share an IP address
 	
 	public boolean config_trollFilterEnabled;                       //whether to auto-mute new players who use banned words right after joining
-	
-	public MaterialCollection config_mods_accessTrustIds;			//list of block IDs which should require /accesstrust for player interaction
-	public MaterialCollection config_mods_containerTrustIds;		//list of block IDs which should require /containertrust for player interaction
-	public List<String> config_mods_ignoreClaimsAccounts;			//list of player names which ALWAYS ignore claims
-	public MaterialCollection config_mods_explodableIds;			//list of block IDs which can be destroyed by explosions, even in claimed areas
 
 	public HashMap<String, Integer> config_seaLevelOverride;		//override for sea level, because bukkit doesn't report the right value for all situations
 	
@@ -622,33 +617,6 @@ public class GriefPrevention extends JavaPlugin
         this.config_ban_useCommand = config.getBoolean("GriefPrevention.UseBanCommand", false);
         this.config_ban_commandFormat = config.getString("GriefPrevention.BanCommandPattern", "ban %name% %reason%");
         
-        this.config_mods_ignoreClaimsAccounts = config.getStringList("GriefPrevention.Mods.PlayersIgnoringAllClaims");
-        
-        if(this.config_mods_ignoreClaimsAccounts == null) this.config_mods_ignoreClaimsAccounts = new ArrayList<String>();
-        
-        this.config_mods_accessTrustIds = new MaterialCollection();
-        List<String> accessTrustStrings = config.getStringList("GriefPrevention.Mods.BlockIdsRequiringAccessTrust");
-        
-        this.parseMaterialListFromConfig(accessTrustStrings, this.config_mods_accessTrustIds);
-        
-        this.config_mods_containerTrustIds = new MaterialCollection();
-        List<String> containerTrustStrings = config.getStringList("GriefPrevention.Mods.BlockIdsRequiringContainerTrust");
-        
-        //default values for container trust mod blocks
-        if(containerTrustStrings == null || containerTrustStrings.size() == 0)
-        {
-            // containerTrustStrings.add(new MaterialInfo(99999, "Example - ID 99999, all data values.").toString());
-        }
-        
-        //parse the strings from the config file
-        this.parseMaterialListFromConfig(containerTrustStrings, this.config_mods_containerTrustIds);
-        
-        this.config_mods_explodableIds = new MaterialCollection();
-        List<String> explodableStrings = config.getStringList("GriefPrevention.Mods.BlockIdsExplodable");
-        
-        //parse the strings from the config file
-        this.parseMaterialListFromConfig(explodableStrings, this.config_mods_explodableIds);
-        
         //default for claim investigation tool
         String investigationToolMaterialName = Material.STICK.name();
         
@@ -918,14 +886,6 @@ public class GriefPrevention extends JavaPlugin
         
         outConfig.set("GriefPrevention.UseBanCommand", this.config_ban_useCommand);
         outConfig.set("GriefPrevention.BanCommandPattern", this.config_ban_commandFormat);
-        
-        outConfig.set("GriefPrevention.Mods.BlockIdsRequiringAccessTrust", this.config_mods_accessTrustIds);
-        outConfig.set("GriefPrevention.Mods.BlockIdsRequiringContainerTrust", this.config_mods_containerTrustIds);
-        outConfig.set("GriefPrevention.Mods.BlockIdsExplodable", this.config_mods_explodableIds);
-        outConfig.set("GriefPrevention.Mods.PlayersIgnoringAllClaims", this.config_mods_ignoreClaimsAccounts);
-        outConfig.set("GriefPrevention.Mods.BlockIdsRequiringAccessTrust", accessTrustStrings);
-        outConfig.set("GriefPrevention.Mods.BlockIdsRequiringContainerTrust", containerTrustStrings);
-        outConfig.set("GriefPrevention.Mods.BlockIdsExplodable", explodableStrings);
 
         outConfig.set("GriefPrevention.Advanced.fixNegativeClaimblockAmounts", this.config_advanced_fixNegativeClaimblockAmounts);
 
@@ -3385,8 +3345,8 @@ public class GriefPrevention extends JavaPlugin
 	    PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		Claim claim = this.dataStore.getClaimAt(location, false, playerData.lastClaim);
 		
-		//exception: administrators in ignore claims mode and special player accounts created by server mods
-		if(playerData.ignoreClaims || GriefPrevention.instance.config_mods_ignoreClaimsAccounts.contains(player.getName())) return null;
+		//exception: administrators in ignore claims mode
+		if(playerData.ignoreClaims) return null;
 		
 		//wilderness rules
 		if(claim == null)
@@ -3437,8 +3397,8 @@ public class GriefPrevention extends JavaPlugin
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         Claim claim = this.dataStore.getClaimAt(location, false, playerData.lastClaim);
         
-        //exception: administrators in ignore claims mode, and special player accounts created by server mods
-        if(playerData.ignoreClaims || GriefPrevention.instance.config_mods_ignoreClaimsAccounts.contains(player.getName())) return null;
+        //exception: administrators in ignore claims mode
+        if(playerData.ignoreClaims) return null;
         
         //wilderness rules
         if(claim == null)

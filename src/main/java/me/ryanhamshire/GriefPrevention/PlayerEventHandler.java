@@ -1566,39 +1566,39 @@ class PlayerEventHandler implements Listener
 		}
 		
 		//don't care about left-clicking on most blocks, this is probably a break action
-        PlayerData playerData = null;
-        if(action == Action.LEFT_CLICK_BLOCK && clickedBlock != null)
-        {
-            if(clickedBlock.getY() < clickedBlock.getWorld().getMaxHeight() - 1 || event.getBlockFace() != BlockFace.UP)
-            {
-                Block adjacentBlock = clickedBlock.getRelative(event.getBlockFace());
-                byte lightLevel = adjacentBlock.getLightFromBlocks();
-                if(lightLevel == 15 && adjacentBlock.getType() == Material.FIRE)
+                PlayerData playerData = null;
+                if(action == Action.LEFT_CLICK_BLOCK && clickedBlock != null)
                 {
-                    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
-                    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
-                    if(claim != null)
-                    {
-                        playerData.lastClaim = claim;
-                        
-                        String noBuildReason = claim.allowBuild(player, Material.AIR);
-                        if(noBuildReason != null)
+                        if(clickedBlock.getY() < clickedBlock.getWorld().getMaxHeight() - 1 || event.getBlockFace() != BlockFace.UP)
                         {
-                            event.setCancelled(true);
-                            instance.sendMessage(player, TextMode.Err, noBuildReason);
-                            player.sendBlockChange(adjacentBlock.getLocation(), adjacentBlock.getType(), adjacentBlock.getData());
+                            Block adjacentBlock = clickedBlock.getRelative(event.getBlockFace());
+                            byte lightLevel = adjacentBlock.getLightFromBlocks();
+                            if(lightLevel == 15 && adjacentBlock.getType() == Material.FIRE)
+                            {
+                                if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
+                                Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
+                                if(claim != null)
+                                {
+                                    playerData.lastClaim = claim;
+
+                                    String noBuildReason = claim.allowBuild(player, Material.AIR);
+                                    if(noBuildReason != null)
+                                    {
+                                        event.setCancelled(true);
+                                        instance.sendMessage(player, TextMode.Err, noBuildReason);
+                                        player.sendBlockChange(adjacentBlock.getLocation(), adjacentBlock.getType(), adjacentBlock.getData());
+                                        return;
+                                    }
+                                }
+                            }
+                        }
+
+                        //exception for blocks on a specific watch list
+                        if(!this.onLeftClickWatchList(clickedBlockType))
+                        {
                             return;
                         }
-                    }
                 }
-            }
-            
-            //exception for blocks on a specific watch list
-            if(!this.onLeftClickWatchList(clickedBlockType) && !instance.config_mods_accessTrustIds.Contains(new MaterialInfo(clickedBlock.getType(), clickedBlock.getData(), null)))
-            {
-                return;
-            }
-        }
         
 		//apply rules for containers and crafting blocks
 		if(	clickedBlock != null && instance.config_claims_preventTheft && (
@@ -1607,12 +1607,11 @@ class PlayerEventHandler implements Listener
 						clickedBlockType == Material.CAULDRON ||
 						clickedBlockType == Material.JUKEBOX ||
 						clickedBlockType == Material.ANVIL ||
-						clickedBlockType == Material.CAKE ||
-						instance.config_mods_containerTrustIds.Contains(new MaterialInfo(clickedBlock.getType(), clickedBlock.getData(), null)))))
+						clickedBlockType == Material.CAKE)))
 		{			
-		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
+                        if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    
-		    //block container use while under siege, so players can't hide items from attackers
+                        //block container use while under siege, so players can't hide items from attackers
 			if(playerData.siegeData != null)
 			{
 				instance.sendMessage(player, TextMode.Err, Messages.SiegeNoContainers);
@@ -1713,7 +1712,7 @@ class PlayerEventHandler implements Listener
 		}
 		
 		//otherwise apply rules for buttons and switches
-		else if(clickedBlock != null && instance.config_claims_preventButtonsSwitches && (clickedBlockType == null || clickedBlockType == Material.STONE_BUTTON || Tag.BUTTONS.isTagged(clickedBlockType) || clickedBlockType == Material.LEVER || instance.config_mods_accessTrustIds.Contains(new MaterialInfo(clickedBlock.getType(), clickedBlock.getData(), null))))
+		else if(clickedBlock != null && instance.config_claims_preventButtonsSwitches && (clickedBlockType == null || clickedBlockType == Material.STONE_BUTTON || Tag.BUTTONS.isTagged(clickedBlockType) || clickedBlockType == Material.LEVER))
 		{
 		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -2602,7 +2601,7 @@ class PlayerEventHandler implements Listener
 	        this.inventoryHolderCache.put(cacheKey, isHolder);
 	        return isHolder;
 	    }
-    }
+        }
 
     private boolean onLeftClickWatchList(Material material)
 	{
