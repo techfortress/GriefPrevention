@@ -92,7 +92,7 @@ class EntityCleanupTask implements Runnable
 					else
 					{
 						Material material = world.getBlockAt(vehicle.getLocation()).getType();
-						if(material != Material.RAILS && material != Material.POWERED_RAIL && material != Material.DETECTOR_RAIL)
+						if(material != Material.RAIL && material != Material.POWERED_RAIL && material != Material.DETECTOR_RAIL && material != Material.ACTIVATOR_RAIL)
 						{
 							remove = true;
 						}

@@ -19,6 +19,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
@@ -61,8 +62,24 @@ public class BlockEventHandler implements Listener
 {
 	//convenience reference to singleton datastore
 	private DataStore dataStore;
-	
-	private ArrayList<Material> trashBlocks;
+
+	private ArrayList<Material> trashBlocks = new ArrayList<>(Arrays.asList(
+			Material.COBBLESTONE,
+			Material.TORCH,
+			Material.DIRT,
+			Material.GRAVEL,
+			Material.SAND,
+			Material.TNT,
+			Material.CRAFTING_TABLE
+	));
+	private ArrayList<Material> saplings = new ArrayList<>(Arrays.asList(
+			Material.OAK_SAPLING,
+			Material.SPRUCE_SAPLING,
+			Material.BIRCH_SAPLING,
+			Material.JUNGLE_SAPLING,
+			Material.ACACIA_SAPLING,
+			Material.DARK_OAK_SAPLING
+	));
 	
 	//constructor
 	public BlockEventHandler(DataStore dataStore)
@@ -70,15 +87,7 @@ public class BlockEventHandler implements Listener
 		this.dataStore = dataStore;
 		
 		//create the list of blocks which will not trigger a warning when they're placed outside of land claims
-		this.trashBlocks = new ArrayList<Material>();
-		this.trashBlocks.add(Material.COBBLESTONE);
-		this.trashBlocks.add(Material.TORCH);
-		this.trashBlocks.add(Material.DIRT);
-		this.trashBlocks.add(Material.SAPLING);
-		this.trashBlocks.add(Material.GRAVEL);
-		this.trashBlocks.add(Material.SAND);
-		this.trashBlocks.add(Material.TNT);
-		this.trashBlocks.add(Material.WORKBENCH);
+		this.trashBlocks.addAll(saplings);
 	}
 	
 	//when a player breaks a block...
@@ -319,7 +328,7 @@ public class BlockEventHandler implements Listener
 		}
 		
 		//FEATURE: limit wilderness tree planting to grass, or dirt with more blocks beneath it
-		else if(block.getType() == Material.SAPLING && GriefPrevention.instance.config_blockSkyTrees && GriefPrevention.instance.claimsEnabledForWorld(player.getWorld()))
+		else if(saplings.contains(block.getType()) && GriefPrevention.instance.config_blockSkyTrees && GriefPrevention.instance.claimsEnabledForWorld(player.getWorld()))
 		{
 			Block earthBlock = placeEvent.getBlockAgainst();
 			if(earthBlock.getType() != Material.GRASS)
@@ -375,7 +384,7 @@ public class BlockEventHandler implements Listener
 		
 		//warn players about disabled pistons outside of land claims
 		if( GriefPrevention.instance.config_pistonsInClaimsOnly && 
-	        (block.getType() == Material.PISTON_BASE || block.getType() == Material.PISTON_STICKY_BASE) &&
+	        (block.getType() == Material.PISTON || block.getType() == Material.STICKY_PISTON) &&
 	        claim == null )
 		{
 		    GriefPrevention.sendMessage(player, TextMode.Warn, Messages.NoPistonsOutsideClaims);
@@ -406,7 +415,7 @@ public class BlockEventHandler implements Listener
 	
 	static boolean isActiveBlock(Material type)
 	{
-	    if(type == Material.HOPPER || type == Material.BEACON || type == Material.MOB_SPAWNER) return true;
+	    if(type == Material.HOPPER || type == Material.BEACON || type == Material.SPAWNER) return true;
 	    return false;
 	}
 	
@@ -589,7 +598,7 @@ public class BlockEventHandler implements Listener
             		{
             			event.setCancelled(true);
             			block.getWorld().createExplosion(block.getLocation(), 0);
-            			block.getWorld().dropItem(block.getLocation(), new ItemStack(Material.PISTON_STICKY_BASE));
+            			block.getWorld().dropItem(block.getLocation(), new ItemStack(Material.STICKY_PISTON));
             			block.setType(Material.AIR);
                         return;
             		}
@@ -744,7 +753,7 @@ public class BlockEventHandler implements Listener
 	    if(GriefPrevention.instance.creativeRulesApply(location))
 	    {
 	        Material type = block.getType();
-	        if(type == Material.COBBLESTONE || type == Material.OBSIDIAN || type == Material.STATIONARY_LAVA || type == Material.STATIONARY_WATER)
+	        if(type == Material.COBBLESTONE || type == Material.OBSIDIAN || type == Material.LAVA || type == Material.WATER)
 	        {
 	            Claim claim = GriefPrevention.instance.dataStore.getClaimAt(location, false, null);
 	            if(claim == null)

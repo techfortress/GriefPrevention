@@ -20,13 +20,8 @@ package me.ryanhamshire.GriefPrevention;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.UUID;
-import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -189,11 +184,11 @@ public class GriefPrevention extends JavaPlugin
 	public int config_ipLimit;                                      //how many players can share an IP address
 	
 	public boolean config_trollFilterEnabled;                       //whether to auto-mute new players who use banned words right after joining
-	
-	public MaterialCollection config_mods_accessTrustIds;			//list of block IDs which should require /accesstrust for player interaction
-	public MaterialCollection config_mods_containerTrustIds;		//list of block IDs which should require /containertrust for player interaction
+
+	public ArrayList<Material> config_mods_accessTrustMaterials;			//list of block IDs which should require /accesstrust for player interaction
+	public ArrayList<Material> config_mods_containerTrustMaterials;		//list of block IDs which should require /containertrust for player interaction
 	public List<String> config_mods_ignoreClaimsAccounts;			//list of player names which ALWAYS ignore claims
-	public MaterialCollection config_mods_explodableIds;			//list of block IDs which can be destroyed by explosions, even in claimed areas
+	public ArrayList<Material> config_mods_explodableMaterials;			//list of block IDs which can be destroyed by explosions, even in claimed areas
 
 	public HashMap<String, Integer> config_seaLevelOverride;		//override for sea level, because bukkit doesn't report the right value for all situations
 	
@@ -626,28 +621,23 @@ public class GriefPrevention extends JavaPlugin
         
         if(this.config_mods_ignoreClaimsAccounts == null) this.config_mods_ignoreClaimsAccounts = new ArrayList<String>();
         
-        this.config_mods_accessTrustIds = new MaterialCollection();
-        List<String> accessTrustStrings = config.getStringList("GriefPrevention.Mods.BlockIdsRequiringAccessTrust");
+        this.config_mods_accessTrustMaterials = new ArrayList<>();
+        List<String> accessTrustStrings = config.getStringList("GriefPrevention.Mods.MaterialsRequiringAccessTrust");
+
+		//parse the strings from the config file
+        this.parseMaterialListFromConfig(accessTrustStrings, this.config_mods_accessTrustMaterials);
         
-        this.parseMaterialListFromConfig(accessTrustStrings, this.config_mods_accessTrustIds);
-        
-        this.config_mods_containerTrustIds = new MaterialCollection();
-        List<String> containerTrustStrings = config.getStringList("GriefPrevention.Mods.BlockIdsRequiringContainerTrust");
-        
-        //default values for container trust mod blocks
-        if(containerTrustStrings == null || containerTrustStrings.size() == 0)
-        {
-            // containerTrustStrings.add(new MaterialInfo(99999, "Example - ID 99999, all data values.").toString());
-        }
+        this.config_mods_containerTrustMaterials = new ArrayList<>();
+        List<String> containerTrustStrings = config.getStringList("GriefPrevention.Mods.MaterialsRequiringContainerTrust");
         
         //parse the strings from the config file
-        this.parseMaterialListFromConfig(containerTrustStrings, this.config_mods_containerTrustIds);
+        this.parseMaterialListFromConfig(containerTrustStrings, this.config_mods_containerTrustMaterials);
         
-        this.config_mods_explodableIds = new MaterialCollection();
-        List<String> explodableStrings = config.getStringList("GriefPrevention.Mods.BlockIdsExplodable");
+        this.config_mods_explodableMaterials = new ArrayList<>();
+        List<String> explodableStrings = config.getStringList("GriefPrevention.Mods.MaterialsExplodable");
         
         //parse the strings from the config file
-        this.parseMaterialListFromConfig(explodableStrings, this.config_mods_explodableIds);
+        this.parseMaterialListFromConfig(explodableStrings, this.config_mods_explodableMaterials);
         
         //default for claim investigation tool
         String investigationToolMaterialName = Material.STICK.name();
@@ -664,7 +654,7 @@ public class GriefPrevention extends JavaPlugin
         }
         
         //default for claim creation/modification tool
-        String modificationToolMaterialName = Material.GOLD_SPADE.name();
+        String modificationToolMaterialName = Material.GOLDEN_SHOVEL.name();
         
         //get modification tool from config
         modificationToolMaterialName = config.getString("GriefPrevention.Claims.ModificationTool", modificationToolMaterialName);
@@ -674,7 +664,7 @@ public class GriefPrevention extends JavaPlugin
         if(this.config_claims_modificationTool == null)
         {
             GriefPrevention.AddLogEntry("ERROR: Material " + modificationToolMaterialName + " not found.  Defaulting to the golden shovel.  Please update your config.yml.");
-            this.config_claims_modificationTool = Material.GOLD_SPADE;
+            this.config_claims_modificationTool = Material.GOLDEN_SHOVEL;
         }
         
         //default for siege worlds list
@@ -704,18 +694,38 @@ public class GriefPrevention extends JavaPlugin
         }
         
         //default siege blocks
-        this.config_siege_blocks = new ArrayList<Material>();
-        this.config_siege_blocks.add(Material.DIRT);
-        this.config_siege_blocks.add(Material.GRASS);
-        this.config_siege_blocks.add(Material.LONG_GRASS);
-        this.config_siege_blocks.add(Material.COBBLESTONE);
-        this.config_siege_blocks.add(Material.GRAVEL);
-        this.config_siege_blocks.add(Material.SAND);
-        this.config_siege_blocks.add(Material.GLASS);
-        this.config_siege_blocks.add(Material.THIN_GLASS);
-        this.config_siege_blocks.add(Material.WOOD);
-        this.config_siege_blocks.add(Material.WOOL);
-        this.config_siege_blocks.add(Material.SNOW);
+		this.config_siege_blocks = new ArrayList<Material>();
+		this.config_siege_blocks.add(Material.DIRT);
+		this.config_siege_blocks.add(Material.GRASS);
+		this.config_siege_blocks.add(Material.TALL_GRASS);
+		this.config_siege_blocks.add(Material.COBBLESTONE);
+		this.config_siege_blocks.add(Material.GRAVEL);
+		this.config_siege_blocks.add(Material.SAND);
+		this.config_siege_blocks.add(Material.GLASS);
+		this.config_siege_blocks.add(Material.GLASS_PANE);
+		this.config_siege_blocks.add(Material.OAK_PLANKS);
+		this.config_siege_blocks.add(Material.SPRUCE_PLANKS);
+		this.config_siege_blocks.add(Material.BIRCH_PLANKS);
+		this.config_siege_blocks.add(Material.JUNGLE_PLANKS);
+		this.config_siege_blocks.add(Material.ACACIA_PLANKS);
+		this.config_siege_blocks.add(Material.DARK_OAK_PLANKS);
+		this.config_siege_blocks.add(Material.WHITE_WOOL);
+		this.config_siege_blocks.add(Material.ORANGE_WOOL);
+		this.config_siege_blocks.add(Material.MAGENTA_WOOL);
+		this.config_siege_blocks.add(Material.LIGHT_BLUE_WOOL);
+		this.config_siege_blocks.add(Material.YELLOW_WOOL);
+		this.config_siege_blocks.add(Material.LIME_WOOL);
+		this.config_siege_blocks.add(Material.PINK_WOOL);
+		this.config_siege_blocks.add(Material.GRAY_WOOL);
+		this.config_siege_blocks.add(Material.LIGHT_GRAY_WOOL);
+		this.config_siege_blocks.add(Material.CYAN_WOOL);
+		this.config_siege_blocks.add(Material.PURPLE_WOOL);
+		this.config_siege_blocks.add(Material.BLUE_WOOL);
+		this.config_siege_blocks.add(Material.BROWN_WOOL);
+		this.config_siege_blocks.add(Material.GREEN_WOOL);
+		this.config_siege_blocks.add(Material.RED_WOOL);
+		this.config_siege_blocks.add(Material.BLACK_WOOL);
+		this.config_siege_blocks.add(Material.SNOW);
         
         //build a default config entry
         ArrayList<String> defaultBreakableBlocksList = new ArrayList<String>();
@@ -899,9 +909,9 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.UseBanCommand", this.config_ban_useCommand);
         outConfig.set("GriefPrevention.BanCommandPattern", this.config_ban_commandFormat);
         
-        outConfig.set("GriefPrevention.Mods.BlockIdsRequiringAccessTrust", this.config_mods_accessTrustIds);
-        outConfig.set("GriefPrevention.Mods.BlockIdsRequiringContainerTrust", this.config_mods_containerTrustIds);
-        outConfig.set("GriefPrevention.Mods.BlockIdsExplodable", this.config_mods_explodableIds);
+        outConfig.set("GriefPrevention.Mods.BlockIdsRequiringAccessTrust", this.config_mods_accessTrustMaterials);
+        outConfig.set("GriefPrevention.Mods.BlockIdsRequiringContainerTrust", this.config_mods_containerTrustMaterials);
+        outConfig.set("GriefPrevention.Mods.BlockIdsExplodable", this.config_mods_explodableMaterials);
         outConfig.set("GriefPrevention.Mods.PlayersIgnoringAllClaims", this.config_mods_ignoreClaimsAccounts);
         outConfig.set("GriefPrevention.Mods.BlockIdsRequiringAccessTrust", accessTrustStrings);
         outConfig.set("GriefPrevention.Mods.BlockIdsRequiringContainerTrust", containerTrustStrings);
@@ -3508,35 +3518,16 @@ public class GriefPrevention extends JavaPlugin
 		GriefPrevention.instance.getServer().getScheduler().runTaskLaterAsynchronously(GriefPrevention.instance, task, delayInTicks);
 	}
 	
-	private void parseMaterialListFromConfig(List<String> stringsToParse, MaterialCollection materialCollection)
+	private void parseMaterialListFromConfig(List<String> stringsToParse, ArrayList<Material> parseIntoArray)
 	{
-		materialCollection.clear();
-		
-		//for each string in the list
-		for(int i = 0; i < stringsToParse.size(); i++)
-		{
-			//try to parse the string value into a material info
-			MaterialInfo materialInfo = MaterialInfo.fromString(stringsToParse.get(i));
-			
-			//null value returned indicates an error parsing the string from the config file
-			if(materialInfo == null)
-			{
-				//show error in log
-				GriefPrevention.AddLogEntry("ERROR: Unable to read a material entry from the config file.  Please update your config.yml.");
-				
-				//update string, which will go out to config file to help user find the error entry
-				if(!stringsToParse.get(i).contains("can't"))
-				{
-					stringsToParse.set(i, stringsToParse.get(i) + "     <-- can't understand this entry, see BukkitDev documentation");
-				}
+		for (String s : stringsToParse) {
+			Material material = Material.getMaterial(s);
+			if (material != null) {
+				parseIntoArray.add(material);
+			} else {
+				AddLogEntry("Error: Mod Materials: There's no material named \"" + s + "\".  Please update your config.yml.");
 			}
-			
-			//otherwise store the valid entry in config data
-			else
-			{
-				materialCollection.Add(materialInfo);
-			}
-		}		
+		}
 	}
 	
 	public int getSeaLevel(World world)
@@ -3612,15 +3603,17 @@ public class GriefPrevention extends JavaPlugin
         return world.getPVP();
     }
 
-    public static boolean isNewToServer(Player player)
-    {
-        if(player.getStatistic(Statistic.PICKUP, Material.WOOD) > 0) return false;
-        
-        PlayerData playerData = instance.dataStore.getPlayerData(player.getUniqueId());
-        if(playerData.getClaims().size() > 0) return false;
-        
-        return true;
-    }
+	public static boolean isNewToServer(Player player)
+	{
+		for (Material log : Arrays.asList(Material.OAK_LOG, Material.SPRUCE_LOG, Material.BIRCH_LOG, Material.JUNGLE_LOG, Material.ACACIA_LOG, Material.DARK_OAK_LOG)) {
+			if(player.getStatistic(Statistic.PICKUP, log) > 0) return false;
+		}
+
+		PlayerData playerData = instance.dataStore.getPlayerData(player.getUniqueId());
+		if(playerData.getClaims().size() > 0) return false;
+
+		return true;
+	}
 
     static void banPlayer(Player player, String reason, String source)
     {

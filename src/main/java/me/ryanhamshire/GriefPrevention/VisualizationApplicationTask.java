@@ -33,8 +33,7 @@ class VisualizationApplicationTask implements Runnable
 		this.playerData = playerData;
 		this.player = player;
 	}
-	
-	@SuppressWarnings("deprecation")
+
     @Override
 	public void run()
 	{
@@ -45,7 +44,7 @@ class VisualizationApplicationTask implements Runnable
 			
 			//send the player a fake block change event
 			if(!element.location.getChunk().isLoaded()) continue;  //cheap distance check
-			player.sendBlockChange(element.location, element.visualizedMaterial, element.visualizedData);
+			player.sendBlockChange(element.location, element.visualizedMaterial.createBlockData());
 		}
 		
 		//remember the visualization applied to this player for later (so it can be inexpensively reverted)
