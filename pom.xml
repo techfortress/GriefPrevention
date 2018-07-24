@@ -6,7 +6,7 @@
 
     <groupId>me.ryanhamshire</groupId>
     <artifactId>GriefPrevention</artifactId>
-    <version>16.8.dev</version>
+    <version>16.9.dev</version>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -57,30 +57,55 @@
         </resources>
     </build>
     <dependencies>
+        <!--Spigot API-->
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot-api</artifactId>
+            <version>1.13-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
+        </dependency>
+
         <!--Bukkit API-->
         <dependency>
-                <groupId>org.bukkit</groupId>
-                <artifactId>bukkit</artifactId>
-                <version>1.12.2-R0.1-SNAPSHOT</version>
-                <scope>provided</scope>
+            <groupId>org.bukkit</groupId>
+            <artifactId>bukkit</artifactId>
+            <version>1.13-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
-         <!--Worldguard dependency-->
+
+        <!-- Spigot (this includes Spigot API, Bukkit API, Craftbukkit and NMS) -->
         <dependency>
-                <groupId>com.sk89q</groupId>
-                <artifactId>worldguard</artifactId>
-                <version>6.1.1-SNAPSHOT</version>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.13-R0.1-SNAPSHOT</version>
+            <scope>provided</scope>
         </dependency>
-        <!--WorldGuard depends on WorldEdit-->
+
+        <!-- WorldGuard -->
         <dependency>
-                <groupId>com.sk89q.worldedit</groupId>
-                <artifactId>worldedit-bukkit</artifactId>
-                <version>6.1.4-SNAPSHOT</version>
+            <groupId>com.sk89q.worldguard</groupId>
+            <artifactId>worldguard-legacy</artifactId>
+            <version>7.0.0-SNAPSHOT</version>
         </dependency>
+
+        <!-- WorldEdit -->
+        <dependency>
+            <groupId>com.sk89q.worldedit</groupId>
+            <artifactId>worldedit-core</artifactId>
+            <version>7.0.0-SNAPSHOT</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.sk89q.worldedit</groupId>
+            <artifactId>worldedit-bukkit</artifactId>
+            <version>7.0.0-SNAPSHOT</version>
+        </dependency>
+
          <!--Vault dependency-->
         <dependency>
-                <groupId>net.milkbowl.vault</groupId>
-                <artifactId>VaultAPI</artifactId>
-                <version>1.6</version>
+            <groupId>net.milkbowl.vault</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <version>1.6</version>
         </dependency>
         <!--Google stuff-->
         <dependency>

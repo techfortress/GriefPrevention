@@ -132,7 +132,7 @@ public class Visualization
 		Location smallXsmallZ = claim.getLesserBoundaryCorner();
 		Location bigXbigZ = claim.getGreaterBoundaryCorner();
 		World world = smallXsmallZ.getWorld();
-		boolean waterIsTransparent = locality.getBlock().getType() == Material.STATIONARY_WATER;
+		boolean waterIsTransparent = locality.getBlock().getType() == Material.WATER;
 		
 		int smallx = smallXsmallZ.getBlockX();
 		int smallz = smallXsmallZ.getBlockZ();
@@ -159,7 +159,7 @@ public class Visualization
 		else if(visualizationType == VisualizationType.Subdivision)
 		{
 			cornerMaterial = Material.IRON_BLOCK;
-			accentMaterial = Material.WOOL;
+			accentMaterial = Material.WHITE_WOOL;
 		}
 		
 		else if(visualizationType == VisualizationType.RestoreNature)
@@ -170,7 +170,7 @@ public class Visualization
 		
 		else
 		{
-			cornerMaterial = Material.GLOWING_REDSTONE_ORE;
+			cornerMaterial = Material.REDSTONE_ORE;
 			accentMaterial = Material.NETHERRACK;
 		}
 		
@@ -294,26 +294,25 @@ public class Visualization
 		switch (block.getType())
 		{
 			case AIR:
-			case FENCE:
+			case OAK_FENCE:
 			case ACACIA_FENCE:
 			case BIRCH_FENCE:
 			case DARK_OAK_FENCE:
 			case JUNGLE_FENCE:
-			case NETHER_FENCE:
+			case NETHER_BRICK_FENCE:
 			case SPRUCE_FENCE:
-			case FENCE_GATE:
+			case OAK_FENCE_GATE:
 			case ACACIA_FENCE_GATE:
 			case BIRCH_FENCE_GATE:
 			case DARK_OAK_FENCE_GATE:
 			case SPRUCE_FENCE_GATE:
 			case JUNGLE_FENCE_GATE:
 			case SIGN:
-			case SIGN_POST:
 			case WALL_SIGN:
 				return true;
 		}
 
-		if ((waterIsTransparent && block.getType() == Material.STATIONARY_WATER) ||
+		if ((waterIsTransparent && block.getType() == Material.WATER) ||
 				block.getType().isTransparent())
 			return true;
 		return false;

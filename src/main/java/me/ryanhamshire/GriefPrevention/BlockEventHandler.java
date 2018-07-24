@@ -74,11 +74,16 @@ public class BlockEventHandler implements Listener
 		this.trashBlocks.add(Material.COBBLESTONE);
 		this.trashBlocks.add(Material.TORCH);
 		this.trashBlocks.add(Material.DIRT);
-		this.trashBlocks.add(Material.SAPLING);
+		this.trashBlocks.add(Material.OAK_SAPLING);
+		this.trashBlocks.add(Material.BIRCH_SAPLING);
+		this.trashBlocks.add(Material.DARK_OAK_SAPLING);
+		this.trashBlocks.add(Material.ACACIA_SAPLING);
+		this.trashBlocks.add(Material.SPRUCE_SAPLING);
+		this.trashBlocks.add(Material.JUNGLE_SAPLING);
 		this.trashBlocks.add(Material.GRAVEL);
 		this.trashBlocks.add(Material.SAND);
 		this.trashBlocks.add(Material.TNT);
-		this.trashBlocks.add(Material.WORKBENCH);
+		this.trashBlocks.add(Material.CRAFTING_TABLE);
 	}
 	
 	//when a player breaks a block...
@@ -319,7 +324,7 @@ public class BlockEventHandler implements Listener
 		}
 		
 		//FEATURE: limit wilderness tree planting to grass, or dirt with more blocks beneath it
-		else if(block.getType() == Material.SAPLING && GriefPrevention.instance.config_blockSkyTrees && GriefPrevention.instance.claimsEnabledForWorld(player.getWorld()))
+		else if(MaterialComparison.isSapling(block.getType()) && GriefPrevention.instance.config_blockSkyTrees && GriefPrevention.instance.claimsEnabledForWorld(player.getWorld()))
 		{
 			Block earthBlock = placeEvent.getBlockAgainst();
 			if(earthBlock.getType() != Material.GRASS)
@@ -375,7 +380,7 @@ public class BlockEventHandler implements Listener
 		
 		//warn players about disabled pistons outside of land claims
 		if( GriefPrevention.instance.config_pistonsInClaimsOnly && 
-	        (block.getType() == Material.PISTON_BASE || block.getType() == Material.PISTON_STICKY_BASE) &&
+	        (block.getType() == Material.PISTON || block.getType() == Material.STICKY_PISTON) &&
 	        claim == null )
 		{
 		    GriefPrevention.sendMessage(player, TextMode.Warn, Messages.NoPistonsOutsideClaims);
@@ -406,7 +411,7 @@ public class BlockEventHandler implements Listener
 	
 	static boolean isActiveBlock(Material type)
 	{
-	    if(type == Material.HOPPER || type == Material.BEACON || type == Material.MOB_SPAWNER) return true;
+	    if(type == Material.HOPPER || type == Material.BEACON || type == Material.SPAWNER) return true;
 	    return false;
 	}
 	
@@ -589,7 +594,7 @@ public class BlockEventHandler implements Listener
             		{
             			event.setCancelled(true);
             			block.getWorld().createExplosion(block.getLocation(), 0);
-            			block.getWorld().dropItem(block.getLocation(), new ItemStack(Material.PISTON_STICKY_BASE));
+            			block.getWorld().dropItem(block.getLocation(), new ItemStack(Material.STICKY_PISTON));
             			block.setType(Material.AIR);
                         return;
             		}
@@ -744,7 +749,7 @@ public class BlockEventHandler implements Listener
 	    if(GriefPrevention.instance.creativeRulesApply(location))
 	    {
 	        Material type = block.getType();
-	        if(type == Material.COBBLESTONE || type == Material.OBSIDIAN || type == Material.STATIONARY_LAVA || type == Material.STATIONARY_WATER)
+	        if(type == Material.COBBLESTONE || type == Material.OBSIDIAN || type == Material.LAVA || type == Material.WATER)
 	        {
 	            Claim claim = GriefPrevention.instance.dataStore.getClaimAt(location, false, null);
 	            if(claim == null)

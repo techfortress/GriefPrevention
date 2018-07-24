@@ -145,7 +145,7 @@ public class EntityEventHandler implements Listener
 		}
 	    
 	    //don't allow crops to be trampled, except by a player with build permission
-		else if(event.getTo() == Material.DIRT && event.getBlock().getType() == Material.SOIL)
+		else if(event.getTo() == Material.DIRT && event.getBlock().getType() == Material.FARMLAND)
 		{
 		    if(event.getEntityType() != EntityType.PLAYER)
 		    {
@@ -201,7 +201,7 @@ public class EntityEventHandler implements Listener
 		                 //when not allowed, drop as item instead of forming a block
 		                 event.setCancelled(true);
 		                 @SuppressWarnings("deprecation")
-		                 ItemStack itemStack = new ItemStack(entity.getMaterial(), 1, entity.getBlockData());
+		                 ItemStack itemStack = new ItemStack(entity.getMaterial(), 1);
 		                 Item item = block.getWorld().dropItem(entity.getLocation(), itemStack);
 		                 item.setVelocity(new Vector());
 		             }
@@ -244,7 +244,7 @@ public class EntityEventHandler implements Listener
 	public void onEntityInteract(EntityInteractEvent event)
 	{
 		Material material = event.getBlock().getType();
-	    if(material == Material.SOIL)
+	    if(material == Material.FARMLAND)
 	    {
 	        if(!GriefPrevention.instance.config_creaturesTrampleCrops)
 	        {
@@ -1014,7 +1014,7 @@ public class EntityEventHandler implements Listener
                             {
                                 damageSource.remove();
                             }
-                        }                       
+                        }
                     }
                     
                     //otherwise the player damaging the entity must have permission, unless it's a dog in a pvp world
@@ -1042,7 +1042,7 @@ public class EntityEventHandler implements Listener
                         if(playerData != null)
                         {
                             playerData.lastClaim = claim;
-                        }                       
+                        }
                     }
                 }
             }
