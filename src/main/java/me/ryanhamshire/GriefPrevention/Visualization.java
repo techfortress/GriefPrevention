@@ -25,6 +25,7 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 
 //represents a visualization sent to a player
@@ -83,8 +84,8 @@ public class Visualization
 			    {
 			        if(!player.getWorld().equals(element.location.getWorld())) return;
 			    }
-			    
-				player.sendBlockChange(element.location, element.realMaterial, element.realData);
+
+			    player.sendBlockChange(element.location, element.realMaterial.createBlockData());
 			}
 			
 			playerData.currentVisualization = null;  
@@ -127,127 +128,126 @@ public class Visualization
 	//handy for combining several visualizations together, as when visualization a top level claim with several subdivisions inside
 	//locality is a performance consideration.  only create visualization blocks for around 100 blocks of the locality
 	@SuppressWarnings("deprecation")
-    private void addClaimElements(Claim claim, int height, VisualizationType visualizationType, Location locality)
+	private void addClaimElements(Claim claim, int height, VisualizationType visualizationType, Location locality)
 	{
 		Location smallXsmallZ = claim.getLesserBoundaryCorner();
 		Location bigXbigZ = claim.getGreaterBoundaryCorner();
 		World world = smallXsmallZ.getWorld();
-		boolean waterIsTransparent = locality.getBlock().getType() == Material.STATIONARY_WATER;
-		
+		boolean waterIsTransparent = locality.getBlock().getType() == Material.WATER;
+
 		int smallx = smallXsmallZ.getBlockX();
 		int smallz = smallXsmallZ.getBlockZ();
 		int bigx = bigXbigZ.getBlockX();
 		int bigz = bigXbigZ.getBlockZ();
-		
+
 		Material cornerMaterial;
 		Material accentMaterial;
-		
+
 		ArrayList<VisualizationElement> newElements = new ArrayList<VisualizationElement>();
-		
+
 		if(visualizationType == VisualizationType.Claim)
 		{
 			cornerMaterial = Material.GLOWSTONE;
 			accentMaterial = Material.GOLD_BLOCK;
 		}
-		
+
 		else if(visualizationType == VisualizationType.AdminClaim)
-        {
-            cornerMaterial = Material.GLOWSTONE;
-            accentMaterial = Material.PUMPKIN;
-        }
-		
+		{
+			cornerMaterial = Material.GLOWSTONE;
+			accentMaterial = Material.PUMPKIN;
+		}
+
 		else if(visualizationType == VisualizationType.Subdivision)
 		{
 			cornerMaterial = Material.IRON_BLOCK;
-			accentMaterial = Material.WOOL;
+			accentMaterial = Material.WHITE_WOOL;
 		}
-		
+
 		else if(visualizationType == VisualizationType.RestoreNature)
 		{
 			cornerMaterial = Material.DIAMOND_BLOCK;
 			accentMaterial = Material.DIAMOND_BLOCK;
 		}
-		
+
 		else
 		{
-			cornerMaterial = Material.GLOWING_REDSTONE_ORE;
+			cornerMaterial = Material.REDSTONE_ORE;
 			accentMaterial = Material.NETHERRACK;
 		}
-		
+
 		//initialize visualization elements without Y values and real data
 		//that will be added later for only the visualization elements within visualization range
-		
+
 		//locality
 		int minx = locality.getBlockX() - 75;
 		int minz = locality.getBlockZ() - 75;
 		int maxx = locality.getBlockX() + 75;
 		int maxz = locality.getBlockZ() + 75;
-		
+
 		final int STEP = 10;
-		
-		//top line		
-		newElements.add(new VisualizationElement(new Location(world, smallx, 0, bigz), cornerMaterial, (byte)0, Material.AIR, (byte)0));
-		newElements.add(new VisualizationElement(new Location(world, smallx + 1, 0, bigz), accentMaterial, (byte)0, Material.AIR, (byte)0));
+
+		//top line
+		newElements.add(new VisualizationElement(new Location(world, smallx, 0, bigz), cornerMaterial, Material.AIR));
+		newElements.add(new VisualizationElement(new Location(world, smallx + 1, 0, bigz), accentMaterial, Material.AIR));
 		for(int x = smallx + STEP; x < bigx - STEP / 2; x += STEP)
 		{
 			if(x > minx && x < maxx)
-			    newElements.add(new VisualizationElement(new Location(world, x, 0, bigz), accentMaterial, (byte)0, Material.AIR, (byte)0));
+				newElements.add(new VisualizationElement(new Location(world, x, 0, bigz), accentMaterial, Material.AIR));
 		}
-		newElements.add(new VisualizationElement(new Location(world, bigx - 1, 0, bigz), accentMaterial, (byte)0, Material.AIR, (byte)0));
-		
+		newElements.add(new VisualizationElement(new Location(world, bigx - 1, 0, bigz), accentMaterial, Material.AIR));
+
 		//bottom line
-		newElements.add(new VisualizationElement(new Location(world, smallx + 1, 0, smallz), accentMaterial, (byte)0, Material.AIR, (byte)0));
-        for(int x = smallx + STEP; x < bigx - STEP / 2; x += STEP)
+		newElements.add(new VisualizationElement(new Location(world, smallx + 1, 0, smallz), accentMaterial, Material.AIR));
+		for(int x = smallx + STEP; x < bigx - STEP / 2; x += STEP)
 		{
 			if(x > minx && x < maxx)
-			    newElements.add(new VisualizationElement(new Location(world, x, 0, smallz), accentMaterial, (byte)0, Material.AIR, (byte)0));
+				newElements.add(new VisualizationElement(new Location(world, x, 0, smallz), accentMaterial, Material.AIR));
 		}
-        newElements.add(new VisualizationElement(new Location(world, bigx - 1, 0, smallz), accentMaterial, (byte)0, Material.AIR, (byte)0));
-		
+		newElements.add(new VisualizationElement(new Location(world, bigx - 1, 0, smallz), accentMaterial, Material.AIR));
+
 		//left line
-        newElements.add(new VisualizationElement(new Location(world, smallx, 0, smallz), cornerMaterial, (byte)0, Material.AIR, (byte)0));
-        newElements.add(new VisualizationElement(new Location(world, smallx, 0, smallz + 1), accentMaterial, (byte)0, Material.AIR, (byte)0));
+		newElements.add(new VisualizationElement(new Location(world, smallx, 0, smallz), cornerMaterial, Material.AIR));
+		newElements.add(new VisualizationElement(new Location(world, smallx, 0, smallz + 1), accentMaterial, Material.AIR));
 		for(int z = smallz + STEP; z < bigz - STEP / 2; z += STEP)
 		{
 			if(z > minz && z < maxz)
-			    newElements.add(new VisualizationElement(new Location(world, smallx, 0, z), accentMaterial, (byte)0, Material.AIR, (byte)0));
+				newElements.add(new VisualizationElement(new Location(world, smallx, 0, z), accentMaterial, Material.AIR));
 		}
-		newElements.add(new VisualizationElement(new Location(world, smallx, 0, bigz - 1), accentMaterial, (byte)0, Material.AIR, (byte)0));
-        
+		newElements.add(new VisualizationElement(new Location(world, smallx, 0, bigz - 1), accentMaterial, Material.AIR));
+
 		//right line
-		newElements.add(new VisualizationElement(new Location(world, bigx, 0, smallz), cornerMaterial, (byte)0, Material.AIR, (byte)0));
-        newElements.add(new VisualizationElement(new Location(world, bigx, 0, smallz + 1), accentMaterial, (byte)0, Material.AIR, (byte)0));
+		newElements.add(new VisualizationElement(new Location(world, bigx, 0, smallz), cornerMaterial, Material.AIR));
+		newElements.add(new VisualizationElement(new Location(world, bigx, 0, smallz + 1), accentMaterial, Material.AIR));
 		for(int z = smallz + STEP; z < bigz - STEP / 2; z += STEP)
 		{
 			if(z > minz && z < maxz)
-			    newElements.add(new VisualizationElement(new Location(world, bigx, 0, z), accentMaterial, (byte)0, Material.AIR, (byte)0));
+				newElements.add(new VisualizationElement(new Location(world, bigx, 0, z), accentMaterial, Material.AIR));
 		}
-		newElements.add(new VisualizationElement(new Location(world, bigx, 0, bigz - 1), accentMaterial, (byte)0, Material.AIR, (byte)0));
-		newElements.add(new VisualizationElement(new Location(world, bigx, 0, bigz), cornerMaterial, (byte)0, Material.AIR, (byte)0));
-        
-        //remove any out of range elements
+		newElements.add(new VisualizationElement(new Location(world, bigx, 0, bigz - 1), accentMaterial, Material.AIR));
+		newElements.add(new VisualizationElement(new Location(world, bigx, 0, bigz), cornerMaterial, Material.AIR));
+
+		//remove any out of range elements
 		this.removeElementsOutOfRange(newElements, minx, minz, maxx, maxz);
-		
+
 		//remove any elements outside the claim
 		for(int i = 0; i < newElements.size(); i++)
 		{
-		    VisualizationElement element = newElements.get(i);
-		    if(!claim.contains(element.location, true, false))
-		    {
-		        newElements.remove(i--);
-		    }
+			VisualizationElement element = newElements.get(i);
+			if(!claim.contains(element.location, true, false))
+			{
+				newElements.remove(i--);
+			}
 		}
-		
+
 		//set Y values and real block information for any remaining visualization blocks
 		for(VisualizationElement element : newElements)
 		{
-		    Location tempLocation = element.location;
-		    element.location = getVisibleLocation(tempLocation.getWorld(), tempLocation.getBlockX(), height, tempLocation.getBlockZ(), waterIsTransparent);
-		    height = element.location.getBlockY();
-		    element.realMaterial = element.location.getBlock().getType();
-		    element.realData = element.location.getBlock().getData();
+			Location tempLocation = element.location;
+			element.location = getVisibleLocation(tempLocation.getWorld(), tempLocation.getBlockX(), height, tempLocation.getBlockZ(), waterIsTransparent);
+			height = element.location.getBlockY();
+			element.realMaterial = element.location.getBlock().getType();
 		}
-		
+
 		this.elements.addAll(newElements);
 	}
 	
@@ -294,27 +294,26 @@ public class Visualization
 		switch (block.getType())
 		{
 			case AIR:
-			case FENCE:
-			case ACACIA_FENCE:
-			case BIRCH_FENCE:
-			case DARK_OAK_FENCE:
-			case JUNGLE_FENCE:
-			case NETHER_FENCE:
+			case OAK_FENCE:
 			case SPRUCE_FENCE:
-			case FENCE_GATE:
+			case BIRCH_FENCE:
+			case JUNGLE_FENCE:
+			case ACACIA_FENCE:
+			case DARK_OAK_FENCE:
+			case NETHER_BRICK_FENCE:
+			case OAK_FENCE_GATE:
 			case ACACIA_FENCE_GATE:
 			case BIRCH_FENCE_GATE:
 			case DARK_OAK_FENCE_GATE:
 			case SPRUCE_FENCE_GATE:
 			case JUNGLE_FENCE_GATE:
 			case SIGN:
-			case SIGN_POST:
 			case WALL_SIGN:
 				return true;
 		}
 
-		if ((waterIsTransparent && block.getType() == Material.STATIONARY_WATER) ||
-				block.getType().isTransparent())
+		if ((waterIsTransparent && block.getType() == Material.WATER) ||
+				block.isLiquid())
 			return true;
 		return false;
 	}

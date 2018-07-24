@@ -145,7 +145,7 @@ public class EntityEventHandler implements Listener
 		}
 	    
 	    //don't allow crops to be trampled, except by a player with build permission
-		else if(event.getTo() == Material.DIRT && event.getBlock().getType() == Material.SOIL)
+		else if(event.getTo() == Material.DIRT && event.getBlock().getType() == Material.FARMLAND)
 		{
 		    if(event.getEntityType() != EntityType.PLAYER)
 		    {
@@ -200,8 +200,7 @@ public class EntityEventHandler implements Listener
 		             {
 		                 //when not allowed, drop as item instead of forming a block
 		                 event.setCancelled(true);
-		                 @SuppressWarnings("deprecation")
-		                 ItemStack itemStack = new ItemStack(entity.getMaterial(), 1, entity.getBlockData());
+		                 ItemStack itemStack = new ItemStack(entity.getBlockData().getMaterial(), 1);
 		                 Item item = block.getWorld().dropItem(entity.getLocation(), itemStack);
 		                 item.setVelocity(new Vector());
 		             }
@@ -244,7 +243,7 @@ public class EntityEventHandler implements Listener
 	public void onEntityInteract(EntityInteractEvent event)
 	{
 		Material material = event.getBlock().getType();
-	    if(material == Material.SOIL)
+	    if(material == Material.FARMLAND)
 	    {
 	        if(!GriefPrevention.instance.config_creaturesTrampleCrops)
 	        {
@@ -294,7 +293,7 @@ public class EntityEventHandler implements Listener
             for(int i = 0; i < blocks.size(); i++)
             {
                 Block block = blocks.get(i);
-                if(GriefPrevention.instance.config_mods_explodableIds.Contains(new MaterialInfo(block.getType(), block.getData(), null))) continue;
+                if(GriefPrevention.instance.config_mods_explodableMaterials.contains(block.getType()))continue;
                 
                 blocks.remove(i--);
             }
@@ -313,7 +312,7 @@ public class EntityEventHandler implements Listener
             if(block.getType() == Material.AIR) continue;
             
             //always allow certain block types to explode
-            if(GriefPrevention.instance.config_mods_explodableIds.Contains(new MaterialInfo(block.getType(), block.getData(), null)))
+			if(GriefPrevention.instance.config_mods_explodableMaterials.contains(block.getType()))
             {
                 explodedBlocks.add(block);
                 continue;
