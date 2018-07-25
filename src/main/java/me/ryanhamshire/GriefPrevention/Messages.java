@@ -78,6 +78,7 @@ public enum Messages
     NotYourClaim,
     DeleteTopLevelClaim,
     AbandonSuccess,
+    AbandonOthersSuccess,
     CantGrantThatPermission,
     GrantPermissionNoClaim,
     GrantPermissionConfirmation,
