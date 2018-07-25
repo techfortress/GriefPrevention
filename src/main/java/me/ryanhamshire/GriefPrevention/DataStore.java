@@ -1471,6 +1471,7 @@ public abstract class DataStore
 		this.addDefault(defaults, Messages.NotYourClaim, "This isn't your claim.", null);
 		this.addDefault(defaults, Messages.DeleteTopLevelClaim, "To delete a subdivision, stand inside it.  Otherwise, use /AbandonTopLevelClaim to delete this claim and all subdivisions.", null);		
 		this.addDefault(defaults, Messages.AbandonSuccess, "Claim abandoned.  You now have {0} available claim blocks.", "0: remaining claim blocks");
+		this.addDefault(defaults, Messages.AbandonOthersSuccess, "Claim abandoned. {1} now has {0} available claim blocks.", "0: remaining claim blocks, 1: claim owner name");
 		this.addDefault(defaults, Messages.CantGrantThatPermission, "You can't grant a permission you don't have yourself.", null);
 		this.addDefault(defaults, Messages.GrantPermissionNoClaim, "Stand inside the claim where you want to grant permission.", null);
 		this.addDefault(defaults, Messages.GrantPermissionConfirmation, "Granted {0} permission to {1} {2}.", "0: target player; 1: permission description; 2: scope (changed claims)");

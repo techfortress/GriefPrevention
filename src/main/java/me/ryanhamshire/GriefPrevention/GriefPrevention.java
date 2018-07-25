@@ -2882,7 +2882,12 @@ public class GriefPrevention extends JavaPlugin
 			
 			//tell the player how many claim blocks he has left
 			int remainingBlocks = playerData.getRemainingClaimBlocks();
-			GriefPrevention.sendMessage(player, TextMode.Success, Messages.AbandonSuccess, String.valueOf(remainingBlocks));
+                        if (player.getName().equals(claim.getOwnerName())) {
+			    GriefPrevention.sendMessage(player, TextMode.Success, Messages.AbandonSuccess, String.valueOf(remainingBlocks));
+                        } else {
+			    GriefPrevention.sendMessage(player, TextMode.Success, Messages.AbandonOthersSuccess, String.valueOf(remainingBlocks), String.valueOf(claim.getOwnerName()));
+                        }
+
 			
 			//revert any current visualization
 			Visualization.Revert(player);
