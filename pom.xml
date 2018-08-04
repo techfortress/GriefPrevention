@@ -26,6 +26,10 @@
             <url>http://maven.sk89q.com/repo/</url>
         </repository>
         <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.org/repository/maven-public/</url>
+        </repository>
+        <repository>
             <id>vault-repo</id>
             <url>http://nexus.hc.to/content/repositories/pub_releases</url>
         </repository>
@@ -66,33 +70,37 @@
         </dependency>
          <!--Worldguard dependency-->
         <dependency>
-                <groupId>com.sk89q</groupId>
-                <artifactId>worldguard</artifactId>
-                <version>6.1.1-SNAPSHOT</version>
-        </dependency>
-        <!--WorldGuard depends on WorldEdit-->
-        <dependency>
-                <groupId>com.sk89q.worldedit</groupId>
-                <artifactId>worldedit-bukkit</artifactId>
-                <version>6.1.4-SNAPSHOT</version>
+                <groupId>com.sk89q.worldguard</groupId>
+                <artifactId>worldguard-legacy</artifactId>
+                <version>7.0.0-SNAPSHOT</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.bukkit</groupId>
+                        <artifactId>bukkit</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sk89q.worldedit</groupId>
+                        <artifactId>worldedit-bukkit</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sk89q</groupId>
+                        <artifactId>commandbook</artifactId>
+                    </exclusion>
+            </exclusions>
         </dependency>
          <!--Vault dependency-->
         <dependency>
                 <groupId>net.milkbowl.vault</groupId>
                 <artifactId>VaultAPI</artifactId>
                 <version>1.6</version>
-        </dependency>
-        <!--Google stuff-->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>21.0</version>
-        </dependency>
-        <!--json stuff-->
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-            <version>1.1.1</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.bukkit</groupId>
+                        <artifactId>bukkit</artifactId>
+                    </exclusion>
+                </exclusions>
         </dependency>
 
     </dependencies>
