@@ -19,14 +19,10 @@
 package me.ryanhamshire.GriefPrevention;
 
 import com.google.common.io.Files;
+import me.ryanhamshire.GriefPrevention.events.ClaimCreatedEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimDeletedEvent;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.World;
+import me.ryanhamshire.GriefPrevention.events.ClaimModifyEvent;
+import org.bukkit.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.AnimalTamer;
@@ -36,24 +32,9 @@ import org.bukkit.entity.Tameable;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -758,7 +739,14 @@ public abstract class DataStore
 	{
         return getChunkHash(location.getBlockX() >> 4, location.getBlockZ() >> 4);
     }
-	
+
+    /*
+    * Creates a claim and flags it as being new....throwing a create claim event;
+     */
+    synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer)
+    {
+        return createClaim(world,x1,x2,y1,y2,z1,z2,ownerID,parent,id,creatingPlayer,true);
+    }
     //creates a claim.
 	//if the new claim would overlap an existing claim, returns a failure along with a reference to the existing claim
 	//if the new claim would overlap a WorldGuard region where the player doesn't have permission to build, returns a failure with NULL for claim
@@ -770,7 +758,7 @@ public abstract class DataStore
 	//does NOT check a player has permission to create a claim, or enough claim blocks.
 	//does NOT check minimum claim size constraints
 	//does NOT visualize the new claim for any players	
-	synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer)
+	synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer, Boolean isNew)
 	{
 		CreateClaimResult result = new CreateClaimResult();
 		
@@ -866,8 +854,20 @@ public abstract class DataStore
                 result.claim = null;
                 return result;
             }
-		}
+        }
+        if (isNew) {
+            ClaimCreatedEvent event = new ClaimCreatedEvent(newClaim, creatingPlayer);
+            Bukkit.getPluginManager().callEvent(event);
+            if (event.isCancelled()) {
+                result.succeeded = false;
+                result.claim = null;
+                return result;
 
+            }
+        } else {
+            ClaimModifyEvent event = new ClaimModifyEvent(newClaim, creatingPlayer);
+            Bukkit.getPluginManager().callEvent(event);
+        }
 		//otherwise add this new claim to the data store to make it effective
 		this.addClaim(newClaim, true);
 		
@@ -955,6 +955,8 @@ public abstract class DataStore
 		
 		//save changes
 		this.saveClaim(claim);
+		ClaimModifyEvent event = new ClaimModifyEvent(claim,null);
+        Bukkit.getPluginManager().callEvent(event);
 	}
 
 	//starts a siege on a claim
@@ -1237,7 +1239,8 @@ public abstract class DataStore
 			
 			//save those changes
 			this.saveClaim(result.claim);
-			
+            ClaimModifyEvent event = new ClaimModifyEvent(result.claim,resizingPlayer);
+            Bukkit.getPluginManager().callEvent(event);
 			//make original claim ineffective (it's still in the hash map, so let's make it ignored)
 			claim.inDataStore = false;
 		}
