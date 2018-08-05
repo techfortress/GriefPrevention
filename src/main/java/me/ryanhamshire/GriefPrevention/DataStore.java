@@ -21,8 +21,14 @@ package me.ryanhamshire.GriefPrevention;
 import com.google.common.io.Files;
 import me.ryanhamshire.GriefPrevention.events.ClaimCreatedEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimDeletedEvent;
-import me.ryanhamshire.GriefPrevention.events.ClaimModifyEvent;
-import org.bukkit.*;
+import me.ryanhamshire.GriefPrevention.events.ClaimModifiedEvent;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.AnimalTamer;
@@ -32,9 +38,24 @@ import org.bukkit.entity.Tameable;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.nio.charset.Charset;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
@@ -865,7 +886,7 @@ public abstract class DataStore
 
             }
         } else {
-            ClaimModifyEvent event = new ClaimModifyEvent(newClaim, creatingPlayer);
+            ClaimModifiedEvent event = new ClaimModifiedEvent(newClaim, creatingPlayer);
             Bukkit.getPluginManager().callEvent(event);
         }
 		//otherwise add this new claim to the data store to make it effective
@@ -955,7 +976,7 @@ public abstract class DataStore
 		
 		//save changes
 		this.saveClaim(claim);
-		ClaimModifyEvent event = new ClaimModifyEvent(claim,null);
+		ClaimModifiedEvent event = new ClaimModifiedEvent(claim,null);
         Bukkit.getPluginManager().callEvent(event);
 	}
 
@@ -1239,7 +1260,7 @@ public abstract class DataStore
 			
 			//save those changes
 			this.saveClaim(result.claim);
-            ClaimModifyEvent event = new ClaimModifyEvent(result.claim,resizingPlayer);
+            ClaimModifiedEvent event = new ClaimModifiedEvent(result.claim,resizingPlayer);
             Bukkit.getPluginManager().callEvent(event);
 			//make original claim ineffective (it's still in the hash map, so let's make it ignored)
 			claim.inDataStore = false;

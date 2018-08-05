@@ -11,13 +11,13 @@ import org.bukkit.event.HandlerList;
  * a claim has changed. The CommandSender can be null in the event that the modification is called by the plugin itself.
  * Created by Narimm on 5/08/2018.
  */
-public class ClaimModifyEvent extends Event {
+public class ClaimModifiedEvent extends Event {
 
     private final HandlerList handlers = new HandlerList();
     private final Claim claim;
     private CommandSender modifier;
 
-    public ClaimModifyEvent(Claim claim, CommandSender modifier) {
+    public ClaimModifiedEvent(Claim claim, CommandSender modifier) {
         this.claim = claim;
         this.modifier = modifier;
     }
