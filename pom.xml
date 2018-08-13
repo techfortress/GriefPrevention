@@ -26,6 +26,10 @@
             <url>http://maven.sk89q.com/repo/</url>
         </repository>
         <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.org/repository/maven-public/</url>
+        </repository>
+        <repository>
             <id>vault-repo</id>
             <url>http://nexus.hc.to/content/repositories/pub_releases</url>
         </repository>
@@ -34,12 +38,12 @@
     <build>
 
     <!--Maintain existing structure (as much as possible)-->
-        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+        <sourceDirectory>src/main/java</sourceDirectory>
         <!--currently in same folder as source files...-->
-        <testSourceDirectory>${project.basedir}/src/tests/java</testSourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
         <testResources>
           <testResource>
-            <directory>${project.basedir}/src/tests/resources</directory>
+            <directory>src/test/resources</directory>
           </testResource>
         </testResources>
         <finalName>${project.name}</finalName>
@@ -47,7 +51,7 @@
             <resource>
             <!-- Use plugin.yml in root directory-->
             <!-- This can also automatically update plugin.yml version from pom, if you use ${project.version} as version number-->
-                <directory>${project.basedir}/src/main/resources</directory>
+                <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <targetPath>.</targetPath>
                 <includes>
@@ -61,38 +65,42 @@
         <dependency>
                 <groupId>org.bukkit</groupId>
                 <artifactId>bukkit</artifactId>
-                <version>1.12.2-R0.1-SNAPSHOT</version>
+                <version>1.13-R0.1-SNAPSHOT</version>
                 <scope>provided</scope>
         </dependency>
          <!--Worldguard dependency-->
         <dependency>
-                <groupId>com.sk89q</groupId>
-                <artifactId>worldguard</artifactId>
-                <version>6.1.1-SNAPSHOT</version>
-        </dependency>
-        <!--WorldGuard depends on WorldEdit-->
-        <dependency>
-                <groupId>com.sk89q.worldedit</groupId>
-                <artifactId>worldedit-bukkit</artifactId>
-                <version>6.1.4-SNAPSHOT</version>
+                <groupId>com.sk89q.worldguard</groupId>
+                <artifactId>worldguard-legacy</artifactId>
+                <version>7.0.0-SNAPSHOT</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.bukkit</groupId>
+                        <artifactId>bukkit</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sk89q.worldedit</groupId>
+                        <artifactId>worldedit-bukkit</artifactId>
+                    </exclusion>
+                    <exclusion>
+                        <groupId>com.sk89q</groupId>
+                        <artifactId>commandbook</artifactId>
+                    </exclusion>
+            </exclusions>
         </dependency>
          <!--Vault dependency-->
         <dependency>
                 <groupId>net.milkbowl.vault</groupId>
                 <artifactId>VaultAPI</artifactId>
                 <version>1.6</version>
-        </dependency>
-        <!--Google stuff-->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>21.0</version>
-        </dependency>
-        <!--json stuff-->
-        <dependency>
-            <groupId>com.googlecode.json-simple</groupId>
-            <artifactId>json-simple</artifactId>
-            <version>1.1.1</version>
+                <scope>provided</scope>
+                <exclusions>
+                    <exclusion>
+                        <groupId>org.bukkit</groupId>
+                        <artifactId>bukkit</artifactId>
+                    </exclusion>
+                </exclusions>
         </dependency>
 
     </dependencies>
