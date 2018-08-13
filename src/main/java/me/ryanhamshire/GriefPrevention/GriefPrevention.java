@@ -3597,12 +3597,12 @@ public class GriefPrevention extends JavaPlugin
 
     public static boolean isNewToServer(Player player)
     {
-        if(     player.getStatistic(Statistic.PICKUP, Material.OAK_PLANKS) +
-                player.getStatistic(Statistic.PICKUP, Material.SPRUCE_PLANKS) +
-                player.getStatistic(Statistic.PICKUP, Material.BIRCH_PLANKS) +
-                player.getStatistic(Statistic.PICKUP, Material.JUNGLE_PLANKS) +
-                player.getStatistic(Statistic.PICKUP, Material.ACACIA_PLANKS) +
-                player.getStatistic(Statistic.PICKUP, Material.DARK_OAK_PLANKS) > 0) return false;
+        if(     player.getStatistic(Statistic.PICKUP, Material.OAK_LOG) > 0 ||
+                player.getStatistic(Statistic.PICKUP, Material.SPRUCE_LOG) > 0 ||
+                player.getStatistic(Statistic.PICKUP, Material.BIRCH_LOG) > 0 ||
+                player.getStatistic(Statistic.PICKUP, Material.JUNGLE_LOG) > 0 ||
+                player.getStatistic(Statistic.PICKUP, Material.ACACIA_LOG) > 0 ||
+                player.getStatistic(Statistic.PICKUP, Material.DARK_OAK_LOG) > 0) return false;
         
         PlayerData playerData = instance.dataStore.getPlayerData(player.getUniqueId());
         if(playerData.getClaims().size() > 0) return false;
