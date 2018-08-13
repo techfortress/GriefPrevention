@@ -38,12 +38,12 @@
     <build>
 
     <!--Maintain existing structure (as much as possible)-->
-        <sourceDirectory>${project.basedir}/src/main/java</sourceDirectory>
+        <sourceDirectory>src/main/java</sourceDirectory>
         <!--currently in same folder as source files...-->
-        <testSourceDirectory>${project.basedir}/src/tests/java</testSourceDirectory>
+        <testSourceDirectory>src/test/java</testSourceDirectory>
         <testResources>
           <testResource>
-            <directory>${project.basedir}/src/tests/resources</directory>
+            <directory>src/test/resources</directory>
           </testResource>
         </testResources>
         <finalName>${project.name}</finalName>
@@ -51,7 +51,7 @@
             <resource>
             <!-- Use plugin.yml in root directory-->
             <!-- This can also automatically update plugin.yml version from pom, if you use ${project.version} as version number-->
-                <directory>${project.basedir}/src/main/resources</directory>
+                <directory>src/main/resources</directory>
                 <filtering>true</filtering>
                 <targetPath>.</targetPath>
                 <includes>
@@ -65,7 +65,7 @@
         <dependency>
                 <groupId>org.bukkit</groupId>
                 <artifactId>bukkit</artifactId>
-                <version>1.12.2-R0.1-SNAPSHOT</version>
+                <version>1.13-R0.1-SNAPSHOT</version>
                 <scope>provided</scope>
         </dependency>
          <!--Worldguard dependency-->

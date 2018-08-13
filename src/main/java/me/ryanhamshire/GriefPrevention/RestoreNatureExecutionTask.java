@@ -56,7 +56,7 @@ class RestoreNatureExecutionTask implements Runnable
 	}
 	
 	@SuppressWarnings("deprecation")
-    @Override
+        @Override
 	public void run()
 	{
 		//apply changes to the world, but ONLY to unclaimed blocks
@@ -71,7 +71,7 @@ class RestoreNatureExecutionTask implements Runnable
 				{
 					BlockSnapshot blockUpdate = this.snapshots[x][y][z];
 					Block currentBlock = blockUpdate.location.getBlock();
-					if(blockUpdate.typeId != currentBlock.getType()|| blockUpdate.data != currentBlock.getData())
+					if(blockUpdate.typeId != currentBlock.getType()|| !blockUpdate.data.equals(currentBlock.getBlockData()))
 					{
 						Claim claim = GriefPrevention.instance.dataStore.getClaimAt(blockUpdate.location, false, cachedClaim);
 						if(claim != null)
@@ -82,8 +82,8 @@ class RestoreNatureExecutionTask implements Runnable
 						
 						try
 						{
-						    currentBlock.setType(blockUpdate.typeId, false);
-                            currentBlock.setData(blockUpdate.data, false);
+						currentBlock.setType(blockUpdate.typeId, false);
+						currentBlock.setBlockData(blockUpdate.data, false);
 						}
 						catch(IllegalArgumentException e)
 						{
