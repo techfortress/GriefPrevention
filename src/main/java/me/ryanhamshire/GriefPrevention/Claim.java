@@ -145,7 +145,7 @@ public class Claim
 					Block block = lesser.getWorld().getBlockAt(x, y, z);
 					if(exclusionClaim != null && exclusionClaim.contains(block.getLocation(), true, false)) continue;
 					
-					if(block.getType() == Material.STATIONARY_LAVA || block.getType() == Material.WATER || block.getType() == Material.STATIONARY_WATER || block.getType() == Material.LAVA)
+					if(block.getType() == Material.LAVA || block.getType() == Material.WATER)
 					{
 						block.setType(Material.AIR);
 					}
@@ -178,7 +178,7 @@ public class Claim
 					//dodge the exclusion claim
 					Block block = lesser.getWorld().getBlockAt(x, y, z);
 					
-					if(block.getType() == Material.STATIONARY_LAVA || block.getType() == Material.WATER || block.getType() == Material.STATIONARY_WATER || block.getType() == Material.LAVA)
+					if(block.getType() == Material.WATER || block.getType() == Material.LAVA)
 					{
 						return true;
 					}
@@ -334,12 +334,12 @@ public class Claim
 	
 	private List<Material> placeableFarmingBlocksList = Arrays.asList(
 	        Material.PUMPKIN_STEM,
-	        Material.CROPS,
+	        Material.WHEAT,
 	        Material.MELON_STEM,
 	        Material.CARROT,
 	        Material.POTATO,
-	        Material.NETHER_WARTS,
-	        Material.BEETROOT_BLOCK);
+	        Material.NETHER_WART,
+	        Material.BEETROOT);
 	    
     private boolean placeableForFarming(Material material)
     {
@@ -385,14 +385,14 @@ public class Claim
 		if(ClaimPermission.Build == permissionLevel) return null;
 		
 		//allow for farming with /containertrust permission
-        if(this.allowContainers(player) == null)
-        {
-            //do allow for farming, if player has /containertrust permission
-            if(this.placeableForFarming(material))
-            {
-                return null;
-            }
-        }
+		if(this.allowContainers(player) == null)
+		{
+			//do allow for farming, if player has /containertrust permission
+			if(this.placeableForFarming(material))
+			{
+				return null;
+			}
+		}
 		
 		//subdivision permission inheritance
 		if(this.parent != null)
@@ -913,7 +913,7 @@ public class Claim
 						{
 							score += 10;
 						}
-						else if(creativeMode && (block.getType() == Material.LAVA || block.getType() == Material.STATIONARY_LAVA))
+						else if(creativeMode && (block.getType() == Material.LAVA))
 						{
 							score -= 10;
 						}
