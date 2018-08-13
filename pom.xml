@@ -6,7 +6,7 @@
 
     <groupId>me.ryanhamshire</groupId>
     <artifactId>GriefPrevention</artifactId>
-    <version>17-SNAPSHOT</version>
+    <version>16.8.dev</version>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -42,7 +42,7 @@
             <directory>${project.basedir}/src/tests/resources</directory>
           </testResource>
         </testResources>
-        <finalName>${project.name}-${project.version}</finalName>
+        <finalName>${project.name}</finalName>
         <resources>
             <resource>
             <!-- Use plugin.yml in root directory-->
