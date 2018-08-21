@@ -17,6 +17,71 @@
  */
 
 package me.ryanhamshire.GriefPrevention;
+import me.ryanhamshire.GriefPrevention.events.VisualizationEvent;
+import org.bukkit.BanList;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Chunk;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.Tag;
+import org.bukkit.TravelAgent;
+import org.bukkit.World.Environment;
+import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.Levelled;
+import org.bukkit.command.Command;
+import org.bukkit.entity.AbstractHorse;
+import org.bukkit.entity.Animals;
+import org.bukkit.entity.Creature;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Fish;
+import org.bukkit.entity.Hanging;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Tameable;
+import org.bukkit.entity.Vehicle;
+import org.bukkit.entity.minecart.PoweredMinecart;
+import org.bukkit.entity.minecart.StorageMinecart;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerEvent;
+import org.bukkit.event.player.PlayerFishEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerKickEvent;
+import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerLoginEvent.Result;
+import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.MetadataValue;
+import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.BlockIterator;
+
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,48 +97,14 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-
-import me.ryanhamshire.GriefPrevention.events.VisualizationEvent;
-import org.bukkit.BanList;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.Chunk;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Tag;
-import org.bukkit.TravelAgent;
-import org.bukkit.World.Environment;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.command.Command;
-import org.bukkit.entity.*;
-import org.bukkit.entity.minecart.PoweredMinecart;
-import org.bukkit.entity.minecart.StorageMinecart;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.*;
-import org.bukkit.event.player.PlayerLoginEvent.Result;
-import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.MetadataValue;
-import org.bukkit.plugin.Plugin;
-import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.util.BlockIterator;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
-@SuppressWarnings({ "AccessStaticViaInstance", "unused", "Convert2Diamond", "StringConcatenationInsideStringBufferAppend",
-		"ForLoopReplaceableByForEach", "RedundantCast" })
+@SuppressWarnings({
+		"AccessStaticViaInstance", "unused", "Convert2Diamond",
+		"StringConcatenationInsideStringBufferAppend",
+		"ForLoopReplaceableByForEach", "RedundantCast"
+})
 class PlayerEventHandler implements Listener
 {
 	private DataStore dataStore;
@@ -105,63 +136,6 @@ class PlayerEventHandler implements Listener
 		this.dataStore = dataStore;
 		this.instance = plugin;
 		bannedWordFinder = new WordFinder(instance.dataStore.loadBannedWords());
-	}
-
-	//determines whether a block type is an inventory holder.  uses a caching strategy to save cpu time
-	private boolean isInventoryHolder(Block clickedBlock)
-	{
-		@SuppressWarnings("deprecation")
-		Material cacheKey = clickedBlock.getType();
-		Boolean cachedValue = this.inventoryHolderCache.get(cacheKey);
-		if(cachedValue != null)
-		{
-			return cachedValue;
-
-		}
-		else
-		{
-			boolean isHolder = clickedBlock.getState() instanceof InventoryHolder;
-			this.inventoryHolderCache.put(cacheKey, isHolder);
-			return isHolder;
-		}
-	}
-
-	private boolean onLeftClickWatchList(Material material)
-	{
-		if(Tag.BUTTONS.isTagged(material)) return true;
-
-		// TODO: What about Comparators, Daylight Sensors, Note Blocks, Jukeboxes
-		switch(material)
-		{
-			case LEVER:
-			case REPEATER:
-			case CAKE:
-			case DRAGON_EGG:
-				return true;
-			default:
-				return false;
-		}
-	}
-
-	@SuppressWarnings("SameParameterValue")
-	private static Block getTargetBlock(Player player, int maxDistance) throws IllegalStateException
-	{
-		Location eye = player.getEyeLocation();
-		Material eyeMaterial = eye.getBlock().getType();
-		boolean passThroughWater = (eyeMaterial == Material.WATER);
-		BlockIterator iterator = new BlockIterator(player.getLocation(), player.getEyeHeight(), maxDistance);
-		Block result = player.getLocation().getBlock().getRelative(BlockFace.UP);
-		while (iterator.hasNext())
-		{
-			result = iterator.next();
-			Material type = result.getType();
-			if(type != Material.AIR &&
-					(!passThroughWater || type != Material.WATER) &&
-					type != Material.TALL_GRASS &&
-					type != Material.SNOW) return result;
-		}
-
-		return result;
 	}
 
 	//when a player chats, monitor for spam
@@ -313,17 +287,17 @@ class PlayerEventHandler implements Listener
 			String[] checkWords = trappedwords.split(";");
 
 			for (String checkWord : checkWords) {
-			if (!message.contains("/trapped")
-				&& message.contains(checkWord))
-			{
-				instance.sendMessage(
-					player,
-					TextMode.Info,
-					Messages.TrappedInstructions,
-					10L
-				);
-				break;
-			}
+				if (!message.contains("/trapped")
+					&& message.contains(checkWord))
+				{
+					instance.sendMessage(
+						player,
+						TextMode.Info,
+						Messages.TrappedInstructions,
+						10L
+					);
+					break;
+				}
 			}
 		}
 		
@@ -1327,10 +1301,17 @@ class PlayerEventHandler implements Listener
 		}
 		
 		//if the entity is an animal, apply container rules
-		if((instance.config_claims_preventTheft && entity instanceof Animals) || (entity.getType() == EntityType.VILLAGER && instance.config_claims_villagerTradingRequiresTrust))
-		{
+		if(
+			instance.config_claims_preventTheft &&
+			(entity instanceof Animals || entity instanceof Fish) ||
+			(
+				entity.getType() == EntityType.VILLAGER &&
+				instance.config_claims_villagerTradingRequiresTrust
+			)
+		){
 			//if the entity is in a claim
 			Claim claim = this.dataStore.getClaimAt(entity.getLocation(), false, null);
+
 			if(claim != null)
 			{
 				if(claim.allowContainers(player) != null)
@@ -1346,7 +1327,10 @@ class PlayerEventHandler implements Listener
 		}
 		
 		//if preventing theft, prevent leashing claimed creatures
-		if(instance.config_claims_preventTheft && entity instanceof Creature && instance.getItemInHand(player, event.getHand()).getType() == Material.LEAD)
+		if(
+			instance.config_claims_preventTheft &&
+			entity instanceof Creature &&
+			instance.getItemInHand(player, event.getHand()).getType() == Material.LEAD)
 		{
 			Claim claim = this.dataStore.getClaimAt(entity.getLocation(), false, playerData.lastClaim);
 			if(claim != null)
@@ -2794,5 +2778,62 @@ class PlayerEventHandler implements Listener
 				handleBlockLeftClick(event);
 				break;
 		}
+	}
+
+	//determines whether a block type is an inventory holder.  uses a caching strategy to save cpu time
+	private boolean isInventoryHolder(Block clickedBlock)
+	{
+		@SuppressWarnings("deprecation")
+		Material cacheKey = clickedBlock.getType();
+		Boolean cachedValue = this.inventoryHolderCache.get(cacheKey);
+		if(cachedValue != null)
+		{
+			return cachedValue;
+
+		}
+		else
+		{
+			boolean isHolder = clickedBlock.getState() instanceof InventoryHolder;
+			this.inventoryHolderCache.put(cacheKey, isHolder);
+			return isHolder;
+		}
+	}
+
+	private boolean onLeftClickWatchList(Material material)
+	{
+		if(Tag.BUTTONS.isTagged(material)) return true;
+
+		// TODO: What about Comparators, Daylight Sensors, Note Blocks, Jukeboxes
+		switch(material)
+		{
+			case LEVER:
+			case REPEATER:
+			case CAKE:
+			case DRAGON_EGG:
+				return true;
+			default:
+				return false;
+		}
+	}
+
+	@SuppressWarnings("SameParameterValue")
+	private static Block getTargetBlock(Player player, int maxDistance) throws IllegalStateException
+	{
+		Location eye = player.getEyeLocation();
+		Material eyeMaterial = eye.getBlock().getType();
+		boolean passThroughWater = (eyeMaterial == Material.WATER);
+		BlockIterator iterator = new BlockIterator(player.getLocation(), player.getEyeHeight(), maxDistance);
+		Block result = player.getLocation().getBlock().getRelative(BlockFace.UP);
+		while (iterator.hasNext())
+		{
+			result = iterator.next();
+			Material type = result.getType();
+			if(type != Material.AIR &&
+					(!passThroughWater || type != Material.WATER) &&
+					type != Material.TALL_GRASS &&
+					type != Material.SNOW) return result;
+		}
+
+		return result;
 	}
 }

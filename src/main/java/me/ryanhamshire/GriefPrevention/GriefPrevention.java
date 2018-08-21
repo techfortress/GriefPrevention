@@ -544,7 +544,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_claims_accruedIdleThreshold = config.getInt("GriefPrevention.Claims.AccruedIdleThreshold", 0);
         this.config_claims_accruedIdleThreshold = config.getInt("GriefPrevention.Claims.Accrued Idle Threshold", this.config_claims_accruedIdleThreshold);
         this.config_claims_accruedIdlePercent = config.getInt("GriefPrevention.Claims.AccruedIdlePercent", 0);
-        this.config_claims_abandonReturnRatio = config.getDouble("GriefPrevention.Claims.AbandonReturnRatio", 1);
+        this.config_claims_abandonReturnRatio = config.getDouble("GriefPrevention.Claims.AbandonReturnRatio", 1.0D);
         this.config_claims_automaticClaimsForNewPlayersRadius = config.getInt("GriefPrevention.Claims.AutomaticNewPlayerClaimsRadius", 4);
         this.config_claims_claimsExtendIntoGroundDistance = Math.abs(config.getInt("GriefPrevention.Claims.ExtendIntoGroundDistance", 5));
         this.config_claims_minWidth = config.getInt("GriefPrevention.Claims.MinimumWidth", 5);
@@ -1323,12 +1323,16 @@ public class GriefPrevention extends JavaPlugin
 				GriefPrevention.sendMessage(player, TextMode.Err, Messages.YouHaveNoClaims);
 				return true;
 			}
-			
-			//adjust claim blocks
-			for(Claim claim : playerData.getClaims())
+
+			if (this.config_claims_abandonReturnRatio != 1.0D)
 			{
-			    playerData.setAccruedClaimBlocks(playerData.getAccruedClaimBlocks() - (int)Math.ceil((claim.getArea() * (1 - this.config_claims_abandonReturnRatio))));
+				//adjust claim blocks
+				for(Claim claim : playerData.getClaims())
+				{
+					playerData.setAccruedClaimBlocks(playerData.getAccruedClaimBlocks() - (int)Math.ceil((claim.getArea() * (1 - this.config_claims_abandonReturnRatio))));
+				}
 			}
+
 			
 			//delete them
 			this.dataStore.deleteClaimsForPlayer(player.getUniqueId(), false);
@@ -2664,10 +2668,10 @@ public class GriefPrevention extends JavaPlugin
 		else if(cmd.getName().equalsIgnoreCase("gpblockinfo") && player != null)
 		{
 		    ItemStack inHand = player.getItemInHand();
-		    player.sendMessage("In Hand: " + String.format("%s(%d:%s)", inHand.getType().name(), inHand.getType(), inHand.getData().getData()));
+		    player.sendMessage("In Hand: " + String.format("%s(dValue:%s)", inHand.getType().name(), inHand.getData().getData()));
 		    
 		    Block inWorld = GriefPrevention.getTargetNonAirBlock(player, 300);
-		    player.sendMessage("In World: " + String.format("%s(%d:%s)", inWorld.getType().name(), inWorld.getType(), inWorld.getData()));
+		    player.sendMessage("In World: " + String.format("%s(dValue:%s)", inWorld.getType().name(), inWorld.getData()));
 		    
 		    return true;
 		}
@@ -2888,9 +2892,9 @@ public class GriefPrevention extends JavaPlugin
 				GriefPrevention.sendMessage(player, TextMode.Warn, Messages.UnclaimCleanupWarning);
 				GriefPrevention.instance.restoreClaim(claim, 20L * 60 * 2);
 			}
-			
+
 			//adjust claim blocks when abandoning a top level claim
-			if(claim.parent == null)
+			if(this.config_claims_abandonReturnRatio != 1.0D && claim.parent == null)
 			{
 			    playerData.setAccruedClaimBlocks(playerData.getAccruedClaimBlocks() - (int)Math.ceil((claim.getArea() * (1 - this.config_claims_abandonReturnRatio))));
 			}

@@ -18,17 +18,8 @@
 
 package me.ryanhamshire.GriefPrevention;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.UUID;
-
 import me.ryanhamshire.GriefPrevention.events.PreventPvPEvent;
 import me.ryanhamshire.GriefPrevention.events.ProtectDeathDropsEvent;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -38,8 +29,6 @@ import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.Creature;
-import org.bukkit.entity.Creeper;
-import org.bukkit.entity.Enderman;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Explosive;
@@ -53,9 +42,7 @@ import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Rabbit;
 import org.bukkit.entity.Tameable;
 import org.bukkit.entity.ThrownPotion;
-import org.bukkit.entity.Villager;
 import org.bukkit.entity.WaterMob;
-import org.bukkit.entity.Zombie;
 import org.bukkit.entity.minecart.ExplosiveMinecart;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -90,6 +77,14 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.UUID;
 
 //handles events related to entities
 public class EntityEventHandler implements Listener
@@ -1002,7 +997,7 @@ public class EntityEventHandler implements Listener
                         else
                         {
                             event.setCancelled(true);
-                            if(damageSource != null && damageSource instanceof Projectile)
+                            if(damageSource instanceof Projectile)
                             {
                                 damageSource.remove();
                             }
@@ -1017,8 +1012,8 @@ public class EntityEventHandler implements Listener
                         {
                             event.setCancelled(true);
                             
-                            //kill the arrow to avoid infinite bounce between crowded together animals
-                            if(arrow != null) arrow.remove();
+                            //kill the arrow to avoid infinite bounce between crowded together animals //RoboMWM: except for tridents
+                            if(arrow != null && arrow.getType() != EntityType.TRIDENT) arrow.remove();
                             
                             if(sendErrorMessagesToPlayers)
                             {

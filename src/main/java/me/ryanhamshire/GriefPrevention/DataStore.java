@@ -135,6 +135,18 @@ public abstract class DataStore
 	void initialize() throws Exception
 	{
 		GriefPrevention.AddLogEntry(this.claims.size() + " total claims loaded.");
+
+		//RoboMWM: ensure the nextClaimID is greater than any other claim ID. If not, data corruption occurred (out of storage space, usually).
+		for (Claim claim : this.claims)
+		{
+			if (claim.id >= nextClaimID)
+			{
+				instance.getLogger().severe("nextClaimID was lesser or equal to an already-existing claim ID!\n" +
+						"This usually happens if you ran out of storage space.");
+				instance.AddLogEntry("Changing nextClaimID from " + nextClaimID + " to " + claim.id, CustomLogEntryTypes.Debug, false);
+				nextClaimID = claim.id + 1;
+			}
+		}
 		
 		//ensure data folders exist
         File playerDataFolder = new File(playerDataFolderPath);
