@@ -83,9 +83,9 @@ public class Visualization
 			    //check player still in world where visualization exists
 			    if(i == 0)
 			    {
-				if(!player.getWorld().equals(element.location.getWorld())) return;
+					if(!player.getWorld().equals(element.location.getWorld())) return;
 			    }
-
+			    
 				player.sendBlockChange(element.location, element.realBlock);
 			}
 
@@ -267,7 +267,7 @@ public class Visualization
     }
 
 	//finds a block the player can probably see.  this is how visualizations "cling" to the ground or ceiling
-	private static Location getVisibleLocation(World world, int x, int y, int z, boolean waterIsTransparent)
+    private static Location getVisibleLocation(World world, int x, int y, int z, boolean waterIsTransparent)
 	{
 		Block block = world.getBlockAt(x,  y, z);
 		BlockFace direction = (isTransparent(block, waterIsTransparent)) ? BlockFace.DOWN : BlockFace.UP;

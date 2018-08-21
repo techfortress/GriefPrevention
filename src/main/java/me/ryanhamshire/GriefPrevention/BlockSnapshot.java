@@ -28,7 +28,7 @@ public class BlockSnapshot
 {
 	public Location location;
 	public Material typeId;
-	public BlockData data;	
+	public BlockData data;
 	
 	public BlockSnapshot(Location location, Material typeId, BlockData data)
 	{

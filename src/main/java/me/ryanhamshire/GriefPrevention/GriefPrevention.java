@@ -616,7 +616,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_zombiesBreakDoors = config.getBoolean("GriefPrevention.HardModeZombiesBreakDoors", false);
         this.config_ban_useCommand = config.getBoolean("GriefPrevention.UseBanCommand", false);
         this.config_ban_commandFormat = config.getString("GriefPrevention.BanCommandPattern", "ban %name% %reason%");
-        
+
         //default for claim investigation tool
         String investigationToolMaterialName = Material.STICK.name();
         
@@ -676,13 +676,46 @@ public class GriefPrevention extends JavaPlugin
         this.config_siege_blocks.add(Material.DIRT);
         this.config_siege_blocks.add(Material.GRASS_BLOCK);
         this.config_siege_blocks.add(Material.GRASS);
+        this.config_siege_blocks.add(Material.TALL_GRASS);
         this.config_siege_blocks.add(Material.FERN);
         this.config_siege_blocks.add(Material.DEAD_BUSH);
         this.config_siege_blocks.add(Material.COBBLESTONE);
         this.config_siege_blocks.add(Material.GRAVEL);
         this.config_siege_blocks.add(Material.SAND);
         this.config_siege_blocks.add(Material.GLASS);
+        this.config_siege_blocks.add(Material.BLACK_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.BLUE_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.BROWN_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.CYAN_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.GRAY_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.GREEN_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.LIGHT_BLUE_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.LIGHT_GRAY_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.LIME_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.MAGENTA_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.ORANGE_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.PINK_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.PURPLE_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.RED_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.WHITE_STAINED_GLASS);
+        this.config_siege_blocks.add(Material.YELLOW_STAINED_GLASS);
         this.config_siege_blocks.add(Material.GLASS_PANE);
+        this.config_siege_blocks.add(Material.BLACK_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.BLUE_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.BROWN_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.CYAN_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.GRAY_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.GREEN_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.LIGHT_BLUE_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.LIME_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.MAGENTA_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.ORANGE_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.PINK_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.PURPLE_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.RED_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.WHITE_STAINED_GLASS_PANE);
+        this.config_siege_blocks.add(Material.YELLOW_STAINED_GLASS_PANE);
         this.config_siege_blocks.add(Material.OAK_PLANKS);
         this.config_siege_blocks.add(Material.SPRUCE_PLANKS);
         this.config_siege_blocks.add(Material.BIRCH_PLANKS);
@@ -706,7 +739,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_siege_blocks.add(Material.RED_WOOL);
         this.config_siege_blocks.add(Material.BLACK_WOOL);
         this.config_siege_blocks.add(Material.SNOW);
-        
+
         //build a default config entry
         ArrayList<String> defaultBreakableBlocksList = new ArrayList<String>();
         for(int i = 0; i < this.config_siege_blocks.size(); i++)
@@ -3475,13 +3508,20 @@ public class GriefPrevention extends JavaPlugin
 		BlockSnapshot[][][] snapshots = new BlockSnapshot[18][maxHeight][18];
 		Block startBlock = chunk.getBlock(0, 0, 0);
 		Location startLocation = new Location(chunk.getWorld(), startBlock.getX() - 1, 0, startBlock.getZ() - 1);
+		int startX = startLocation.getBlockX();
+		int startY = startLocation.getBlockY();
+		int startZ = startLocation.getBlockZ();
+
+		Block block;
+		World world = chunk.getWorld();
+
 		for(int x = 0; x < snapshots.length; x++)
 		{
 			for(int z = 0; z < snapshots[0][0].length; z++)
 			{
 				for(int y = 0; y < snapshots[0].length; y++)
 				{
-					Block block = chunk.getWorld().getBlockAt(startLocation.getBlockX() + x, startLocation.getBlockY() + y, startLocation.getBlockZ() + z);
+					block = world.getBlockAt(startX + x, startY + y, startZ + z);
 					snapshots[x][y][z] = new BlockSnapshot(block.getLocation(), block.getType(), block.getBlockData());
 				}
 			}

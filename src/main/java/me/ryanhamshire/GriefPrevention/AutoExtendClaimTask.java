@@ -84,14 +84,14 @@ class AutoExtendClaimTask implements Runnable
                     {
                         for(int z = 0; z < 16; z++)
                         {
-                            	Material blockType = chunk.getBlockType(x, y, z);
-				while(!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
-				{
-				    ychanged = true;
-				    blockType = chunk.getBlockType(x, --y, z);
-				}
+                            Material blockType = chunk.getBlockType(x, y, z);
+                            while(!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
+                            {
+                                ychanged = true;
+                                blockType = chunk.getBlockType(x, --y, z);
+                            }
 
-				if(this.yTooSmall(y)) return y;
+                            if(this.yTooSmall(y)) return y;
                         }
                     }
                 }

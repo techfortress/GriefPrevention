@@ -305,7 +305,7 @@ public class EntityEventHandler implements Listener
             
             //always ignore air blocks
             if(block.getType() == Material.AIR) continue;
-            
+
             //is it in a land claim?
             Claim claim = this.dataStore.getClaimAt(block.getLocation(), false, cachedClaim);
             if(claim != null)
@@ -1001,7 +1001,7 @@ public class EntityEventHandler implements Listener
                             {
                                 damageSource.remove();
                             }
-                        }                       
+                        }
                     }
                     
                     //otherwise the player damaging the entity must have permission, unless it's a dog in a pvp world
@@ -1029,7 +1029,7 @@ public class EntityEventHandler implements Listener
                         if(playerData != null)
                         {
                             playerData.lastClaim = claim;
-                        }                       
+                        }
                     }
                 }
             }

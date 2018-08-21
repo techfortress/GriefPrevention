@@ -70,14 +70,14 @@ class RestoreNatureProcessingTask implements Runnable
 		
 		this.notAllowedToHang = new ArrayList<Material>();
 		this.notAllowedToHang.add(Material.DIRT);
-		this.notAllowedToHang.add(Material.GRASS);
+		this.notAllowedToHang.add(Material.TALL_GRASS);
 		this.notAllowedToHang.add(Material.SNOW);
 		this.notAllowedToHang.add(Material.OAK_LOG);
-                this.notAllowedToHang.add(Material.SPRUCE_LOG);
-                this.notAllowedToHang.add(Material.BIRCH_LOG);
-                this.notAllowedToHang.add(Material.JUNGLE_LOG);
-                this.notAllowedToHang.add(Material.ACACIA_LOG);
-                this.notAllowedToHang.add(Material.DARK_OAK_LOG);
+				this.notAllowedToHang.add(Material.SPRUCE_LOG);
+				this.notAllowedToHang.add(Material.BIRCH_LOG);
+				this.notAllowedToHang.add(Material.JUNGLE_LOG);
+				this.notAllowedToHang.add(Material.ACACIA_LOG);
+				this.notAllowedToHang.add(Material.DARK_OAK_LOG);
 		
 		if(this.aggressiveMode)
 		{
@@ -293,7 +293,7 @@ class RestoreNatureProcessingTask implements Runnable
 					
 					//skip non-logs
 					if(!Tag.LOGS.isTagged(block.typeId)) continue;
-					
+
 					//if in jungle biome, skip jungle logs
 					if(jungleBiome && block.typeId == Material.JUNGLE_LOG) continue;
 				
@@ -369,7 +369,7 @@ class RestoreNatureProcessingTask implements Runnable
 		Material [] excludedBlocksArray = new Material []
 		{
 			Material.CACTUS,
-			Material.GRASS,
+			Material.TALL_GRASS,
 			Material.RED_MUSHROOM,
 			Material.BROWN_MUSHROOM,
 			Material.DEAD_BUSH,
@@ -383,6 +383,7 @@ class RestoreNatureProcessingTask implements Runnable
 			Material.WHITE_TULIP,
 			Material.PINK_TULIP,
 			Material.OXEYE_DAISY,
+			Material.ROSE_BUSH,
 			Material.SUGAR_CANE,
 			Material.VINE,
 			Material.PUMPKIN,
@@ -391,10 +392,10 @@ class RestoreNatureProcessingTask implements Runnable
 		
 		ArrayList<Material> excludedBlocks = new ArrayList<Material>();
 		for(int i = 0; i < excludedBlocksArray.length; i++) excludedBlocks.add(excludedBlocksArray[i]);
-                
-                excludedBlocks.addAll(Tag.SAPLINGS.getValues());
-                excludedBlocks.addAll(Tag.LEAVES.getValues());
-		
+
+		excludedBlocks.addAll(Tag.SAPLINGS.getValues());
+		excludedBlocks.addAll(Tag.LEAVES.getValues());
+
 		boolean changed;
 		do
 		{
@@ -458,10 +459,10 @@ class RestoreNatureProcessingTask implements Runnable
 		fillableBlocks.add(Material.AIR);
 		fillableBlocks.add(Material.WATER);
 		fillableBlocks.add(Material.LAVA);
-		fillableBlocks.add(Material.GRASS);
+		fillableBlocks.add(Material.TALL_GRASS);
 		
 		ArrayList<Material> notSuitableForFillBlocks = new ArrayList<Material>();
-		notSuitableForFillBlocks.add(Material.GRASS);
+		notSuitableForFillBlocks.add(Material.TALL_GRASS);
 		notSuitableForFillBlocks.add(Material.CACTUS);
 		notSuitableForFillBlocks.add(Material.WATER);
 		notSuitableForFillBlocks.add(Material.LAVA);
@@ -541,10 +542,10 @@ class RestoreNatureProcessingTask implements Runnable
 		//fill water depressions
 		do
 		{
-			changed = false;		
-			for(int y = Math.max(this.seaLevel - 10, 0); y <= this.seaLevel; y++)			
+			changed = false;
+			for(int y = Math.max(this.seaLevel - 10, 0); y <= this.seaLevel; y++)
 			{
-				for(int x = 1; x < snapshots.length - 1; x++)				
+				for(int x = 1; x < snapshots.length - 1; x++)
 				{
 					for(int z = 1; z < snapshots[0][0].length - 1; z++)
 					{
@@ -600,7 +601,7 @@ class RestoreNatureProcessingTask implements Runnable
 	{
 		if(this.seaLevel < 1) return;
 	    
-                //remove any surface water or lava above sea level, presumed to be placed by players
+	    //remove any surface water or lava above sea level, presumed to be placed by players
 		//sometimes, this is naturally generated.  but replacing it is very easy with a bucket, so overall this is a good plan
 		if(this.environment == Environment.NETHER) return;
 		for(int x = 1; x < snapshots.length - 1; x++)
@@ -620,7 +621,7 @@ class RestoreNatureProcessingTask implements Runnable
 	}
 	
 	@SuppressWarnings("deprecation")
-        private int highestY(int x, int z, boolean ignoreLeaves)
+    private int highestY(int x, int z, boolean ignoreLeaves)
 	{
 		int y;
 		for(y = snapshots[0].length - 1; y > 0; y--)
@@ -640,7 +641,7 @@ class RestoreNatureProcessingTask implements Runnable
 	}
 	
 	@SuppressWarnings("deprecation")
-        static ArrayList<Material> getPlayerBlocks(Environment environment, Biome biome) 
+    static ArrayList<Material> getPlayerBlocks(Environment environment, Biome biome) 
 	{
 		//NOTE on this list.  why not make a list of natural blocks?
 		//answer: better to leave a few player blocks than to remove too many natural blocks.  remember we're "restoring nature"
@@ -790,7 +791,7 @@ class RestoreNatureProcessingTask implements Runnable
 		playerBlocks.add(Material.BRICK_STAIRS);
 		playerBlocks.add(Material.ENCHANTING_TABLE);
 		playerBlocks.add(Material.BREWING_STAND);
-		playerBlocks.add(Material.CAULDRON);		
+		playerBlocks.add(Material.CAULDRON);
 		playerBlocks.add(Material.COBWEB);
 		playerBlocks.add(Material.SPONGE);
 		playerBlocks.add(Material.GRAVEL);
@@ -908,23 +909,23 @@ class RestoreNatureProcessingTask implements Runnable
 		playerBlocks.add(Material.DARK_OAK_FENCE);
 		playerBlocks.add(Material.DARK_OAK_FENCE_GATE);
 		playerBlocks.add(Material.JUNGLE_FENCE);
-                playerBlocks.add(Material.JUNGLE_FENCE_GATE);
-                playerBlocks.add(Material.SPRUCE_FENCE);
-                playerBlocks.add(Material.SPRUCE_FENCE_GATE);
-                playerBlocks.add(Material.ACACIA_DOOR);
-                playerBlocks.add(Material.SPRUCE_DOOR);
-                playerBlocks.add(Material.DARK_OAK_DOOR);
-                playerBlocks.add(Material.JUNGLE_DOOR);
-                playerBlocks.add(Material.BIRCH_DOOR);
-                playerBlocks.add(Material.COAL_BLOCK);
-                playerBlocks.add(Material.REDSTONE_LAMP);
-                playerBlocks.add(Material.PURPUR_BLOCK);
-                playerBlocks.add(Material.PURPUR_SLAB);
-                playerBlocks.add(Material.PURPUR_PILLAR);
-                playerBlocks.add(Material.PURPUR_STAIRS);
-                playerBlocks.add(Material.NETHER_WART_BLOCK);
-                playerBlocks.add(Material.RED_NETHER_BRICKS);
-                playerBlocks.add(Material.BONE_BLOCK);
+		playerBlocks.add(Material.JUNGLE_FENCE_GATE);
+		playerBlocks.add(Material.SPRUCE_FENCE);
+		playerBlocks.add(Material.SPRUCE_FENCE_GATE);
+		playerBlocks.add(Material.ACACIA_DOOR);
+		playerBlocks.add(Material.SPRUCE_DOOR);
+		playerBlocks.add(Material.DARK_OAK_DOOR);
+		playerBlocks.add(Material.JUNGLE_DOOR);
+		playerBlocks.add(Material.BIRCH_DOOR);
+		playerBlocks.add(Material.COAL_BLOCK);
+		playerBlocks.add(Material.REDSTONE_LAMP);
+		playerBlocks.add(Material.PURPUR_BLOCK);
+		playerBlocks.add(Material.PURPUR_SLAB);
+		playerBlocks.add(Material.PURPUR_PILLAR);
+		playerBlocks.add(Material.PURPUR_STAIRS);
+		playerBlocks.add(Material.NETHER_WART_BLOCK);
+		playerBlocks.add(Material.RED_NETHER_BRICKS);
+		playerBlocks.add(Material.BONE_BLOCK);
         
 		//these are unnatural in the standard world, but not in the nether
 		if(environment != Environment.NETHER)
