@@ -25,6 +25,7 @@ import java.util.List;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -75,11 +76,11 @@ public class BlockEventHandler implements Listener
 		this.trashBlocks.add(Material.TORCH);
 		this.trashBlocks.add(Material.DIRT);
 		this.trashBlocks.add(Material.OAK_SAPLING);
-		this.trashBlocks.add(Material.BIRCH_SAPLING);
-		this.trashBlocks.add(Material.DARK_OAK_SAPLING);
-		this.trashBlocks.add(Material.ACACIA_SAPLING);
 		this.trashBlocks.add(Material.SPRUCE_SAPLING);
+		this.trashBlocks.add(Material.BIRCH_SAPLING);
 		this.trashBlocks.add(Material.JUNGLE_SAPLING);
+		this.trashBlocks.add(Material.ACACIA_SAPLING);
+		this.trashBlocks.add(Material.DARK_OAK_SAPLING);
 		this.trashBlocks.add(Material.GRAVEL);
 		this.trashBlocks.add(Material.SAND);
 		this.trashBlocks.add(Material.TNT);
@@ -324,7 +325,7 @@ public class BlockEventHandler implements Listener
 		}
 		
 		//FEATURE: limit wilderness tree planting to grass, or dirt with more blocks beneath it
-		else if(MaterialComparison.isSapling(block.getType()) && GriefPrevention.instance.config_blockSkyTrees && GriefPrevention.instance.claimsEnabledForWorld(player.getWorld()))
+		else if(Tag.SAPLINGS.isTagged(block.getType()) && GriefPrevention.instance.config_blockSkyTrees && GriefPrevention.instance.claimsEnabledForWorld(player.getWorld()))
 		{
 			Block earthBlock = placeEvent.getBlockAgainst();
 			if(earthBlock.getType() != Material.GRASS)
@@ -661,10 +662,10 @@ public class BlockEventHandler implements Listener
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onBlockBurn (BlockBurnEvent burnEvent)
 	{
-	    //don't track in worlds where claims are not enabled
-        if(!GriefPrevention.instance.claimsEnabledForWorld(burnEvent.getBlock().getWorld())) return;
+		//don't track in worlds where claims are not enabled
+		if(!GriefPrevention.instance.claimsEnabledForWorld(burnEvent.getBlock().getWorld())) return;
         
-	    if(!GriefPrevention.instance.config_fireDestroys)
+		if(!GriefPrevention.instance.config_fireDestroys)
 		{
 			burnEvent.setCancelled(true);
 			Block block = burnEvent.getBlock();
@@ -741,7 +742,7 @@ public class BlockEventHandler implements Listener
 	}
 	
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onForm(BlockFormEvent event)
+	public void onForm(BlockFormEvent event)
 	{
 	    Block block = event.getBlock();
 	    Location location = block.getLocation();

@@ -145,9 +145,7 @@ public class Claim
 					Block block = lesser.getWorld().getBlockAt(x, y, z);
 					if(exclusionClaim != null && exclusionClaim.contains(block.getLocation(), true, false)) continue;
 					
-					if(
-						block.getType() == Material.LAVA ||
-						block.getType() == Material.WATER)
+					if(block.getType() == Material.LAVA || block.getType() == Material.WATER)
 					{
 						block.setType(Material.AIR);
 					}
@@ -341,7 +339,7 @@ public class Claim
 	        Material.CARROT,
 	        Material.POTATO,
 	        Material.NETHER_WART,
-	        Material.BEETROOTS);
+	        Material.BEETROOT);
 	    
     private boolean placeableForFarming(Material material)
     {
@@ -387,14 +385,14 @@ public class Claim
 		if(ClaimPermission.Build == permissionLevel) return null;
 		
 		//allow for farming with /containertrust permission
-        if(this.allowContainers(player) == null)
-        {
-            //do allow for farming, if player has /containertrust permission
-            if(this.placeableForFarming(material))
-            {
-                return null;
-            }
-        }
+		if(this.allowContainers(player) == null)
+		{
+			//do allow for farming, if player has /containertrust permission
+			if(this.placeableForFarming(material))
+			{
+				return null;
+			}
+		}
 		
 		//subdivision permission inheritance
 		if(this.parent != null)

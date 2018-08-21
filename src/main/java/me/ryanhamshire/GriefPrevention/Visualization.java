@@ -25,6 +25,8 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Lightable;
 import org.bukkit.entity.Player;
 
 //represents a visualization sent to a player
@@ -54,7 +56,7 @@ public class Visualization
 	
 	//reverts a visualization by sending another block change list, this time with the real world block values
 	@SuppressWarnings("deprecation")
-    public static void Revert(Player player)
+	public static void Revert(Player player)
 	{
 	    if(!player.isOnline()) return;
 	    
@@ -64,29 +66,29 @@ public class Visualization
 		
 		if(playerData.currentVisualization != null)
 		{
-		    //locality
-	        int minx = player.getLocation().getBlockX() - 100;
-	        int minz = player.getLocation().getBlockZ() - 100;
-	        int maxx = player.getLocation().getBlockX() + 100;
-	        int maxz = player.getLocation().getBlockZ() + 100;
-	        
-	        //remove any elements which are too far away
-	        visualization.removeElementsOutOfRange(visualization.elements, minx, minz, maxx, maxz);
+			//locality
+			int minx = player.getLocation().getBlockX() - 100;
+			int minz = player.getLocation().getBlockZ() - 100;
+			int maxx = player.getLocation().getBlockX() + 100;
+			int maxz = player.getLocation().getBlockZ() + 100;
+
+			//remove any elements which are too far away
+			visualization.removeElementsOutOfRange(visualization.elements, minx, minz, maxx, maxz);
 		    
 			//send real block information for any remaining elements
-	        for(int i = 0; i < visualization.elements.size(); i++)
+			for(int i = 0; i < visualization.elements.size(); i++)
 			{
 			    VisualizationElement element = visualization.elements.get(i);
-			    
+
 			    //check player still in world where visualization exists
 			    if(i == 0)
 			    {
-			        if(!player.getWorld().equals(element.location.getWorld())) return;
+					if(!player.getWorld().equals(element.location.getWorld())) return;
 			    }
 			    
 				player.sendBlockChange(element.location, element.realMaterial, element.realData);
 			}
-			
+
 			playerData.currentVisualization = null;  
 		}
 	}
@@ -127,7 +129,7 @@ public class Visualization
 	//handy for combining several visualizations together, as when visualization a top level claim with several subdivisions inside
 	//locality is a performance consideration.  only create visualization blocks for around 100 blocks of the locality
 	@SuppressWarnings("deprecation")
-    private void addClaimElements(Claim claim, int height, VisualizationType visualizationType, Location locality)
+	private void addClaimElements(Claim claim, int height, VisualizationType visualizationType, Location locality)
 	{
 		Location smallXsmallZ = claim.getLesserBoundaryCorner();
 		Location bigXbigZ = claim.getGreaterBoundaryCorner();
@@ -139,39 +141,40 @@ public class Visualization
 		int bigx = bigXbigZ.getBlockX();
 		int bigz = bigXbigZ.getBlockZ();
 		
-		Material cornerMaterial;
-		Material accentMaterial;
+		BlockData cornerBlockData;
+		BlockData accentBlockData;
 		
 		ArrayList<VisualizationElement> newElements = new ArrayList<VisualizationElement>();
 		
 		if(visualizationType == VisualizationType.Claim)
 		{
-			cornerMaterial = Material.GLOWSTONE;
-			accentMaterial = Material.GOLD_BLOCK;
+			cornerBlockData = Material.GLOWSTONE.createBlockData();
+			accentBlockData = Material.GOLD_BLOCK.createBlockData();
 		}
 		
 		else if(visualizationType == VisualizationType.AdminClaim)
-        {
-            cornerMaterial = Material.GLOWSTONE;
-            accentMaterial = Material.PUMPKIN;
-        }
+		{
+			cornerBlockData = Material.GLOWSTONE.createBlockData();
+			accentBlockData = Material.PUMPKIN.createBlockData();
+}
 		
 		else if(visualizationType == VisualizationType.Subdivision)
 		{
-			cornerMaterial = Material.IRON_BLOCK;
-			accentMaterial = Material.WHITE_WOOL;
+			cornerBlockData = Material.IRON_BLOCK.createBlockData();
+			accentBlockData = Material.WHITE_WOOL.createBlockData();
 		}
 		
 		else if(visualizationType == VisualizationType.RestoreNature)
 		{
-			cornerMaterial = Material.DIAMOND_BLOCK;
-			accentMaterial = Material.DIAMOND_BLOCK;
+			cornerBlockData = Material.DIAMOND_BLOCK.createBlockData();
+			accentBlockData = Material.DIAMOND_BLOCK.createBlockData();
 		}
 		
 		else
 		{
-			cornerMaterial = Material.REDSTONE_ORE;
-			accentMaterial = Material.NETHERRACK;
+			cornerBlockData = Material.REDSTONE_ORE.createBlockData();
+			((Lightable) cornerBlockData).setLit(true);
+			accentBlockData = Material.NETHERRACK.createBlockData();
 		}
 		
 		//initialize visualization elements without Y values and real data
@@ -186,46 +189,46 @@ public class Visualization
 		final int STEP = 10;
 		
 		//top line		
-		newElements.add(new VisualizationElement(new Location(world, smallx, 0, bigz), cornerMaterial, (byte)0, Material.AIR, (byte)0));
-		newElements.add(new VisualizationElement(new Location(world, smallx + 1, 0, bigz), accentMaterial, (byte)0, Material.AIR, (byte)0));
+		newElements.add(new VisualizationElement(new Location(world, smallx, 0, bigz), cornerBlockData, Material.AIR.createBlockData()));
+		newElements.add(new VisualizationElement(new Location(world, smallx + 1, 0, bigz), accentBlockData, Material.AIR.createBlockData()));
 		for(int x = smallx + STEP; x < bigx - STEP / 2; x += STEP)
 		{
 			if(x > minx && x < maxx)
-			    newElements.add(new VisualizationElement(new Location(world, x, 0, bigz), accentMaterial, (byte)0, Material.AIR, (byte)0));
+			    newElements.add(new VisualizationElement(new Location(world, x, 0, bigz), accentBlockData, Material.AIR.createBlockData()));
 		}
-		newElements.add(new VisualizationElement(new Location(world, bigx - 1, 0, bigz), accentMaterial, (byte)0, Material.AIR, (byte)0));
+		newElements.add(new VisualizationElement(new Location(world, bigx - 1, 0, bigz), accentBlockData, Material.AIR.createBlockData()));
 		
 		//bottom line
-		newElements.add(new VisualizationElement(new Location(world, smallx + 1, 0, smallz), accentMaterial, (byte)0, Material.AIR, (byte)0));
-        for(int x = smallx + STEP; x < bigx - STEP / 2; x += STEP)
+		newElements.add(new VisualizationElement(new Location(world, smallx + 1, 0, smallz), accentBlockData, Material.AIR.createBlockData()));
+		for(int x = smallx + STEP; x < bigx - STEP / 2; x += STEP)
 		{
 			if(x > minx && x < maxx)
-			    newElements.add(new VisualizationElement(new Location(world, x, 0, smallz), accentMaterial, (byte)0, Material.AIR, (byte)0));
+			    newElements.add(new VisualizationElement(new Location(world, x, 0, smallz), accentBlockData, Material.AIR.createBlockData()));
 		}
-        newElements.add(new VisualizationElement(new Location(world, bigx - 1, 0, smallz), accentMaterial, (byte)0, Material.AIR, (byte)0));
+		newElements.add(new VisualizationElement(new Location(world, bigx - 1, 0, smallz), accentBlockData, Material.AIR.createBlockData()));
 		
 		//left line
-        newElements.add(new VisualizationElement(new Location(world, smallx, 0, smallz), cornerMaterial, (byte)0, Material.AIR, (byte)0));
-        newElements.add(new VisualizationElement(new Location(world, smallx, 0, smallz + 1), accentMaterial, (byte)0, Material.AIR, (byte)0));
+		newElements.add(new VisualizationElement(new Location(world, smallx, 0, smallz), cornerBlockData, Material.AIR.createBlockData()));
+		newElements.add(new VisualizationElement(new Location(world, smallx, 0, smallz + 1), accentBlockData, Material.AIR.createBlockData()));
 		for(int z = smallz + STEP; z < bigz - STEP / 2; z += STEP)
 		{
 			if(z > minz && z < maxz)
-			    newElements.add(new VisualizationElement(new Location(world, smallx, 0, z), accentMaterial, (byte)0, Material.AIR, (byte)0));
+			    newElements.add(new VisualizationElement(new Location(world, smallx, 0, z), accentBlockData, Material.AIR.createBlockData()));
 		}
-		newElements.add(new VisualizationElement(new Location(world, smallx, 0, bigz - 1), accentMaterial, (byte)0, Material.AIR, (byte)0));
+		newElements.add(new VisualizationElement(new Location(world, smallx, 0, bigz - 1), accentBlockData, Material.AIR.createBlockData()));
         
 		//right line
-		newElements.add(new VisualizationElement(new Location(world, bigx, 0, smallz), cornerMaterial, (byte)0, Material.AIR, (byte)0));
-        newElements.add(new VisualizationElement(new Location(world, bigx, 0, smallz + 1), accentMaterial, (byte)0, Material.AIR, (byte)0));
+		newElements.add(new VisualizationElement(new Location(world, bigx, 0, smallz), cornerBlockData, Material.AIR.createBlockData()));
+		newElements.add(new VisualizationElement(new Location(world, bigx, 0, smallz + 1), accentBlockData, Material.AIR.createBlockData()));
 		for(int z = smallz + STEP; z < bigz - STEP / 2; z += STEP)
 		{
 			if(z > minz && z < maxz)
-			    newElements.add(new VisualizationElement(new Location(world, bigx, 0, z), accentMaterial, (byte)0, Material.AIR, (byte)0));
+			    newElements.add(new VisualizationElement(new Location(world, bigx, 0, z), accentBlockData, Material.AIR.createBlockData()));
 		}
-		newElements.add(new VisualizationElement(new Location(world, bigx, 0, bigz - 1), accentMaterial, (byte)0, Material.AIR, (byte)0));
-		newElements.add(new VisualizationElement(new Location(world, bigx, 0, bigz), cornerMaterial, (byte)0, Material.AIR, (byte)0));
+		newElements.add(new VisualizationElement(new Location(world, bigx, 0, bigz - 1), accentBlockData, Material.AIR.createBlockData()));
+		newElements.add(new VisualizationElement(new Location(world, bigx, 0, bigz), cornerBlockData, Material.AIR.createBlockData()));
         
-        //remove any out of range elements
+		//remove any out of range elements
 		this.removeElementsOutOfRange(newElements, minx, minz, maxx, maxz);
 		
 		//remove any elements outside the claim
@@ -244,8 +247,7 @@ public class Visualization
 		    Location tempLocation = element.location;
 		    element.location = getVisibleLocation(tempLocation.getWorld(), tempLocation.getBlockX(), height, tempLocation.getBlockZ(), waterIsTransparent);
 		    height = element.location.getBlockY();
-		    element.realMaterial = element.location.getBlock().getType();
-		    element.realData = element.location.getBlock().getData();
+		    element.realBlock = element.location.getBlock().getBlockData();
 		}
 		
 		this.elements.addAll(newElements);
@@ -312,10 +314,8 @@ public class Visualization
 				return true;
 		}
 
-		if ((waterIsTransparent && block.getType() == Material.WATER) ||
-				block.getType().isTransparent())
-			return true;
-		return false;
+		return (waterIsTransparent && block.getType() == Material.WATER) ||
+			block.getType().isTransparent();
 	}
 
     public static Visualization fromClaims(Iterable<Claim> claims, int height, VisualizationType type, Location locality)
