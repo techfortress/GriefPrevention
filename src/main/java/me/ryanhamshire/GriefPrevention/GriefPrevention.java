@@ -3504,13 +3504,20 @@ public class GriefPrevention extends JavaPlugin
 		BlockSnapshot[][][] snapshots = new BlockSnapshot[18][maxHeight][18];
 		Block startBlock = chunk.getBlock(0, 0, 0);
 		Location startLocation = new Location(chunk.getWorld(), startBlock.getX() - 1, 0, startBlock.getZ() - 1);
+		int startX = startLocation.getBlockX();
+		int startY = startLocation.getBlockY();
+		int startZ = startLocation.getBlockZ();
+
+		Block block;
+		World world = chunk.getWorld();
+
 		for(int x = 0; x < snapshots.length; x++)
 		{
 			for(int z = 0; z < snapshots[0][0].length; z++)
 			{
 				for(int y = 0; y < snapshots[0].length; y++)
 				{
-					Block block = chunk.getWorld().getBlockAt(startLocation.getBlockX() + x, startLocation.getBlockY() + y, startLocation.getBlockZ() + z);
+					block = world.getBlockAt(startX + x, startY + y, startZ + z);
 					snapshots[x][y][z] = new BlockSnapshot(block.getLocation(), block.getType(), block.getBlockData());
 				}
 			}

@@ -437,9 +437,9 @@ class RestoreNatureProcessingTask implements Runnable
 				int y = this.highestY(x, z, true);
 				BlockSnapshot block = snapshots[x][y][z];
 				
-				if(block.typeId == Material.STONE || block.typeId == Material.GRAVEL || block.typeId == Material.SOIL || block.typeId == Material.DIRT || block.typeId == Material.SANDSTONE)
+				if(block.typeId == Material.STONE || block.typeId == Material.GRAVEL || block.typeId == Material.FARMLAND || block.typeId == Material.DIRT || block.typeId == Material.SANDSTONE)
 				{
-					if(this.biome == Biome.DESERT || this.biome == Biome.DESERT_HILLS || this.biome == Biome.BEACHES)
+					if(this.biome == Biome.DESERT || this.biome == Biome.DESERT_HILLS || this.biome == Biome.BEACH)
 					{
 						this.snapshots[x][y][z].typeId = Material.SAND;
 					}

@@ -86,7 +86,7 @@ public class Visualization
 					if(!player.getWorld().equals(element.location.getWorld())) return;
 			    }
 			    
-				player.sendBlockChange(element.location, element.realMaterial, element.realData);
+				player.sendBlockChange(element.location, element.realBlock);
 			}
 
 			playerData.currentVisualization = null;  

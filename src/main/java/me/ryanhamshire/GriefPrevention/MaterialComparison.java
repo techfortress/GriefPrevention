@@ -4,7 +4,7 @@ import org.bukkit.Material;
 
 public final class MaterialComparison
 {
-	public static boolean isSpawnerEgg(Material material)
+	public static boolean isSpawnEgg(Material material)
 	{
 		switch(material) {
 
@@ -61,65 +61,33 @@ public final class MaterialComparison
 				return false;
 		}
 	}
-	
-	public static boolean isBoat(Material material)
+
+	public static boolean isInfested(Material material)
 	{
 		switch(material)
 		{
-			case OAK_BOAT:
-			case ACACIA_BOAT:
-			case BIRCH_BOAT:
-			case DARK_OAK_BOAT:
-			case JUNGLE_BOAT:
-			case SPRUCE_BOAT:
+			case INFESTED_STONE:
+			case INFESTED_COBBLESTONE:
+			case INFESTED_STONE_BRICKS:
+			case INFESTED_MOSSY_STONE_BRICKS:
+			case INFESTED_CRACKED_STONE_BRICKS:
+			case INFESTED_CHISELED_STONE_BRICKS:
 				return true;
 			default:
 				return false;
 		}
 	}
 
-	public static boolean isLeaves(Material material)
+	public static boolean isStateful(Material material)
 	{
 		switch(material)
 		{
-			case OAK_LEAVES:
-			case ACACIA_LEAVES:
-			case BIRCH_LEAVES:
-			case DARK_OAK_LEAVES:
-			case JUNGLE_LEAVES:
-			case SPRUCE_LEAVES:
-				return true;
-			default:
-				return false;
-		}
-	}
-
-	public static boolean isLog(Material material)
-	{
-		switch(material)
-		{
-			case OAK_LOG:
-			case ACACIA_LOG:
-			case BIRCH_LOG:
-			case DARK_OAK_LOG:
-			case JUNGLE_LOG:
-			case SPRUCE_LOG:
-				return true;
-			default:
-				return false;
-		}
-	}
-
-	public static boolean isSapling(Material material)
-	{
-		switch(material)
-		{
-			case OAK_SAPLING:
-			case ACACIA_SAPLING:
-			case BIRCH_SAPLING:
-			case DARK_OAK_SAPLING:
-			case JUNGLE_SAPLING:
-			case SPRUCE_SAPLING:
+			case NOTE_BLOCK:
+			case REPEATER:
+			case DRAGON_EGG:
+			case DAYLIGHT_DETECTOR:
+			case COMPARATOR:
+			case FLOWER_POT:
 				return true;
 			default:
 				return false;
@@ -140,23 +108,7 @@ public final class MaterialComparison
 				return false;
 		}
 	}
-	
-	public static boolean isDoor(Material material)
-	{
-		switch(material)
-		{
-			case OAK_DOOR:
-			case ACACIA_DOOR:
-			case BIRCH_DOOR:
-			case JUNGLE_DOOR:
-			case SPRUCE_DOOR:
-			case DARK_OAK_DOOR:
-				return true;
-			default:
-				return false;
-		}
-	}
-	
+
 	public static boolean isTrapDoor(Material material)
 	{
 		switch(material)
@@ -173,24 +125,6 @@ public final class MaterialComparison
 		}
 	}
 
-	public static boolean isButton(Material material)
-	{
-		switch (material)
-		{
-			case BIRCH_BUTTON:
-			case OAK_BUTTON:
-			case ACACIA_BUTTON:
-			case JUNGLE_BUTTON:
-			case SPRUCE_BUTTON:
-			case DARK_OAK_BUTTON:
-			case STONE_BUTTON:
-			case LEVER:
-				return true;
-			default:
-				return false;
-		}
-	}
-	
 	public static boolean isFenceGate(Material material)
 	{
 		switch(material)
@@ -206,7 +140,7 @@ public final class MaterialComparison
 				return false;
 		}
 	}
-	
+
 	public static boolean isBed(Material material)
 	{
 		switch(material)
