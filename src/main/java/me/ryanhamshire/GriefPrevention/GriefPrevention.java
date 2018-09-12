@@ -157,8 +157,10 @@ public class GriefPrevention extends JavaPlugin
 	public boolean config_pvp_noCombatInAdminLandClaims;			//whether players may fight in admin-owned land claims
 	public boolean config_pvp_noCombatInAdminSubdivisions;          //whether players may fight in subdivisions of admin-owned land claims
 	public boolean config_pvp_allowLavaNearPlayers;                 //whether players may dump lava near other players in pvp worlds
+	public boolean config_pvp_allowLavaNearPlayers_NonPvp;			//whather this applies in non-PVP rules worlds <ArchdukeLiamus>
 	public boolean config_pvp_allowFireNearPlayers;                 //whether players may start flint/steel fires near other players in pvp worlds
-    public boolean config_pvp_protectPets;                          //whether players may damage pets outside of land claims in pvp worlds
+    public boolean config_pvp_allowFireNearPlayers_NonPvp;			//whether this applies in non-PVP rules worlds <ArchdukeLiamus>
+	public boolean config_pvp_protectPets;                          //whether players may damage pets outside of land claims in pvp worlds
 	
 	public boolean config_lockDeathDropsInPvpWorlds;                //whether players' dropped on death items are protected in pvp worlds
 	public boolean config_lockDeathDropsInNonPvpWorlds;             //whether players' dropped on death items are protected in non-pvp worlds
@@ -745,7 +747,9 @@ public class GriefPrevention extends JavaPlugin
         this.config_pvp_noCombatInAdminLandClaims = config.getBoolean("GriefPrevention.PvP.ProtectPlayersInLandClaims.AdministrativeClaims", this.config_siege_enabledWorlds.size() == 0);
         this.config_pvp_noCombatInAdminSubdivisions = config.getBoolean("GriefPrevention.PvP.ProtectPlayersInLandClaims.AdministrativeSubdivisions", this.config_siege_enabledWorlds.size() == 0);
         this.config_pvp_allowLavaNearPlayers = config.getBoolean("GriefPrevention.PvP.AllowLavaDumpingNearOtherPlayers", true);
+        this.config_pvp_allowLavaNearPlayers_NonPvp = config.getBoolean("GriefPrevention.PvP.AllowLavaDumpingNearOtherPlayers.NonPvPWorlds", false);
         this.config_pvp_allowFireNearPlayers = config.getBoolean("GriefPrevention.PvP.AllowFlintAndSteelNearOtherPlayers", true);
+        this.config_pvp_allowFireNearPlayers_NonPvp = config.getBoolean("GriefPrevention.PvP.AllowFlintAndSteelNearOtherPlayers.NonPvPWorlds", false);
         this.config_pvp_protectPets = config.getBoolean("GriefPrevention.PvP.ProtectPetsOutsideLandClaims", false);
         
         //optional database settings
@@ -846,7 +850,9 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.PvP.ProtectPlayersInLandClaims.AdministrativeClaims", this.config_pvp_noCombatInAdminLandClaims);
         outConfig.set("GriefPrevention.PvP.ProtectPlayersInLandClaims.AdministrativeSubdivisions", this.config_pvp_noCombatInAdminSubdivisions);
         outConfig.set("GriefPrevention.PvP.AllowLavaDumpingNearOtherPlayers", this.config_pvp_allowLavaNearPlayers);
+        outConfig.set("GriefPrevention.PvP.AllowLavaDumpingNearOtherPlayers.NonPvPWorlds", this.config_pvp_allowLavaNearPlayers_NonPvp);
         outConfig.set("GriefPrevention.PvP.AllowFlintAndSteelNearOtherPlayers", this.config_pvp_allowFireNearPlayers);
+        outConfig.set("GriefPrevention.PvP.AllowFlintAndSteelNearOtherPlayers.NonPvPWorlds", this.config_pvp_allowFireNearPlayers_NonPvp);
         outConfig.set("GriefPrevention.PvP.ProtectPetsOutsideLandClaims", this.config_pvp_protectPets);
         
         outConfig.set("GriefPrevention.Economy.ClaimBlocksPurchaseCost", this.config_economy_claimBlocksPurchaseCost);
