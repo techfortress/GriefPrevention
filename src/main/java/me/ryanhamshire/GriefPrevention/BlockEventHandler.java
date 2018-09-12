@@ -26,6 +26,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
+import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -182,6 +183,14 @@ public class BlockEventHandler implements Listener
         }
 	}
 	
+	private boolean doesAllowFireProximityInWorld(World world) {
+		if (GriefPrevention.instance.pvpRulesApply(world)) {
+			return GriefPrevention.instance.config_pvp_allowFireNearPlayers;
+		} else {
+			return GriefPrevention.instance.config_pvp_allowFireNearPlayers_NonPvp;
+		}
+	}
+	
 	//when a player places a block...
 	@SuppressWarnings("null")
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
@@ -193,7 +202,7 @@ public class BlockEventHandler implements Listener
 		//FEATURE: limit fire placement, to prevent PvP-by-fire
 		
 		//if placed block is fire and pvp is off, apply rules for proximity to other players 
-		if(block.getType() == Material.FIRE && (!GriefPrevention.instance.pvpRulesApply(block.getWorld()) || !GriefPrevention.instance.config_pvp_allowFireNearPlayers))
+		if(block.getType() == Material.FIRE && !doesAllowFireProximityInWorld(block.getWorld()))
 		{
 			List<Player> players = block.getWorld().getPlayers();
 			for(int i = 0; i < players.size(); i++)

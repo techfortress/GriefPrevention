@@ -28,6 +28,7 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Tag;
 import org.bukkit.TravelAgent;
+import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -1487,7 +1488,7 @@ class PlayerEventHandler implements Listener
 		}
 		
 		//lava buckets can't be dumped near other players unless pvp is on
-		if((!instance.pvpRulesApply(block.getWorld()) || !instance.config_pvp_allowLavaNearPlayers) && !player.hasPermission("griefprevention.lava"))
+		if(!doesAllowLavaProximityInWorld(block.getWorld()) && !player.hasPermission("griefprevention.lava"))
 		{
 			if(bucketEvent.getBucket() == Material.LAVA_BUCKET)
 			{
@@ -1532,6 +1533,14 @@ class PlayerEventHandler implements Listener
 	        {
 	            instance.AddLogEntry(player.getName() + " placed suspicious " + bucketEvent.getBucket().name() + " @ " + instance.getfriendlyLocationString(block.getLocation()), CustomLogEntryTypes.SuspiciousActivity);
 	        }
+		}
+	}
+	
+	private boolean doesAllowLavaProximityInWorld(World world) {
+		if (GriefPrevention.instance.pvpRulesApply(world)) {
+			return GriefPrevention.instance.config_pvp_allowLavaNearPlayers;
+		} else {
+			return GriefPrevention.instance.config_pvp_allowLavaNearPlayers_NonPvp;
 		}
 	}
 	
