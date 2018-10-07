@@ -13,7 +13,12 @@ import org.bukkit.event.HandlerList;
  */
 public class ClaimModifiedEvent extends Event {
 
-    private final HandlerList handlers = new HandlerList();
+    private static final HandlerList handlers = new HandlerList();
+    
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+    
     private final Claim claim;
     private CommandSender modifier;
 
