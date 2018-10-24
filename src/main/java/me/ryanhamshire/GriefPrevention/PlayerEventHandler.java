@@ -141,109 +141,113 @@ class PlayerEventHandler implements Listener
 		
 		String message = event.getMessage();
 		
-		boolean muted = this.handlePlayerChat(player, message, event);
-		Set<Player> recipients = event.getRecipients();
-		
-		//muted messages go out to only the sender
-		if(muted)
+		if(instance.config_spam_enabled)
 		{
-		    recipients.clear();
-		    recipients.add(player);
+			boolean muted = this.handlePlayerChat(player, message, event);
+			Set<Player> recipients = event.getRecipients();
+			
+			//muted messages go out to only the sender
+			if(muted)
+			{
+				recipients.clear();
+				recipients.add(player);
+				
+				return;
+			}
+			//soft muted messages go out to all soft muted players
+			else if(this.dataStore.isSoftMuted(player.getUniqueId()))
+			{
+				String notificationMessage = "(Muted " + player.getName() + "): " + message;
+				Set<Player> recipientsToKeep = new HashSet<Player>();
+				for(Player recipient : recipients)
+				{
+					if(this.dataStore.isSoftMuted(recipient.getUniqueId()))
+					{
+						recipientsToKeep.add(recipient);
+					}
+					else if(recipient.hasPermission("griefprevention.eavesdrop"))
+					{
+						recipient.sendMessage(ChatColor.GRAY + notificationMessage);
+					}
+				}
+				recipients.clear();
+				recipients.addAll(recipientsToKeep);
+				
+				instance.AddLogEntry(notificationMessage, CustomLogEntryTypes.MutedChat, false);
+				
+				return;
+			}
+			//troll and excessive profanity filter
+			else if(!player.hasPermission("griefprevention.spam") && this.bannedWordFinder.hasMatch(message))
+			{
+				//allow admins to see the soft-muted text
+				String notificationMessage = "(Muted " + player.getName() + "): " + message;
+				for(Player recipient : recipients)
+				{
+					if(recipient.hasPermission("griefprevention.eavesdrop"))
+					{
+						recipient.sendMessage(ChatColor.GRAY + notificationMessage);
+					}
+				}
+				
+				//limit recipients to sender
+				recipients.clear();
+				recipients.add(player);
+				
+				//if player not new warn for the first infraction per play session.
+				if(!instance.isNewToServer(player))
+				{
+					PlayerData playerData = instance.dataStore.getPlayerData(player.getUniqueId());
+					if(!playerData.profanityWarned)
+					{
+						playerData.profanityWarned = true;
+						instance.sendMessage(player, TextMode.Err, Messages.NoProfanity);
+						event.setCancelled(true);
+						return;
+					}
+				}
+				//otherwise assume chat troll and mute all chat from this sender until an admin says otherwise
+				else if(instance.config_trollFilterEnabled)
+				{
+					instance.AddLogEntry("Auto-muted new player " + player.getName() + " for profanity shortly after join.  Use /SoftMute to undo.", CustomLogEntryTypes.AdminActivity);
+					instance.AddLogEntry(notificationMessage, CustomLogEntryTypes.MutedChat, false);
+					instance.dataStore.toggleSoftMute(player.getUniqueId());
+				}
+				
+				return;
+			}
 		}
 		
-		//soft muted messages go out to all soft muted players
-		else if(this.dataStore.isSoftMuted(player.getUniqueId()))
-		{
-		    String notificationMessage = "(Muted " + player.getName() + "): " + message;
-		    Set<Player> recipientsToKeep = new HashSet<Player>();
-		    for(Player recipient : recipients)
-		    {
-		        if(this.dataStore.isSoftMuted(recipient.getUniqueId()))
-		        {
-		            recipientsToKeep.add(recipient);
-		        }
-		        else if(recipient.hasPermission("griefprevention.eavesdrop"))
-		        {
-		            recipient.sendMessage(ChatColor.GRAY + notificationMessage);
-		        }
-		    }
-		    recipients.clear();
-		    recipients.addAll(recipientsToKeep);
-		    
-		    instance.AddLogEntry(notificationMessage, CustomLogEntryTypes.MutedChat, false);
-		}
+		//we made it here because either spam was off OR none of the spam conditions were tripped
+
+		//enter in abridged chat logs
+		makeSocialLogEntry(player.getName(), message);
 		
-		//troll and excessive profanity filter
-		else if(!player.hasPermission("griefprevention.spam") && this.bannedWordFinder.hasMatch(message))
-        {
-		    //allow admins to see the soft-muted text
-		    String notificationMessage = "(Muted " + player.getName() + "): " + message;
-		    for(Player recipient : recipients)
-            {
-                if(recipient.hasPermission("griefprevention.eavesdrop"))
-                {
-                    recipient.sendMessage(ChatColor.GRAY + notificationMessage);
-                }
-            }
-		    
-		    //limit recipients to sender
-		    recipients.clear();
-            recipients.add(player);
-		    
-		    //if player not new warn for the first infraction per play session.
-            if(!instance.isNewToServer(player))
-            {
-                PlayerData playerData = instance.dataStore.getPlayerData(player.getUniqueId());
-                if(!playerData.profanityWarned)
-                {
-                    playerData.profanityWarned = true;
-                    instance.sendMessage(player, TextMode.Err, Messages.NoProfanity);
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-            
-            //otherwise assume chat troll and mute all chat from this sender until an admin says otherwise
-            else if(instance.config_trollFilterEnabled)
-            {
-            	instance.AddLogEntry("Auto-muted new player " + player.getName() + " for profanity shortly after join.  Use /SoftMute to undo.", CustomLogEntryTypes.AdminActivity);
-                instance.AddLogEntry(notificationMessage, CustomLogEntryTypes.MutedChat, false);
-                instance.dataStore.toggleSoftMute(player.getUniqueId());
-            }
-        }
-		
-		//remaining messages
-		else
+		//based on ignore lists, remove some of the audience
+		if(!player.hasPermission("griefprevention.notignorable"))
 		{
-		    //enter in abridged chat logs
-		    makeSocialLogEntry(player.getName(), message);
-		    
-		    //based on ignore lists, remove some of the audience
-		    if(!player.hasPermission("griefprevention.notignorable"))
-		    {
-    		    Set<Player> recipientsToRemove = new HashSet<Player>();
-    		    PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-    		    for(Player recipient : recipients)
-    		    {
-    		        if(!recipient.hasPermission("griefprevention.notignorable"))
-    		        {
-        		        if(playerData.ignoredPlayers.containsKey(recipient.getUniqueId()))
-        		        {
-        		            recipientsToRemove.add(recipient);
-        		        }
-        		        else
-        		        {
-        		            PlayerData targetPlayerData = this.dataStore.getPlayerData(recipient.getUniqueId());
-        		            if(targetPlayerData.ignoredPlayers.containsKey(player.getUniqueId()))
-        		            {
-        		                recipientsToRemove.add(recipient);
-        		            }
-        		        }
-    		        }
-    		    }
-    		    
-    		    recipients.removeAll(recipientsToRemove);
-		    }
+			Set<Player> recipientsToRemove = new HashSet<Player>();
+			PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+			for(Player recipient : recipients)
+			{
+				if(!recipient.hasPermission("griefprevention.notignorable"))
+				{
+					if(playerData.ignoredPlayers.containsKey(recipient.getUniqueId()))
+					{
+						recipientsToRemove.add(recipient);
+					}
+					else
+					{
+						PlayerData targetPlayerData = this.dataStore.getPlayerData(recipient.getUniqueId());
+						if(targetPlayerData.ignoredPlayers.containsKey(player.getUniqueId()))
+						{
+							recipientsToRemove.add(recipient);
+						}
+					}
+				}
+			}
+			
+			recipients.removeAll(recipientsToRemove);
 		}
 	}
 	
