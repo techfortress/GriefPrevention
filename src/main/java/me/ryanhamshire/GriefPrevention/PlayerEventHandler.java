@@ -141,6 +141,8 @@ class PlayerEventHandler implements Listener
 		
 		String message = event.getMessage();
 		
+		educatePlayer(player, message, event);
+		
 		if(instance.config_spam_enabled)
 		{
 			boolean muted = this.handlePlayerChat(player, message, event);
@@ -251,8 +253,7 @@ class PlayerEventHandler implements Listener
 		}
 	}
 	
-	//returns true if the message should be muted, true if it should be sent 
-	private boolean handlePlayerChat(Player player, String message, PlayerEvent event)
+	private void educatePlayer(Player player, String message, PlayerEvent event)
 	{
 		//FEATURE: automatically educate players about claiming land
 		//watching for message format how*claim*, and will send a link to the basics video
@@ -295,9 +296,12 @@ class PlayerEventHandler implements Listener
 			}
 		    }
 		}
-		
+	}
+	
+	//returns true if the message should be muted, true if it should be sent 
+	private boolean handlePlayerChat(Player player, String message, PlayerEvent event)
+	{
 		//FEATURE: monitor for chat and command spam
-		
 		if(!instance.config_spam_enabled) return false;
 		
 		//if the player has permission to spam, don't bother even examining the message
