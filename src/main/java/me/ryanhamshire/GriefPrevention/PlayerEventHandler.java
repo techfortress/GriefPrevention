@@ -142,11 +142,12 @@ class PlayerEventHandler implements Listener
 		String message = event.getMessage();
 		
 		educatePlayer(player, message, event);
-		
+
+		Set<Player> recipients = event.getRecipients();
+
 		if(instance.config_spam_enabled)
 		{
-			boolean muted = this.handlePlayerChat(player, message, event);
-			Set<Player> recipients = event.getRecipients();
+			boolean muted = this.handlePlayerSpam(player, message, event);
 			
 			//muted messages go out to only the sender
 			if(muted)
@@ -299,7 +300,7 @@ class PlayerEventHandler implements Listener
 	}
 	
 	//returns true if the message should be muted, true if it should be sent 
-	private boolean handlePlayerChat(Player player, String message, PlayerEvent event)
+	private boolean handlePlayerSpam(Player player, String message, PlayerEvent event)
 	{
 		//FEATURE: monitor for chat and command spam
 		if(!instance.config_spam_enabled) return false;
@@ -487,7 +488,7 @@ class PlayerEventHandler implements Listener
 		    //if anti spam enabled, check for spam
 	        if(instance.config_spam_enabled)
 		    {
-		        event.setCancelled(this.handlePlayerChat(event.getPlayer(), event.getMessage(), event));
+		        event.setCancelled(this.handlePlayerSpam(event.getPlayer(), event.getMessage(), event));
 		    }
 	        
 	        if(!player.hasPermission("griefprevention.spam") && this.bannedWordFinder.hasMatch(message))
