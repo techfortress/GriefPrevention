@@ -1796,19 +1796,38 @@ class PlayerEventHandler implements Listener
                 }
             }           
         }
-		
 		//apply rule for note blocks and repeaters and daylight sensors //RoboMWM: Include flower pots
 		else if(clickedBlock != null && 
 			(
-		                clickedBlockType == Material.NOTE_BLOCK || 
+		                clickedBlockType == Material.NOTE_BLOCK ||
 		                clickedBlockType == Material.REPEATER || 
 		                clickedBlockType == Material.DRAGON_EGG ||
 		                clickedBlockType == Material.DAYLIGHT_DETECTOR ||
 		                clickedBlockType == Material.COMPARATOR ||
-				clickedBlockType == Material.FLOWER_POT
+						clickedBlockType == Material.POTTED_ACACIA_SAPLING ||
+						clickedBlockType == Material.POTTED_ALLIUM ||
+						clickedBlockType == Material.POTTED_AZURE_BLUET ||
+						clickedBlockType == Material.POTTED_BIRCH_SAPLING ||
+						clickedBlockType == Material.POTTED_BLUE_ORCHID ||
+						clickedBlockType == Material.POTTED_BROWN_MUSHROOM ||
+						clickedBlockType == Material.POTTED_CACTUS ||
+						clickedBlockType == Material.POTTED_DANDELION ||
+						clickedBlockType == Material.POTTED_DARK_OAK_SAPLING ||
+						clickedBlockType == Material.POTTED_DEAD_BUSH ||
+						clickedBlockType == Material.POTTED_FERN ||
+						clickedBlockType == Material.POTTED_JUNGLE_SAPLING ||
+						clickedBlockType == Material.POTTED_OAK_SAPLING ||
+						clickedBlockType == Material.POTTED_ORANGE_TULIP ||
+						clickedBlockType == Material.POTTED_OXEYE_DAISY ||
+						clickedBlockType == Material.POTTED_PINK_TULIP ||
+						clickedBlockType == Material.POTTED_POPPY ||
+						clickedBlockType == Material.POTTED_RED_MUSHROOM ||
+						clickedBlockType == Material.POTTED_RED_TULIP ||
+						clickedBlockType == Material.POTTED_SPRUCE_SAPLING ||
+						clickedBlockType == Material.POTTED_WHITE_TULIP
 		        ))
 		{
-		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
+			if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
 			if(claim != null)
 			{
