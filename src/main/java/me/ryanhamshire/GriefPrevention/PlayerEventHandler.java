@@ -1805,7 +1805,7 @@ class PlayerEventHandler implements Listener
 		                clickedBlockType == Material.DRAGON_EGG ||
 		                clickedBlockType == Material.DAYLIGHT_DETECTOR ||
 		                clickedBlockType == Material.COMPARATOR ||
-				clickedBlockType == Material.FLOWER_POT
+						Tag.FLOWER_POTS.isTagged(clickedBlockType)
 		        ))
 		{
 		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
