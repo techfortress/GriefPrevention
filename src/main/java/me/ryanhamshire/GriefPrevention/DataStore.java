@@ -899,11 +899,6 @@ public abstract class DataStore
         } else {
             ClaimModifiedEvent event = new ClaimModifiedEvent(newClaim, creatingPlayer);
             Bukkit.getPluginManager().callEvent(event);
-            if (event.isCancelled()) {
-            	result.succeeded = false;
-            	result.claim = null;
-            	return result;
-			}
         }
 		//otherwise add this new claim to the data store to make it effective
 		this.addClaim(newClaim, true);
@@ -976,10 +971,6 @@ public abstract class DataStore
 	//respects the max depth config variable
 	synchronized public void extendClaim(Claim claim, int newDepth) 
 	{
-		ClaimModifiedEvent event = new ClaimModifiedEvent(claim,null);
-		Bukkit.getPluginManager().callEvent(event);
-		event.setCancelled(true);
-		if(event.isCancelled()) return;
 		if(newDepth < GriefPrevention.instance.config_claims_maxDepth) newDepth = GriefPrevention.instance.config_claims_maxDepth;
 		
 		if(claim.parent != null) claim = claim.parent;
@@ -996,7 +987,8 @@ public abstract class DataStore
 		
 		//save changes
 		this.saveClaim(claim);
-
+		ClaimModifiedEvent event = new ClaimModifiedEvent(claim,null);
+        Bukkit.getPluginManager().callEvent(event);
 	}
 
 	//starts a siege on a claim
@@ -1277,6 +1269,8 @@ public abstract class DataStore
 			    result.claim.children.add(subdivision);
 			}
 			
+			//save those changes
+			this.saveClaim(result.claim);
             ClaimModifiedEvent event = new ClaimModifiedEvent(result.claim,resizingPlayer);
             Bukkit.getPluginManager().callEvent(event);
 			//make original claim ineffective (it's still in the hash map, so let's make it ignored)
