@@ -12,6 +12,7 @@ import org.bukkit.event.HandlerList;
  * a claim has changed. The CommandSender can be null in the event that the modification is called by the plugin itself.
  * Created by Narimm on 5/08/2018.
  */
+//Allow the event to be cancelled //112madgamer
 public class ClaimModifiedEvent extends Event implements Cancellable {
 
     private static final HandlerList handlers = new HandlerList();
