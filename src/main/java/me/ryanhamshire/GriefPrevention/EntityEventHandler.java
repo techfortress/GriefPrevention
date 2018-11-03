@@ -44,6 +44,9 @@ import org.bukkit.entity.Tameable;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.WaterMob;
+import org.bukkit.entity.Llama;
+import org.bukkit.entity.Donkey;
+import org.bukkit.entity.Mule;
 import org.bukkit.entity.minecart.ExplosiveMinecart;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -667,7 +670,9 @@ public class EntityEventHandler implements Listener
         
         //horse protections can be disabled
         if(event.getEntity() instanceof Horse && !GriefPrevention.instance.config_claims_protectHorses) return;
-        
+        if(event.getEntity() instanceof Donkey && !GriefPrevention.instance.config_claims_protectDonkeys) return;
+		if(event.getEntity() instanceof Mule && !GriefPrevention.instance.config_claims_protectDonkeys) return;
+		if(event.getEntity() instanceof Llama && !GriefPrevention.instance.config_claims_protectLlamas) return;
         //protected death loot can't be destroyed, only picked up or despawned due to expiration
         if(event.getEntityType() == EntityType.DROPPED_ITEM)
         {

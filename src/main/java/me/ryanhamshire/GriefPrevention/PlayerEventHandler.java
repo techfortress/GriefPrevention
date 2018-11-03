@@ -47,6 +47,9 @@ import org.bukkit.entity.Tameable;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.minecart.PoweredMinecart;
 import org.bukkit.entity.minecart.StorageMinecart;
+import org.bukkit.entity.Llama;
+import org.bukkit.entity.Donkey;
+import org.bukkit.entity.Mule;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -1171,7 +1174,10 @@ class PlayerEventHandler implements Listener
 		
 		//allow horse protection to be overridden to allow management from other plugins
         if (!instance.config_claims_protectHorses && entity instanceof AbstractHorse ) return;
-        
+		if (!instance.config_claims_protectDonkeys && entity instanceof Donkey) return;
+		if (!instance.config_claims_protectDonkeys && entity instanceof Mule) return;
+		if (!instance.config_claims_protectLlamas && entity instanceof Llama ) return;
+
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         
 		//if entity is tameable and has an owner, apply special rules

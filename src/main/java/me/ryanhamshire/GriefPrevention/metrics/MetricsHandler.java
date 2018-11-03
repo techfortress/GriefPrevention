@@ -81,6 +81,9 @@ public class MetricsHandler
         addSimplePie("lock_trapdoors", plugin.config_claims_lockTrapDoors);
 
         addSimplePie("protect_horses", plugin.config_claims_protectHorses);
+        addSimplePie("protect_donkeys", plugin.config_claims_protectDonkeys);
+        addSimplePie("protect_llamas", plugin.config_claims_protectLlamas);
+
         addSimplePie("prevent_buttons_switches", plugin.config_claims_preventButtonsSwitches);
         addSimplePie("villager_trading_requires_trust", plugin.config_claims_villagerTradingRequiresTrust);
 
