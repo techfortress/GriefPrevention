@@ -3,7 +3,7 @@ package me.ryanhamshire.GriefPrevention;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
-import com.sk89q.worldedit.BlockVector;
+import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.world.World;
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
@@ -39,8 +39,8 @@ class WorldGuardWrapper
             {
                 ProtectedCuboidRegion tempRegion = new ProtectedCuboidRegion(
                         "GP_TEMP",
-                        new BlockVector(lesserCorner.getX(), 0, lesserCorner.getZ()),
-                        new BlockVector(greaterCorner.getX(), world.getMaxY(), greaterCorner.getZ()));
+                        BlockVector3.at(lesserCorner.getX(), 0, lesserCorner.getZ()),
+                        BlockVector3.at(greaterCorner.getX(), world.getMaxY(), greaterCorner.getZ()));
 
                 ApplicableRegionSet overlaps = manager.getApplicableRegions(tempRegion);
                 for (ProtectedRegion r : overlaps.getRegions()) {
