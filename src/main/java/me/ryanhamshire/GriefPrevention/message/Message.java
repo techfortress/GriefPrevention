@@ -25,8 +25,14 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 public enum Message
 {
-    ClaimCreateSuccess("Claim created! Use /trust to share it with friends.");
-
+    ClaimCreateSuccess("Claim created! Use /trust to share it with friends."),
+    NotEnoughClaimBlocks("Not enough claim blocks."),
+    OverlapsAnotherClaim("Overlaps another claim."),
+    ErrorSavingResizedClaim("Error occurred while attempting to save your resized claim, see console log for details."),
+    ErrorInDeletingClaim("Error in deleting your claim."),
+    ClaimAbandoned("Claim abandoned."),
+    NoClaimHere("No claim here."),
+    NotYourClaim("Not your claim.");
     private String message;
     private static JavaPlugin plugin;
 

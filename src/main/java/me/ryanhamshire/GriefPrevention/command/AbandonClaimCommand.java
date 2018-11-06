@@ -3,6 +3,8 @@ package me.ryanhamshire.GriefPrevention.command;
 import me.ryanhamshire.GriefPrevention.claim.Claim;
 import me.ryanhamshire.GriefPrevention.claim.ClaimClerk;
 import me.ryanhamshire.GriefPrevention.claim.ClaimRegistrar;
+import me.ryanhamshire.GriefPrevention.message.Message;
+
 import org.bukkit.command.Command;
 import org.bukkit.entity.Player;
 
@@ -27,10 +29,9 @@ public class AbandonClaimCommand extends ClaimManagementCommands
         //TODO: ask user to confirm
 
         if (!claimRegistrar.deleteClaim(claim))
-            player.sendMessage("error in deleting your claim");
+            Message.ErrorInDeletingClaim.send(player);
         else
-            player.sendMessage("Claim abandoned");
-
+            Message.ClaimAbandoned.send(player);
         return true;
     }
 }

@@ -66,15 +66,14 @@ public class ClaimClerk implements Listener
         PlayerData playerData = playerDataRegistrar.getOrCreatePlayerData(player.getUniqueId());
         if (playerData.getRemainingClaimBlocks(claimRegistrar) < ClaimUtils.getArea(firstCorner, secondCorner))
         {
-            player.sendMessage("Not enough claim blocks");
+            Message.NotEnoughClaimBlocks.send(player);
             return false;
         }
 
         CreateClaimResult claimResult = claimRegistrar.createClaim(firstCorner, secondCorner, player.getUniqueId());
         if (!claimResult.isSuccess())
         {
-            player.sendMessage("Overlaps another claim");
-            //TODO: send overlapped claim
+            Message.OverlapsAnotherClaim.send(player);
             return false;
         }
 
@@ -98,7 +97,7 @@ public class ClaimClerk implements Listener
 
         if (playerData.getRemainingClaimBlocks(claimRegistrar) + claim.getArea() < ClaimUtils.getArea(firstCorner, secondCorner))
         {
-            player.sendMessage("Not enough claim blocks");
+            Message.ClaimCreateSuccess.send(player);
             return false;
         }
 
@@ -108,12 +107,11 @@ public class ClaimClerk implements Listener
             if (claimResult.isSuccess())
                 return true;
 
-            player.sendMessage("Overlaps another claim");
-            //send overlapped claim
+            Message.OverlapsAnotherClaim.send(player);
         }
         catch (Exception e)
         {
-            player.sendMessage("Error occurred while attempting to save your resized claim, see console log for details.");
+            Message.ErrorSavingResizedClaim.send(player);
             e.printStackTrace();
             return false;
         }

@@ -2,6 +2,8 @@ package me.ryanhamshire.GriefPrevention.command;
 
 import me.ryanhamshire.GriefPrevention.claim.Claim;
 import me.ryanhamshire.GriefPrevention.claim.ClaimClerk;
+import me.ryanhamshire.GriefPrevention.message.Message;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -33,13 +35,13 @@ public abstract class ClaimManagementCommands implements CommandExecutor
 
         if (claim == null)
         {
-            player.sendMessage("no claim here");
+            Message.NoClaimHere.send(player);
             return true;
         }
 
         if (claim.getOwnerUUID() != player.getUniqueId()) //TODO: include /permissiontrust
         {
-            player.sendMessage("not your claim");
+            Message.NotYourClaim.send(player);
             return true;
         }
 
