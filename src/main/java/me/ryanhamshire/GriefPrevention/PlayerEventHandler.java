@@ -2156,7 +2156,6 @@ class PlayerEventHandler implements Listener
 
 				//figure out which chunk to repair
 				Chunk chunk = player.getWorld().getChunkAt(clickedBlock.getLocation());
-
 				//start the repair process
 
 				//set boundaries for processing

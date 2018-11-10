@@ -149,7 +149,7 @@ class RestoreNatureProcessingTask implements Runnable
 		this.fillHolesAndTrenches();
 		
 		//fill water depressions and fix unnatural surface ripples
-		this.fixWater();
+//		this.fixWater();
 		
 		//remove water/lava above sea level
 		this.removeDumpedFluids();
@@ -158,7 +158,7 @@ class RestoreNatureProcessingTask implements Runnable
 		this.coverSurfaceStone();
 		
 		//remove any player-placed leaves
-		this.removePlayerLeaves();
+		// this.removePlayerLeaves();
 		
 		//schedule main thread task to apply the result to the world
 		RestoreNatureExecutionTask task = new RestoreNatureExecutionTask(this.snapshots, this.miny, this.lesserBoundaryCorner, this.greaterBoundaryCorner, this.player);
@@ -327,6 +327,7 @@ class RestoreNatureProcessingTask implements Runnable
 				for(int y = miny; y < snapshots[0].length - 1; y++)
 				{
 					BlockSnapshot block = snapshots[x][y][z];
+
 					if(this.playerBlocks.contains(block.typeId))
 					{
 						block.typeId = Material.AIR;
