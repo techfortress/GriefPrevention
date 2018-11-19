@@ -137,7 +137,7 @@ public class GriefPrevention extends JavaPlugin
 	public ArrayList<World> config_siege_enabledWorlds;				//whether or not /siege is enabled on this server
 	public ArrayList<Material> config_siege_blocks;					//which blocks will be breakable in siege mode
 	public int config_siege_doorsOpenSeconds;  // how before claim is re-secured after siege win
-	public int config_siege_cooldownEnd;
+	public int config_siege_cooldownEndInMinutes;
 	public boolean config_spam_enabled;								//whether or not to monitor for spam
 	public int config_spam_loginCooldownSeconds;					//how long players must wait between logins.  combats login spam.
 	public int config_spam_loginLogoutNotificationsPerMinute;		//how many login/logout notifications to show per minute (global, not per player)
@@ -757,7 +757,7 @@ public class GriefPrevention extends JavaPlugin
         }
         
         this.config_siege_doorsOpenSeconds = config.getInt("GriefPrevention.Siege.DoorsOpenDelayInSeconds", 5*60);
-        this.config_siege_cooldownEnd = config.getInt("GriefPrevention.Siege.CoolDownEnd", 60);
+        this.config_siege_cooldownEndInMinutes = config.getInt("GriefPrevention.Siege.CoolDownEndInMinutes", 60);
         this.config_pvp_noCombatInPlayerLandClaims = config.getBoolean("GriefPrevention.PvP.ProtectPlayersInLandClaims.PlayerOwnedClaims", this.config_siege_enabledWorlds.size() == 0);
         this.config_pvp_noCombatInAdminLandClaims = config.getBoolean("GriefPrevention.PvP.ProtectPlayersInLandClaims.AdministrativeClaims", this.config_siege_enabledWorlds.size() == 0);
         this.config_pvp_noCombatInAdminSubdivisions = config.getBoolean("GriefPrevention.PvP.ProtectPlayersInLandClaims.AdministrativeSubdivisions", this.config_siege_enabledWorlds.size() == 0);
@@ -888,7 +888,7 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.Siege.Worlds", siegeEnabledWorldNames);
         outConfig.set("GriefPrevention.Siege.BreakableBlocks", breakableBlocksList);
         outConfig.set("GriefPrevention.Siege.DoorsOpenDelayInSeconds", this.config_siege_doorsOpenSeconds);
-        outConfig.set("GriefPrevention.Siege.CoolDownEnd", this.config_siege_cooldownEnd);
+        outConfig.set("GriefPrevention.Siege.CoolDownEndInMinutes", this.config_siege_cooldownEndInMinutes);
         outConfig.set("GriefPrevention.EndermenMoveBlocks", this.config_endermenMoveBlocks);
         outConfig.set("GriefPrevention.SilverfishBreakBlocks", this.config_silverfishBreakBlocks);      
         outConfig.set("GriefPrevention.CreaturesTrampleCrops", this.config_creaturesTrampleCrops);
