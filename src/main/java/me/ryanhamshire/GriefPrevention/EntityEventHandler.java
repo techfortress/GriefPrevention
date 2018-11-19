@@ -75,6 +75,7 @@ import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
+import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -118,7 +119,16 @@ public class EntityEventHandler implements Listener
             }
         }
 	}
-	
+
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+	public void onLightningStrike(LightningStrikeEvent event){
+		if(event.getCause() == LightningStrikeEvent.Cause.TRIDENT){
+			if(instance.dataStore.getClaimAt(event.getLightning().getLocation(), true, null) != null){
+			    event.setCancelled(true);
+		}
+	}
+	}
+
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onEntityChangeBLock(EntityChangeBlockEvent event)
 	{
