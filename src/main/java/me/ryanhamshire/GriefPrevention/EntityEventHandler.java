@@ -35,6 +35,7 @@ import org.bukkit.entity.Explosive;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.LightningStrike;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
@@ -123,10 +124,8 @@ public class EntityEventHandler implements Listener
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onLightningStrike(LightningStrikeEvent event){
 		if(event.getCause() == LightningStrikeEvent.Cause.TRIDENT){
-			if(instance.dataStore.getClaimAt(event.getLightning().getLocation(), true, null) != null){
-			    event.setCancelled(true);
+			event.getLightning().setMetadata("GP_TRIDENT", new FixedMetadataValue(GriefPrevention.instance, event.getLightning().getLocation()));
 		}
-	}
 	}
 
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -719,7 +718,10 @@ public class EntityEventHandler implements Listener
         if(!(event instanceof EntityDamageByEntityEvent)) return;
         
         EntityDamageByEntityEvent subEvent = (EntityDamageByEntityEvent) event;
-        
+
+        if(subEvent.getDamager() instanceof LightningStrike && subEvent.getDamager().getMetadata("GP_TRIDENT").size() >= 1){
+			event.setCancelled(true);
+		}
         //determine which player is attacking, if any
         Player attacker = null;
         Projectile arrow = null;
