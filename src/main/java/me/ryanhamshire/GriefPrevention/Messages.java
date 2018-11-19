@@ -224,6 +224,7 @@ public enum Messages
     NoClaimDuringPvP,
     UntrustAllOwnerOnly,
     ManagersDontUntrustManagers,
+    CantUntrustThatPermission,
     BookAuthor,
     BookTitle,
     BookIntro,
