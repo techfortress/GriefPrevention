@@ -1645,15 +1645,15 @@ public class GriefPrevention extends JavaPlugin
 				    String idToDrop = args[0];
                     if(otherPlayer != null)
                     {
-                        idToDrop = otherPlayer.getUniqueId().toString(); 
+                        idToDrop = otherPlayer.getUniqueId().toString();
+			player otherPlayer2 = this.resolvePlayerByName(args[0]);
                     }
 				    boolean targetIsManager = claim.managers.contains(idToDrop);
                     if(targetIsManager && claim.allowEdit(player) != null)  //only claim owners can untrust managers
-					{
+			{
                         GriefPrevention.sendMessage(player, TextMode.Err, Messages.ManagersDontUntrustManagers, claim.getOwnerName());
                         return true;
-					}
-				player otherPlayer2 = this.resolvePlayerByName(args[0]);
+			}
 		    else if(claim.allowBuild(otherPlayer2) == null && claim.allowBuild(player) != null)
 			{
 				GriefPrevention.sendMessage(player, TextMode.Err, Messages.CantUntrustThatPermission);
@@ -1820,6 +1820,7 @@ public class GriefPrevention extends JavaPlugin
 					//add blocks
 					playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() + blockCount);
 					this.dataStore.savePlayerData(player.getUniqueId(), playerData);
+					
 					
 					//inform player
 					GriefPrevention.sendMessage(player, TextMode.Success, Messages.PurchaseConfirmation, String.valueOf(totalCost), String.valueOf(playerData.getRemainingClaimBlocks()));
