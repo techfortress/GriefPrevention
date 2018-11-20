@@ -1653,12 +1653,13 @@ public class GriefPrevention extends JavaPlugin
                         GriefPrevention.sendMessage(player, TextMode.Err, Messages.ManagersDontUntrustManagers, claim.getOwnerName());
                         return true;
 					}
-		    else if(claim.allowBuild(player(otherPlayer)) == null && claim.allowBuild(player) != null)
+				player otherPlayer2 = this.resolvePlayerByName(args[0]);
+		    else if(claim.allowBuild(otherPlayer2) == null && claim.allowBuild(player) != null)
 			{
 				GriefPrevention.sendMessage(player, TextMode.Err, Messages.CantUntrustThatPermission);
                         	return true;
 			}
-		    else if(claim.allowContainers(player(otherPlayer)) == null && claim.allowContainers(player) != null)
+		    else if(claim.allowContainers(otherPlayer2) == null && claim.allowContainers(player) != null)
 			{
 				GriefPrevention.sendMessage(player, TextMode.Err, Messages.CantUntrustThatPermission);
                         	return true;
