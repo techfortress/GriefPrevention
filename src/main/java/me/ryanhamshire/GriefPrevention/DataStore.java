@@ -1055,7 +1055,7 @@ public abstract class DataStore
 
 		//start a cooldown for this attacker/defender pair
 		Long now = Calendar.getInstance().getTimeInMillis();
-		Long cooldownEnd = now + 1000 * 60 * 60;  //one hour from now
+		Long cooldownEnd = now + 1000 * 60 * GriefPrevention.instance.config_siege_cooldownEndInMinutes;  //one hour from now
 		this.siegeCooldownRemaining.put(siegeData.attacker.getName() + "_" + siegeData.defender.getName(), cooldownEnd);
 		
 		//start cooldowns for every attacker/involved claim pair
