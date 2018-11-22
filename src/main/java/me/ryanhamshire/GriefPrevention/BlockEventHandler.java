@@ -623,7 +623,12 @@ public class BlockEventHandler implements Listener
 	{
 	    //don't track in worlds where claims are not enabled
         if(!GriefPrevention.instance.claimsEnabledForWorld(igniteEvent.getBlock().getWorld())) return;
-        
+
+        if(igniteEvent.getCause() == IgniteCause.LIGHTNING && GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getIgnitingEntity().getLocation(), false, null) != null){
+        	if(igniteEvent.getIgnitingEntity().hasMetadata("GP_TRIDENT")){
+        		igniteEvent.setCancelled(true);
+			}
+        }
 	    
 	    if(!GriefPrevention.instance.config_fireSpreads && igniteEvent.getCause() != IgniteCause.FLINT_AND_STEEL &&  igniteEvent.getCause() != IgniteCause.LIGHTNING)
 		{	
