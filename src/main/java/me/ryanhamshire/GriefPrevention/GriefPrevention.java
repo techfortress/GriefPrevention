@@ -840,7 +840,7 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.Claims.FireSpreadsInClaims", config_claims_firespreads);
         outConfig.set("GriefPrevention.Claims.FireDamagesInClaims", config_claims_firedamages);
 
-		outConfig.set("GriefPrevention.Spam.Enabled", this.config_spam_enabled);
+        outConfig.set("GriefPrevention.Spam.Enabled", this.config_spam_enabled);
         outConfig.set("GriefPrevention.Spam.LoginCooldownSeconds", this.config_spam_loginCooldownSeconds);
         outConfig.set("GriefPrevention.Spam.LoginLogoutNotificationsPerMinute", this.config_spam_loginLogoutNotificationsPerMinute);
         outConfig.set("GriefPrevention.Spam.ChatSlashCommands", slashCommandsToMonitor);
