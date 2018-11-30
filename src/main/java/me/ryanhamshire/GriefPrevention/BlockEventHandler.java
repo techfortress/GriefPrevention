@@ -661,6 +661,7 @@ public class BlockEventHandler implements Listener
 		//never spread into a claimed area, regardless of settings
 		if(this.dataStore.getClaimAt(spreadEvent.getBlock().getLocation(), false, null) != null)
 		{
+			if(GriefPrevention.instance.config_claims_firespreads) return;
 			spreadEvent.setCancelled(true);
 			
 			//if the source of the spread is not fire on netherrack, put out that source fire to save cpu cycles
@@ -714,6 +715,7 @@ public class BlockEventHandler implements Listener
 		//never burn claimed blocks, regardless of settings
 		if(this.dataStore.getClaimAt(burnEvent.getBlock().getLocation(), false, null) != null)
 		{
+			if(GriefPrevention.instance.config_claims_firedamages) return;
 			burnEvent.setCancelled(true);
 		}
 	}
