@@ -211,12 +211,12 @@ public class BlockEventHandler implements Listener
 				Player otherPlayer = players.get(i);
 
 				// Ignore players in creative or spectator mode to avoid users from checking if someone is spectating near them
-				if(otherPlayer.getGameMode().equals(GameMode.CREATIVE) || otherPlayer.getGameMode().equals(GameMode.SPECTATOR)) {
+				if(otherPlayer.getGameMode() == GameMode.CREATIVE || otherPlayer.getGameMode() == GameMode.SPECTATOR) {
 					continue;
 				}
 
 				Location location = otherPlayer.getLocation();
-				if(!otherPlayer.equals(player) && location.distanceSquared(block.getLocation()) < 9)
+				if(!otherPlayer.equals(player) && location.distanceSquared(block.getLocation()) < 9 && player.canSee(otherPlayer))
 				{
 					GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerTooCloseForFire2);
 					placeEvent.setCancelled(true);
