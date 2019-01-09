@@ -23,6 +23,7 @@ import java.util.Collection;
 import java.util.List;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Tag;
@@ -208,6 +209,12 @@ public class BlockEventHandler implements Listener
 			for(int i = 0; i < players.size(); i++)
 			{
 				Player otherPlayer = players.get(i);
+
+				// Ignore players in creative or spectator mode to avoid users from checking if someone is spectating near them
+				if(otherPlayer.getGameMode().equals(GameMode.CREATIVE) || otherPlayer.getGameMode().equals(GameMode.SPECTATOR)) {
+					continue;
+				}
+
 				Location location = otherPlayer.getLocation();
 				if(!otherPlayer.equals(player) && location.distanceSquared(block.getLocation()) < 9)
 				{
