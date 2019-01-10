@@ -53,3 +53,6 @@ Replace `<version>` number with this number: [![](https://jitpack.io/v/TechFortr
 ```
 
 You can also add it to gradle/sbt/leiningen projects: https://jitpack.io/#TechFortress/GriefPrevention/
+
+[![Weird flex but ok](https://bstats.org/signatures/bukkit/GriefPrevention-legacy.svg)](https://bstats.org/plugin/bukkit/GriefPrevention-legacy)
+(Plugin usage stats since version 16.11 - actual use across all versions is larger)
