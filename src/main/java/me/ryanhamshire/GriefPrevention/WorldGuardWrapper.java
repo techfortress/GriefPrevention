@@ -29,7 +29,7 @@ class WorldGuardWrapper
         try
         {
             BukkitPlayer localPlayer = new BukkitPlayer(this.worldGuard, creatingPlayer);
-            World world = WorldGuard.getInstance().getPlatform().getWorldByName(lesserCorner.getWorld().getName());
+            World world = WorldGuard.getInstance().getPlatform().getMatcher().getWorldByName(lesserCorner.getWorld().getName());
 
             if(new RegionPermissionModel(localPlayer).mayIgnoreRegionProtection(world)) return true;
 
