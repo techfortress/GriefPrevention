@@ -561,16 +561,20 @@ public abstract class DataStore
 	    
 	    return new Location(world, x, y, z);
 	}	
-
-	//saves any changes to a claim to secondary storage
-	synchronized public void saveClaim(Claim claim)
-	{
+	
+	private void assignClaimId(Claim claim) {
 		//ensure a unique identifier for the claim which will be used to name the file on disk
 		if(claim.id == null || claim.id == -1)
 		{
 			claim.id = this.nextClaimID;
 			this.incrementNextClaimID();
 		}
+	}
+
+	//saves any changes to a claim to secondary storage
+	synchronized public void saveClaim(Claim claim)
+	{
+		assignClaimId(claim);
 		
 		this.writeClaimToStorage(claim);
 	}
@@ -905,6 +909,8 @@ public abstract class DataStore
 			result.claim = newClaim;
 			return result;
         }
+		// assign a claim ID before calling the event
+		assignClaimId(newClaim);
             ClaimCreatedEvent event = new ClaimCreatedEvent(newClaim, creatingPlayer);
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
