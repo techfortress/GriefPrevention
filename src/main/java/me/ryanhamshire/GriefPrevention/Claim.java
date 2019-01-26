@@ -948,10 +948,9 @@ public class Claim
         return chunks;
     }
 
-    ArrayList<LazyChunk> getLazyChunks()
+    ArrayList<Long> getChunkHashes()
     {
-        ArrayList<LazyChunk> hashes = new ArrayList<LazyChunk>();
-        String w = this.getLesserBoundaryCorner().getWorld().getName();
+        ArrayList<Long> hashes = new ArrayList<Long>();
         int smallX = this.getLesserBoundaryCorner().getBlockX() >> 4;
         int smallZ = this.getLesserBoundaryCorner().getBlockZ() >> 4;
 		int largeX = this.getGreaterBoundaryCorner().getBlockX() >> 4;
@@ -961,7 +960,7 @@ public class Claim
 		{
 		    for(int z = smallZ; z <= largeZ; z++)
 		    {
-		        hashes.add(new LazyChunk(w, x, z));
+		        hashes.add(DataStore.getChunkHash(x, z));
 		    }
 		}
 		

@@ -71,7 +71,7 @@ public abstract class DataStore
 	
 	//in-memory cache for claim data
 	ArrayList<Claim> claims = new ArrayList<Claim>();
-	ConcurrentHashMap<LazyChunk, HashSet<Claim>> chunksToClaimsMap = new ConcurrentHashMap<LazyChunk, HashSet<Claim>>();
+	ConcurrentHashMap<Long, ArrayList<Claim>> chunksToClaimsMap = new ConcurrentHashMap<Long, ArrayList<Claim>>();
 	
 	//in-memory cache for messages
 	private String [] messages;
@@ -449,7 +449,18 @@ public abstract class DataStore
 		
 		//add it and mark it as added
 		this.claims.add(newClaim);
-		addToChunkCache(newClaim);
+		ArrayList<Long> chunkHashes = newClaim.getChunkHashes();
+		for(Long chunkHash : chunkHashes)
+		{
+		    ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkHash);
+		    if(claimsInChunk == null)
+		    {
+		        claimsInChunk = new ArrayList<Claim>();
+		        this.chunksToClaimsMap.put(chunkHash, claimsInChunk);
+		    }
+		    
+		    claimsInChunk.add(newClaim);
+		}
 		
 		newClaim.inDataStore = true;
 		
@@ -465,45 +476,6 @@ public abstract class DataStore
 		{
 		    this.saveClaim(newClaim);
 		}
-	}
-	
-	private void addToChunkCache(Claim claim) {
-		ArrayList<LazyChunk> chunkHashes = claim.getLazyChunks();
-		for(LazyChunk chunkHash : chunkHashes)
-		{
-		    HashSet<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkHash);
-		    if(claimsInChunk == null)
-		    {
-		        claimsInChunk = new HashSet<Claim>();
-		        this.chunksToClaimsMap.put(chunkHash, claimsInChunk);
-		    }
-		    
-		    claimsInChunk.add(claim);
-		}
-	}
-	
-	private void removeFromChunkCache(Claim claim){
-		ArrayList<LazyChunk> chunkHashes = claim.getLazyChunks();
-        for(LazyChunk chunkHash : chunkHashes)
-        {
-            HashSet<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkHash);
-            if(claimsInChunk != null)
-            {
-                for(Iterator<Claim> it = claimsInChunk.iterator(); it.hasNext();)
-                {
-                    Claim claimInChunk = it.next();
-                    if(claimInChunk.id.equals(claim.id))
-                    {
-                        it.remove();
-                        break;
-                    }
-                }
-                if(claimsInChunk.isEmpty())
-				{
-                    this.chunksToClaimsMap.remove(chunkHash);
-                }
-            }
-        }
 	}
 	
 	//turns a location into a string, useful in data storage
@@ -642,7 +614,22 @@ public abstract class DataStore
 			}
 		}
 		
-		removeFromChunkCache(claim);
+		ArrayList<Long> chunkHashes = claim.getChunkHashes();
+        for(Long chunkHash : chunkHashes)
+        {
+            ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkHash);
+            if(claimsInChunk != null)
+            {
+                for(int j = 0; j < claimsInChunk.size(); j++)
+                {
+                    if(claimsInChunk.get(j).id.equals(claim.id))
+                    {
+                        claimsInChunk.remove(j);
+                        break;
+                    }
+                }
+            }
+        }
 		
 		//remove from secondary storage
 		this.deleteClaimFromSecondaryStorage(claim);
@@ -717,8 +704,8 @@ public abstract class DataStore
 		if(cachedClaim != null && cachedClaim.inDataStore && cachedClaim.contains(location, ignoreHeight, true)) return cachedClaim;
 		
 		//find a top level claim
-		LazyChunk chunkID = new LazyChunk(location);
-		HashSet<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkID);
+		Long chunkID = getChunkHash(location);
+		ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkID);
 		if(claimsInChunk == null) return null;
 		
 		for(Claim claim : claimsInChunk)
@@ -760,29 +747,29 @@ public abstract class DataStore
 	    return Collections.unmodifiableCollection(this.claims);
 	}
 	
-	public Collection<Claim> getClaims(String world, int chunkx, int chunkz)
+	public Collection<Claim> getClaims(int chunkx, int chunkz)
 	{
-	    HashSet<Claim> chunkClaims = this.chunksToClaimsMap.get(new LazyChunk(world, chunkx, chunkz));
+	    ArrayList<Claim> chunkClaims = this.chunksToClaimsMap.get(getChunkHash(chunkx, chunkz));
 	    if(chunkClaims != null)
 	    {
 	        return Collections.unmodifiableCollection(chunkClaims);
 	    }
 	    else
 	    {
-	        return Collections.unmodifiableCollection(new HashSet<Claim>());
+	        return Collections.unmodifiableCollection(new ArrayList<Claim>());
 	    }
 	}
 	
 	//gets an almost-unique, persistent identifier for a chunk
-    static LazyChunk getChunkHash(String world, long chunkx, long chunkz)
+    static Long getChunkHash(long chunkx, long chunkz)
     {
-        return new LazyChunk(world, (int) chunkx, (int) chunkz);
+        return (chunkz ^ (chunkx << 32));
     }
 	
 	//gets an almost-unique, persistent identifier for a chunk
-	static LazyChunk getChunkHash(Location location)
+	static Long getChunkHash(Location location)
 	{
-        return new LazyChunk(location);
+        return getChunkHash(location.getBlockX() >> 4, location.getBlockZ() >> 4);
     }
 
     /*
@@ -790,7 +777,7 @@ public abstract class DataStore
      */
     synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer)
     {
-        return createClaim(world,x1,x2,y1,y2,z1,z2,ownerID,parent,id,creatingPlayer,false);
+        return createClaim(world,x1,x2,y1,y2,z1,z2,ownerID,parent,id,creatingPlayer,true);
     }
     //creates a claim.
 	//if the new claim would overlap an existing claim, returns a failure along with a reference to the existing claim
@@ -803,7 +790,7 @@ public abstract class DataStore
 	//does NOT check a player has permission to create a claim, or enough claim blocks.
 	//does NOT check minimum claim size constraints
 	//does NOT visualize the new claim for any players	
-	synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer, boolean dryRun)
+	synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer, Boolean isNew)
 	{
 		CreateClaimResult result = new CreateClaimResult();
 		
@@ -900,18 +887,19 @@ public abstract class DataStore
                 return result;
             }
         }
-        if (dryRun) {
-			result.succeeded = true;
-			result.claim = newClaim;
-			return result;
-        }
+        if (isNew) {
             ClaimCreatedEvent event = new ClaimCreatedEvent(newClaim, creatingPlayer);
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
                 result.succeeded = false;
                 result.claim = null;
                 return result;
+
             }
+        } else {
+            ClaimModifiedEvent event = new ClaimModifiedEvent(newClaim, creatingPlayer);
+            Bukkit.getPluginManager().callEvent(event);
+        }
 		//otherwise add this new claim to the data store to make it effective
 		this.addClaim(newClaim, true);
 		
@@ -1248,21 +1236,45 @@ public abstract class DataStore
 	synchronized public CreateClaimResult resizeClaim(Claim claim, int newx1, int newx2, int newy1, int newy2, int newz1, int newz2, Player resizingPlayer)
 	{
 		//try to create this new claim, ignoring the original when checking for overlap
-		CreateClaimResult result = this.createClaim(claim.getLesserBoundaryCorner().getWorld(), newx1, newx2, newy1, newy2, newz1, newz2, claim.ownerID, claim.parent, claim.id, resizingPlayer, true);
+		CreateClaimResult result = this.createClaim(claim.getLesserBoundaryCorner().getWorld(), newx1, newx2, newy1, newy2, newz1, newz2, claim.ownerID, claim.parent, claim.id, resizingPlayer);
 		
 		//if succeeded
 		if(result.succeeded)
 		{
-			removeFromChunkCache(claim);
-			claim.lesserBoundaryCorner = result.claim.lesserBoundaryCorner;
-			claim.greaterBoundaryCorner = result.claim.greaterBoundaryCorner;
-			addToChunkCache(claim);
-			result.claim = claim;
+			//copy permissions from old claim
+			ArrayList<String> builders = new ArrayList<String>();
+			ArrayList<String> containers = new ArrayList<String>();
+			ArrayList<String> accessors = new ArrayList<String>();
+			ArrayList<String> managers = new ArrayList<String>();
+			claim.getPermissions(builders, containers, accessors, managers);
+			
+			for(int i = 0; i < builders.size(); i++)
+				result.claim.setPermission(builders.get(i), ClaimPermission.Build);
+			
+			for(int i = 0; i < containers.size(); i++)
+				result.claim.setPermission(containers.get(i), ClaimPermission.Inventory);
+			
+			for(int i = 0; i < accessors.size(); i++)
+				result.claim.setPermission(accessors.get(i), ClaimPermission.Access);
+			
+			for(int i = 0; i < managers.size(); i++)
+			{
+				result.claim.managers.add(managers.get(i));
+			}
+			
+			//restore subdivisions
+			for(Claim subdivision : claim.children)
+			{
+			    subdivision.parent = result.claim;
+			    result.claim.children.add(subdivision);
+			}
 			
 			//save those changes
 			this.saveClaim(result.claim);
             ClaimModifiedEvent event = new ClaimModifiedEvent(result.claim,resizingPlayer);
             Bukkit.getPluginManager().callEvent(event);
+			//make original claim ineffective (it's still in the hash map, so let's make it ignored)
+			claim.inDataStore = false;
 		}
 		
 		return result;
@@ -1812,8 +1824,8 @@ public abstract class DataStore
             for(int chunk_z = lesserChunk.getZ(); chunk_z <= greaterChunk.getZ(); chunk_z++)
             {
                 Chunk chunk = location.getWorld().getChunkAt(chunk_x, chunk_z);
-                LazyChunk chunkID = new LazyChunk(chunk);
-                HashSet<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkID);
+                Long chunkID = getChunkHash(chunk.getBlock(0,  0,  0).getLocation());
+                ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkID);
                 if(claimsInChunk != null)
                 {
                     for(Claim claim : claimsInChunk)
