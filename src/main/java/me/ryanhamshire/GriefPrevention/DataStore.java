@@ -777,7 +777,7 @@ public abstract class DataStore
      */
     synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer)
     {
-        return createClaim(world,x1,x2,y1,y2,z1,z2,ownerID,parent,id,creatingPlayer,true);
+        return createClaim(world,x1,x2,y1,y2,z1,z2,ownerID,parent,id,creatingPlayer,false);
     }
     //creates a claim.
 	//if the new claim would overlap an existing claim, returns a failure along with a reference to the existing claim
@@ -790,7 +790,7 @@ public abstract class DataStore
 	//does NOT check a player has permission to create a claim, or enough claim blocks.
 	//does NOT check minimum claim size constraints
 	//does NOT visualize the new claim for any players	
-	synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer, Boolean isNew)
+	synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer, boolean dryRun)
 	{
 		CreateClaimResult result = new CreateClaimResult();
 		
@@ -887,7 +887,12 @@ public abstract class DataStore
                 return result;
             }
         }
-        if (isNew) {
+        if (dryRun) {
+            // since this is a dry run, just return the unsaved claim as is.
+            result.succeeded = true;
+            result.claim = newClaim;
+            return result;
+        }
             ClaimCreatedEvent event = new ClaimCreatedEvent(newClaim, creatingPlayer);
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
@@ -896,10 +901,6 @@ public abstract class DataStore
                 return result;
 
             }
-        } else {
-            ClaimModifiedEvent event = new ClaimModifiedEvent(newClaim, creatingPlayer);
-            Bukkit.getPluginManager().callEvent(event);
-        }
 		//otherwise add this new claim to the data store to make it effective
 		this.addClaim(newClaim, true);
 		
@@ -1236,45 +1237,20 @@ public abstract class DataStore
 	synchronized public CreateClaimResult resizeClaim(Claim claim, int newx1, int newx2, int newy1, int newy2, int newz1, int newz2, Player resizingPlayer)
 	{
 		//try to create this new claim, ignoring the original when checking for overlap
-		CreateClaimResult result = this.createClaim(claim.getLesserBoundaryCorner().getWorld(), newx1, newx2, newy1, newy2, newz1, newz2, claim.ownerID, claim.parent, claim.id, resizingPlayer);
+		CreateClaimResult result = this.createClaim(claim.getLesserBoundaryCorner().getWorld(), newx1, newx2, newy1, newy2, newz1, newz2, claim.ownerID, claim.parent, claim.id, resizingPlayer, true);
 		
 		//if succeeded
 		if(result.succeeded)
 		{
-			//copy permissions from old claim
-			ArrayList<String> builders = new ArrayList<String>();
-			ArrayList<String> containers = new ArrayList<String>();
-			ArrayList<String> accessors = new ArrayList<String>();
-			ArrayList<String> managers = new ArrayList<String>();
-			claim.getPermissions(builders, containers, accessors, managers);
-			
-			for(int i = 0; i < builders.size(); i++)
-				result.claim.setPermission(builders.get(i), ClaimPermission.Build);
-			
-			for(int i = 0; i < containers.size(); i++)
-				result.claim.setPermission(containers.get(i), ClaimPermission.Inventory);
-			
-			for(int i = 0; i < accessors.size(); i++)
-				result.claim.setPermission(accessors.get(i), ClaimPermission.Access);
-			
-			for(int i = 0; i < managers.size(); i++)
-			{
-				result.claim.managers.add(managers.get(i));
-			}
-			
-			//restore subdivisions
-			for(Claim subdivision : claim.children)
-			{
-			    subdivision.parent = result.claim;
-			    result.claim.children.add(subdivision);
-			}
+			// copy the boundary from the claim created in the dry run of createClaim() to our existing claim
+			claim.lesserBoundaryCorner = result.claim.lesserBoundaryCorner;
+			claim.greaterBoundaryCorner = result.claim.greaterBoundaryCorner;
+			result.claim = claim;
 			
 			//save those changes
 			this.saveClaim(result.claim);
             ClaimModifiedEvent event = new ClaimModifiedEvent(result.claim,resizingPlayer);
             Bukkit.getPluginManager().callEvent(event);
-			//make original claim ineffective (it's still in the hash map, so let's make it ignored)
-			claim.inDataStore = false;
 		}
 		
 		return result;
