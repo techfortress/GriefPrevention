@@ -449,18 +449,7 @@ public abstract class DataStore
 		
 		//add it and mark it as added
 		this.claims.add(newClaim);
-		ArrayList<Long> chunkHashes = newClaim.getChunkHashes();
-		for(Long chunkHash : chunkHashes)
-		{
-		    ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkHash);
-		    if(claimsInChunk == null)
-		    {
-		        claimsInChunk = new ArrayList<Claim>();
-		        this.chunksToClaimsMap.put(chunkHash, claimsInChunk);
-		    }
-		    
-		    claimsInChunk.add(newClaim);
-		}
+		addToChunkClaimMap(newClaim);
 		
 		newClaim.inDataStore = true;
 		
@@ -476,6 +465,43 @@ public abstract class DataStore
 		{
 		    this.saveClaim(newClaim);
 		}
+	}
+	
+	private void addToChunkClaimMap(Claim claim){
+		ArrayList<Long> chunkHashes = claim.getChunkHashes();
+		for(Long chunkHash : chunkHashes)
+		{
+		    ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkHash);
+		    if(claimsInChunk == null)
+		    {
+		        this.chunksToClaimsMap.put(chunkHash, claimsInChunk = new ArrayList<>());
+		    }
+		    
+		    claimsInChunk.add(claim);
+		}
+	}
+	
+	private void removeFromChunkClaimMap(Claim claim) {
+		ArrayList<Long> chunkHashes = claim.getChunkHashes();
+        for(Long chunkHash : chunkHashes)
+        {
+            ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkHash);
+            if(claimsInChunk != null)
+            {
+                for(Iterator<Claim> it = claimsInChunk.iterator(); it.hasNext();)
+                {
+                    Claim c = it.next();
+                    if(c.id.equals(claim.id))
+                    {
+                        it.remove();
+                        break;
+                    }
+                }
+                if (claimsInChunk.isEmpty()) { // if nothing's left, remove this chunk's cache
+                    this.chunksToClaimsMap.remove(chunkHash);
+                }
+            }
+        }
 	}
 	
 	//turns a location into a string, useful in data storage
@@ -614,22 +640,7 @@ public abstract class DataStore
 			}
 		}
 		
-		ArrayList<Long> chunkHashes = claim.getChunkHashes();
-        for(Long chunkHash : chunkHashes)
-        {
-            ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkHash);
-            if(claimsInChunk != null)
-            {
-                for(int j = 0; j < claimsInChunk.size(); j++)
-                {
-                    if(claimsInChunk.get(j).id.equals(claim.id))
-                    {
-                        claimsInChunk.remove(j);
-                        break;
-                    }
-                }
-            }
-        }
+		removeFromChunkClaimMap(claim);
 		
 		//remove from secondary storage
 		this.deleteClaimFromSecondaryStorage(claim);
@@ -1242,10 +1253,12 @@ public abstract class DataStore
 		//if succeeded
 		if(result.succeeded)
 		{
+			removeFromChunkClaimMap(claim); // remove the old boundary from the chunk cache
 			// copy the boundary from the claim created in the dry run of createClaim() to our existing claim
 			claim.lesserBoundaryCorner = result.claim.lesserBoundaryCorner;
 			claim.greaterBoundaryCorner = result.claim.greaterBoundaryCorner;
 			result.claim = claim;
+			addToChunkClaimMap(claim); // add the new boundary to the chunk cache
 			
 			//save those changes
 			this.saveClaim(result.claim);
