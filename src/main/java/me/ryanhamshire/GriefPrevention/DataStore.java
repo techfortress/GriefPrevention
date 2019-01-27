@@ -537,14 +537,18 @@ public abstract class DataStore
 	//saves any changes to a claim to secondary storage
 	synchronized public void saveClaim(Claim claim)
 	{
+		assignClaimID(claim);
+		
+		this.writeClaimToStorage(claim);
+	}
+	
+	private void assignClaimID(Claim claim) {
 		//ensure a unique identifier for the claim which will be used to name the file on disk
 		if(claim.id == null || claim.id == -1)
 		{
 			claim.id = this.nextClaimID;
 			this.incrementNextClaimID();
 		}
-		
-		this.writeClaimToStorage(claim);
 	}
 	
 	abstract void writeClaimToStorage(Claim claim);
@@ -893,6 +897,7 @@ public abstract class DataStore
             result.claim = newClaim;
             return result;
         }
+        assignClaimID(newClaim); // assign a claim ID before calling event, in case a plugin wants to know the ID.
             ClaimCreatedEvent event = new ClaimCreatedEvent(newClaim, creatingPlayer);
             Bukkit.getPluginManager().callEvent(event);
             if (event.isCancelled()) {
