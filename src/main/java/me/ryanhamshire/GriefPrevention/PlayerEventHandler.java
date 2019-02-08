@@ -1565,10 +1565,13 @@ class PlayerEventHandler implements Listener
 		{
 		    //exemption for cow milking (permissions will be handled by player interact with entity event instead)
 		    Material blockType = block.getType();
-		    if(blockType == Material.AIR || blockType.isSolid()) return;
-		    
-			instance.sendMessage(player, TextMode.Err, noBuildReason);
-			bucketEvent.setCancelled(true);
+			if(block.getBlockData().getAsString().contains("waterlogged=true")){
+				instance.sendMessage(player, TextMode.Err, noBuildReason);
+				bucketEvent.setCancelled(true);
+				return;
+			} else if((blockType == Material.AIR || blockType.isSolid())) {
+				return;
+			}
 			return;
 		}
 	}
