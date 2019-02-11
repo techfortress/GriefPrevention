@@ -87,7 +87,7 @@ public class ClaimTool implements Listener
             return;
 
         //TODO: configurable.
-        if (event.getItem().getType() != Material.GOLDEN_SHOVEL)
+        if (event.getItem() == null || event.getItem().getType() != Material.GOLDEN_SHOVEL)
             return;
 
         //TODO: ClaimToolEvent
