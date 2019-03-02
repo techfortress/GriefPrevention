@@ -32,7 +32,9 @@ import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.block.data.Waterlogged;
 import org.bukkit.command.Command;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Animals;
@@ -1565,7 +1567,14 @@ class PlayerEventHandler implements Listener
 		{
 		    //exemption for cow milking (permissions will be handled by player interact with entity event instead)
 		    Material blockType = block.getType();
-		    if(blockType == Material.AIR || blockType.isSolid()) return;
+		    if (blockType == Material.AIR)
+		    	return;
+		    if(blockType.isSolid())
+		    {
+				BlockData blockData = block.getBlockData();
+				if (!(blockData instanceof Waterlogged) || !((Waterlogged)blockData).isWaterlogged())
+					return;
+			}
 		    
 			instance.sendMessage(player, TextMode.Err, noBuildReason);
 			bucketEvent.setCancelled(true);
@@ -1574,7 +1583,6 @@ class PlayerEventHandler implements Listener
 	}
 	
 	//when a player interacts with the world
-	@SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.LOWEST)
 	void onPlayerInteract(PlayerInteractEvent event)
 	{
