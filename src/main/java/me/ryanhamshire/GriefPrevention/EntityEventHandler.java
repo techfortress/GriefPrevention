@@ -969,21 +969,21 @@ public class EntityEventHandler implements Listener
                                 return;
                             }
                             // disallow players attacking tamed wolves (dogs) unless under attack by said wolf
-							else if (tameable instanceof Wolf) {
-								if (!tameable.getOwner().equals(attacker)) {
-									if (((Wolf) tameable).getTarget() != null) {
-										if (((Wolf) tameable).getTarget() == attacker) return;
-									}
-									event.setCancelled(true);
-									String ownerName = GriefPrevention.instance.getServer().getOfflinePlayer(ownerID).getName();
-									String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, ownerName);
-									if (attacker.hasPermission("griefprevention.ignoreclaims"))
-										message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-									if (sendErrorMessagesToPlayers)
-										GriefPrevention.sendMessage(attacker, TextMode.Err, message);
-									return;
-								}
-							}
+                            else if (tameable instanceof Wolf) {
+                                if (!tameable.getOwner().equals(attacker)) {
+                                    if (((Wolf) tameable).getTarget() != null) {
+                                        if (((Wolf) tameable).getTarget() == attacker) return;
+                                    }
+                                    event.setCancelled(true);
+                                    String ownerName = GriefPrevention.instance.getServer().getOfflinePlayer(ownerID).getName();
+                                    String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, ownerName);
+                                    if (attacker.hasPermission("griefprevention.ignoreclaims"))
+                                        message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                                    if (sendErrorMessagesToPlayers)
+                                        GriefPrevention.sendMessage(attacker, TextMode.Err, message);
+                                    return;
+                                }
+                            }
                         }
                     }
                 }
