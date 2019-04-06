@@ -27,7 +27,28 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
-import org.bukkit.entity.*;
+import org.bukkit.entity.Animals;
+import org.bukkit.entity.Creature;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Explosive;
+import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Horse;
+import org.bukkit.entity.Item;
+import org.bukkit.entity.LightningStrike;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Monster;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.entity.Rabbit;
+import org.bukkit.entity.Tameable;
+import org.bukkit.entity.ThrownPotion;
+import org.bukkit.entity.Vehicle;
+import org.bukkit.entity.WaterMob;
+import org.bukkit.entity.Llama;
+import org.bukkit.entity.Donkey;
+import org.bukkit.entity.Mule;
+import org.bukkit.entity.Wolf;
 import org.bukkit.entity.minecart.ExplosiveMinecart;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -969,9 +990,12 @@ public class EntityEventHandler implements Listener
                                 return;
                             }
                             // disallow players attacking tamed wolves (dogs) unless under attack by said wolf
-                            else if (tameable instanceof Wolf) {
-                                if (!tameable.getOwner().equals(attacker)) {
-                                    if (((Wolf) tameable).getTarget() != null) {
+                            else if (tameable.getType() == EntityType.WOLF)
+                            {
+                                if (!tameable.getOwner().equals(attacker))
+                                {
+                                    if (((Wolf) tameable).getTarget() != null)
+                                    {
                                         if (((Wolf) tameable).getTarget() == attacker) return;
                                     }
                                     event.setCancelled(true);
