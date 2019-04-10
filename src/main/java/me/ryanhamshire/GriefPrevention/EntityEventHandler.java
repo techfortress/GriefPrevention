@@ -992,7 +992,7 @@ public class EntityEventHandler implements Listener
                             // disallow players attacking tamed wolves (dogs) unless under attack by said wolf
                             else if (tameable.getType() == EntityType.WOLF)
                             {
-                                if (!tameable.getOwner().getUniqueId().equals(attacker.getUniqueId()))
+                                if (!tameable.getOwner().equals(attacker))
                                 {
                                     if (((Wolf) tameable).getTarget() != null)
                                     {
