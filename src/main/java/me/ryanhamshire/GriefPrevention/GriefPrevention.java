@@ -2873,6 +2873,12 @@ public class GriefPrevention extends JavaPlugin
 			return true;
 		}
 		
+		// RealEstate transaction : can't abandon if there's a transaction
+		else if(realEstate != null && realEstate.anyTransaction(claim))
+		{
+			GriefPrevention.sendMessage(player, TextMode.Err, Messages.OngoingTransaction);
+		}
+		
 		else
 		{
 			//delete it

@@ -14,4 +14,6 @@ public interface IRealEstate
 	public String allowContainers(Claim claim, Player player);
 
 	public String allowGrantPermission(Claim claim, Player player);
+
+	public boolean anyTransaction(Claim claim);
 }
