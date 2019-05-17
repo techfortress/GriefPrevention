@@ -315,6 +315,10 @@ public class Claim
 				return GriefPrevention.instance.dataStore.getMessage(Messages.NoModifyDuringSiege);
 			}
 			
+			// Real Estate implementation : RealEstate takes over default behaviour
+			if(GriefPrevention.realEstate != null)
+				return GriefPrevention.realEstate.allowEdit(this, player);
+			
 			//otherwise, owners can do whatever
 			return null;
 		}
@@ -323,7 +327,12 @@ public class Claim
 		if(this.parent != null)
 		{
 			if (player.getUniqueId().equals(this.parent.ownerID))
+			{
+				// Real Estate implementation : RealEstate takes over default behaviour
+				if(GriefPrevention.realEstate != null)
+					return GriefPrevention.realEstate.allowEdit(this, player);
 				return null;
+			}
 			if (!inheritNothing)
 				return this.parent.allowEdit(player);
 		}
@@ -375,7 +384,15 @@ public class Claim
 		}
 		
 		//owners can make changes, or admins with ignore claims mode enabled
-		if(player.getUniqueId().equals(this.ownerID) || GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims) return null;
+		if(GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims)
+			return null;
+		if(player.getUniqueId().equals(this.ownerID))
+		{
+			// Real Estate implementation : RealEstate takes over default behaviour
+			if(GriefPrevention.realEstate != null)
+				return GriefPrevention.realEstate.allowBuild(this, player, material);
+			return null;
+		}
 		
 		//anyone with explicit build permission can make changes
 		if(this.hasExplicitPermission(player, ClaimPermission.Build)) return null;
@@ -398,7 +415,12 @@ public class Claim
 		if(this.parent != null)
 		{
 			if (player.getUniqueId().equals(this.parent.ownerID))
+			{
+				// Real Estate implementation : RealEstate takes over default behaviour
+				if(GriefPrevention.realEstate != null)
+					return GriefPrevention.realEstate.allowBuild(this, player, material);
 				return null;
+			}
 			if (!inheritNothing)
 				return this.parent.allowBuild(player, material);
 		}
@@ -488,7 +510,15 @@ public class Claim
 		}
 		
 		//claim owner and admins in ignoreclaims mode have access
-		if(player.getUniqueId().equals(this.ownerID) || GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims) return null;
+		if(GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims)
+			return null;
+		if(player.getUniqueId().equals(this.ownerID))
+		{
+			// Real Estate implementation : RealEstate takes over default behaviour
+			if(GriefPrevention.realEstate != null)
+				return GriefPrevention.realEstate.allowAccess(this, player);
+			return null;
+		}
 		
 		//look for explicit individual access, inventory, or build permission
 		if(this.hasExplicitPermission(player, ClaimPermission.Access)) return null;
@@ -503,7 +533,12 @@ public class Claim
 		if(this.parent != null)
 		{
 			if (player.getUniqueId().equals(this.parent.ownerID))
+			{
+				// Real Estate implementation : RealEstate takes over default behaviour
+				if(GriefPrevention.realEstate != null)
+					return GriefPrevention.realEstate.allowAccess(this, player);
 				return null;
+			}
 			if (!inheritNothing)
 				return this.parent.allowAccess(player);
 		}
@@ -531,7 +566,15 @@ public class Claim
 		}
 		
 		//owner and administrators in ignoreclaims mode have access
-		if(player.getUniqueId().equals(this.ownerID) || GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims) return null;
+		if(GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims)
+			return null;
+		if(player.getUniqueId().equals(this.ownerID))
+		{
+			// Real Estate implementation : RealEstate takes over default behaviour
+			if(GriefPrevention.realEstate != null)
+				return GriefPrevention.realEstate.allowContainers(this, player);
+			return null;
+		}
 		
 		//admin claims need adminclaims permission only.
 		if(this.isAdminClaim())
@@ -551,7 +594,12 @@ public class Claim
 		if(this.parent != null)
 		{
 			if (player.getUniqueId().equals(this.parent.ownerID))
+			{
+				// Real Estate implementation : RealEstate takes over default behaviour
+				if(GriefPrevention.realEstate != null)
+					return GriefPrevention.realEstate.allowContainers(this, player);
 				return null;
+			}
 			if (!inheritNothing)
 				return this.parent.allowContainers(player);
 		}
@@ -568,6 +616,14 @@ public class Claim
 	{
 		//if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
 		if(player == null) return "";
+		
+		// RealEstate is the most important here, since a Rented/Leased calim cannot have permissions changes in any case
+		if(GriefPrevention.realEstate != null)
+		{
+			String s = GriefPrevention.realEstate.allowGrantPermission(this, player);
+			if(s != null)
+				return s;
+		}
 		
 		//anyone who can modify the claim can do this
 		if(this.allowEdit(player) == null) return null;

@@ -1,8 +1,8 @@
 name: GriefPrevention
 main: me.ryanhamshire.GriefPrevention.GriefPrevention
-softdepend: [Vault, Multiverse-Core, My Worlds, MystCraft, Transporter, TheUnderground, WorldGuard, WorldEdit, RoyalCommands, MultiWorld, Denizen, Hyperconomy]
+softdepend: [Vault, Multiverse-Core, My Worlds, MystCraft, Transporter, TheUnderground, WorldGuard, WorldEdit, RoyalCommands, MultiWorld, Denizen, Hyperconomy, RealEstate]
 dev-url: http://dev.bukkit.org/server-mods/grief-prevention
-loadbefore: [TheUnderground]
+loadbefore: [TheUnderground, RealEstate]
 version: '${project.version}'
 api-version: 1.13
 commands:

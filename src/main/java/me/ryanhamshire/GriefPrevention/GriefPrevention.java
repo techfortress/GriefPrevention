@@ -224,7 +224,10 @@ public class GriefPrevention extends JavaPlugin
 
 	
 	//reference to the economy plugin, if economy integration is enabled
-	public static Economy economy = null;					
+	public static Economy economy = null;
+	
+	// hook point for RealEstate plugin
+	public static IRealEstate realEstate = null;
 	
 	//how far away to search from a tree trunk for its branch blocks
 	public static final int TREE_RADIUS = 5;
