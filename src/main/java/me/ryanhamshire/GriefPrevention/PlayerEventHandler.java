@@ -31,6 +31,7 @@ import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Lectern;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Waterlogged;
@@ -56,26 +57,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerBucketEmptyEvent;
-import org.bukkit.event.player.PlayerBucketFillEvent;
-import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import org.bukkit.event.player.PlayerDropItemEvent;
-import org.bukkit.event.player.PlayerEvent;
-import org.bukkit.event.player.PlayerFishEvent;
-import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerKickEvent;
-import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.event.player.PlayerLoginEvent.Result;
-import org.bukkit.event.player.PlayerPickupItemEvent;
-import org.bukkit.event.player.PlayerPortalEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.InventoryHolder;
@@ -2620,6 +2603,21 @@ class PlayerEventHandler implements Listener
 			}
 		}
 	}
+
+	// Stops an untrusted player from removing a book from a lectern
+	@EventHandler
+	void onTakeBook(PlayerTakeLecternBookEvent event)
+	{
+		Player player = event.getPlayer();
+		PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+		Claim claim = this.dataStore.getClaimAt(event.getLectern().getLocation(), false, playerData.lastClaim);
+		if (claim.allowContainers(player) != null)
+		{
+			event.setCancelled(true);
+			player.closeInventory();
+			GriefPrevention.sendMessage(player, TextMode.Err, claim.allowContainers(player));
+		}
+	}
 	
     //determines whether a block type is an inventory holder.  uses a caching strategy to save cpu time
 	private ConcurrentHashMap<Material, Boolean> inventoryHolderCache = new ConcurrentHashMap<Material, Boolean>();
@@ -2635,7 +2633,7 @@ class PlayerEventHandler implements Listener
 	    }
 	    else
 	    {
-	        boolean isHolder = clickedBlock.getState() instanceof InventoryHolder;
+	        boolean isHolder = clickedBlock.getState() instanceof InventoryHolder && clickedBlock.getType() != Material.LECTERN;
 	        this.inventoryHolderCache.put(cacheKey, isHolder);
 	        return isHolder;
 	    }

@@ -232,6 +232,24 @@ public class BlockEventHandler implements Listener
 		String noBuildReason = GriefPrevention.instance.allowBuild(player, block.getLocation(), block.getType());
 		if(noBuildReason != null)
 		{
+			// Prevent players without container trust from putting books into lecterns
+			Material mainHand = player.getInventory().getItemInMainHand().getType();
+			Material offHand = player.getInventory().getItemInOffHand().getType();
+			PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+			Claim claim = this.dataStore.getClaimAt(block.getLocation(), true, playerData.lastClaim);
+			if (block.getType() == Material.LECTERN && mainHand != Material.LECTERN && offHand != Material.LECTERN)
+			{
+				if (claim.allowContainers(player) != null)
+				{
+					placeEvent.setCancelled(true);
+					GriefPrevention.sendMessage(player, TextMode.Err, claim.allowContainers(player));
+					return;
+				}
+				else
+				{
+					return;
+				}
+			}
 			GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
 			placeEvent.setCancelled(true);
 			return;
