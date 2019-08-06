@@ -2624,7 +2624,7 @@ class PlayerEventHandler implements Listener
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	void onTakeBookFromLectern(PlayerTakeLecternBookEvent event)
 	{
 	    Player player = event.getPlayer();

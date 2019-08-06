@@ -253,7 +253,7 @@ public class BlockEventHandler implements Listener
 		String noBuildReason = GriefPrevention.instance.allowBuild(player, block.getLocation(), block.getType());
 		if(noBuildReason != null)
 		{
-			GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason); // place book into lectern?
+			GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
 			placeEvent.setCancelled(true);
 			return;
 		}
