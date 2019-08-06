@@ -33,6 +33,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Hopper;
+import org.bukkit.block.Lectern;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.minecart.HopperMinecart;
@@ -233,11 +234,9 @@ public class BlockEventHandler implements Listener
 		if(noBuildReason != null)
 		{
 			// Prevent players without container trust from putting books into lecterns
-			Material mainHand = player.getInventory().getItemInMainHand().getType();
-			Material offHand = player.getInventory().getItemInOffHand().getType();
 			PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
 			Claim claim = this.dataStore.getClaimAt(block.getLocation(), true, playerData.lastClaim);
-			if (block.getType() == Material.LECTERN && mainHand != Material.LECTERN && offHand != Material.LECTERN)
+			if (block.getType() == Material.LECTERN && placeEvent.getBlockReplacedState() instanceof Lectern)
 			{
 				if (claim.allowContainers(player) != null)
 				{
