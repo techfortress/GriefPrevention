@@ -1659,7 +1659,22 @@ class PlayerEventHandler implements Listener
 			if(claim != null)
 			{
 				playerData.lastClaim = claim;
-				
+
+				if(clickedBlock.getType() == Material.LECTERN)
+				{
+					String noAccessReason = claim.allowAccess(player);
+					if(noAccessReason != null && instance.config_claims_lecternreading)
+					{
+						event.setCancelled(true);
+						GriefPrevention.sendMessage(player, TextMode.Err, noAccessReason);
+						return;
+					}
+					else
+					{
+						return;
+					}
+				}
+
 				String noContainersReason = claim.allowContainers(player);
 				if(noContainersReason != null)
 				{
@@ -2651,7 +2666,7 @@ class PlayerEventHandler implements Listener
 	    }
 	    else
 	    {
-	        boolean isHolder = clickedBlock.getState() instanceof InventoryHolder && clickedBlock.getType() != Material.LECTERN;
+	        boolean isHolder = clickedBlock.getState() instanceof InventoryHolder;
 	        this.inventoryHolderCache.put(cacheKey, isHolder);
 	        return isHolder;
 	    }
