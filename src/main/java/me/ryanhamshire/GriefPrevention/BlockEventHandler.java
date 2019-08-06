@@ -233,7 +233,7 @@ public class BlockEventHandler implements Listener
 		String noBuildReason = GriefPrevention.instance.allowBuild(player, block.getLocation(), block.getType());
 		if(noBuildReason != null)
 		{
-			// Prevent players without container trust from putting books into lecterns
+			// Allow players with container trust to place books in lecterns
 			PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
 			Claim claim = this.dataStore.getClaimAt(block.getLocation(), true, playerData.lastClaim);
 			if (block.getType() == Material.LECTERN && placeEvent.getBlockReplacedState() instanceof Lectern)
