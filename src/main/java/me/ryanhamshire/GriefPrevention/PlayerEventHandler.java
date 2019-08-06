@@ -2623,7 +2623,7 @@ class PlayerEventHandler implements Listener
 	}
 
 	// Stops an untrusted player from removing a book from a lectern
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
 	void onTakeBook(PlayerTakeLecternBookEvent event)
 	{
 		Player player = event.getPlayer();
