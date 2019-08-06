@@ -226,13 +226,34 @@ public class BlockEventHandler implements Listener
 		}
 		
 		//don't track in worlds where claims are not enabled
-        if(!GriefPrevention.instance.claimsEnabledForWorld(placeEvent.getBlock().getWorld())) return;
+		if(!GriefPrevention.instance.claimsEnabledForWorld(placeEvent.getBlock().getWorld())) return;
+		
+		Material handItemType = placeEvent.getItemInHand().getType();
+		
+		// Handle placing a book into a lecturn, which is to be counted as a container transaction rather than building.
+		if (block.getType() == Material.LECTERN && (handItemType == Material.WRITTEN_BOOK || handItemType == Material.WRITABLE_BOOK)) {
+			
+			PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+			Claim claim = this.dataStore.getClaimAt(block.getLocation(), false, playerData.lastClaim);
+			if(claim != null)
+			{
+				playerData.lastClaim = claim;
+
+				String noContainersReason = claim.allowContainers(player);
+				if(noContainersReason != null)
+				{
+					placeEvent.setCancelled(true);
+					GriefPrevention.sendMessage(player, TextMode.Err, noContainersReason);
+				}
+			}
+			return;
+		}
 		
 		//make sure the player is allowed to build at the location
 		String noBuildReason = GriefPrevention.instance.allowBuild(player, block.getLocation(), block.getType());
 		if(noBuildReason != null)
 		{
-			GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
+			GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason); // place book into lectern?
 			placeEvent.setCancelled(true);
 			return;
 		}

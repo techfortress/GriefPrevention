@@ -100,6 +100,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
+import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 
 class PlayerEventHandler implements Listener 
 {
@@ -1626,7 +1627,7 @@ class PlayerEventHandler implements Listener
 		//apply rules for containers and crafting blocks
 		if(	clickedBlock != null && instance.config_claims_preventTheft && (
 						event.getAction() == Action.RIGHT_CLICK_BLOCK && (
-						this.isInventoryHolder(clickedBlock) ||
+						(this.isInventoryHolder(clickedBlock) && clickedBlock.getType() != Material.LECTERN) || // Lecterns are governed seperately for containertrust (in BlockEventHandler), and by accesstrust below
 						clickedBlockType == Material.CAULDRON ||
 						clickedBlockType == Material.JUKEBOX ||
 						clickedBlockType == Material.ANVIL ||
@@ -1719,7 +1720,9 @@ class PlayerEventHandler implements Listener
 				clickedBlockType == Material.BIRCH_FENCE_GATE    ||
 				clickedBlockType == Material.JUNGLE_FENCE_GATE   ||
 				clickedBlockType == Material.SPRUCE_FENCE_GATE   ||
-				clickedBlockType == Material.DARK_OAK_FENCE_GATE)))
+				clickedBlockType == Material.DARK_OAK_FENCE_GATE)) ||
+		(instance.config_claims_preventReadingLecterns && (
+				clickedBlockType == Material.LECTERN)))
 		{
 		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -2619,6 +2622,27 @@ class PlayerEventHandler implements Listener
 				}
 			}
 		}
+	}
+	
+	@EventHandler
+	void onTakeBookFromLectern(PlayerTakeLecternBookEvent event)
+	{
+	    Player player = event.getPlayer();
+	    PlayerData playerData = null;
+	    
+	    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
+	    Claim claim = this.dataStore.getClaimAt(event.getLectern().getLocation(), false, playerData.lastClaim);
+	    if(claim != null)
+	    {
+		    playerData.lastClaim = claim;
+
+		    String noContainersReason = claim.allowContainers(player);
+		    if(noContainersReason != null)
+		    {
+			    event.setCancelled(true);
+			    instance.sendMessage(player, TextMode.Err, noContainersReason);
+		    }
+	    }
 	}
 	
     //determines whether a block type is an inventory holder.  uses a caching strategy to save cpu time
