@@ -1663,7 +1663,7 @@ class PlayerEventHandler implements Listener
 				if(clickedBlock.getType() == Material.LECTERN)
 				{
 					String noAccessReason = claim.allowAccess(player);
-					if(noAccessReason != null && instance.config_claims_lecternreading)
+					if(noAccessReason != null && instance.config_claims_lecternReadingRequiresAccessTrust)
 					{
 						event.setCancelled(true);
 						GriefPrevention.sendMessage(player, TextMode.Err, noAccessReason);
