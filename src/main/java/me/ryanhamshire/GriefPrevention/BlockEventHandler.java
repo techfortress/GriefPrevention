@@ -238,15 +238,20 @@ public class BlockEventHandler implements Listener
 			Claim claim = this.dataStore.getClaimAt(block.getLocation(), true, playerData.lastClaim);
 			if (block.getType() == Material.LECTERN && placeEvent.getBlockReplacedState() instanceof Lectern)
 			{
-				if (claim.allowContainers(player) != null)
+				if (claim != null)
 				{
-					placeEvent.setCancelled(true);
-					GriefPrevention.sendMessage(player, TextMode.Err, claim.allowContainers(player));
-					return;
-				}
-				else
-				{
-					return;
+					playerData.lastClaim = claim;
+					String noContainerReason = claim.allowContainers(player);
+					if (noContainerReason != null)
+					{
+						placeEvent.setCancelled(true);
+						GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason);
+						return;
+					}
+					else
+					{
+						return;
+					}
 				}
 			}
 			GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
