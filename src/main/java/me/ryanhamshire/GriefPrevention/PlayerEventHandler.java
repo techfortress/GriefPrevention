@@ -2644,11 +2644,15 @@ class PlayerEventHandler implements Listener
 		Player player = event.getPlayer();
 		PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		Claim claim = this.dataStore.getClaimAt(event.getLectern().getLocation(), false, playerData.lastClaim);
-		if (claim.allowContainers(player) != null)
+		if (claim != null)
 		{
-			event.setCancelled(true);
-			player.closeInventory();
-			GriefPrevention.sendMessage(player, TextMode.Err, claim.allowContainers(player));
+			playerData.lastClaim = claim;
+			if (claim.allowContainers(player) != null)
+			{
+				event.setCancelled(true);
+				player.closeInventory();
+				GriefPrevention.sendMessage(player, TextMode.Err, claim.allowContainers(player));
+			}
 		}
 	}
 	
