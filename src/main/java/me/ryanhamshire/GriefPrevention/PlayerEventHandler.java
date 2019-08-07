@@ -2647,11 +2647,12 @@ class PlayerEventHandler implements Listener
 		if (claim != null)
 		{
 			playerData.lastClaim = claim;
-			if (claim.allowContainers(player) != null)
+			String noContainerReason = claim.allowContainers(player);
+			if (noContainerReason != null)
 			{
 				event.setCancelled(true);
 				player.closeInventory();
-				GriefPrevention.sendMessage(player, TextMode.Err, claim.allowContainers(player));
+				GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason);
 			}
 		}
 	}
