@@ -1721,7 +1721,7 @@ class PlayerEventHandler implements Listener
 				clickedBlockType == Material.JUNGLE_FENCE_GATE   ||
 				clickedBlockType == Material.SPRUCE_FENCE_GATE   ||
 				clickedBlockType == Material.DARK_OAK_FENCE_GATE)) ||
-				(instance.config_claims_lecternReadingRequiresAccessTrust && clickedBlock.getType() == Material.LECTERN))
+				(instance.config_claims_lecternReadingRequiresAccessTrust && clickedBlockType == Material.LECTERN))
 		{
 		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
