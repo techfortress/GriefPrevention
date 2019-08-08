@@ -1627,7 +1627,7 @@ class PlayerEventHandler implements Listener
 		//apply rules for containers and crafting blocks
 		if(	clickedBlock != null && instance.config_claims_preventTheft && (
 						event.getAction() == Action.RIGHT_CLICK_BLOCK && (
-						this.isInventoryHolder(clickedBlock) ||
+						(this.isInventoryHolder(clickedBlock) && clickedBlock.getType() != Material.LECTERN) ||
 						clickedBlockType == Material.CAULDRON ||
 						clickedBlockType == Material.JUKEBOX ||
 						clickedBlockType == Material.ANVIL ||
@@ -1659,21 +1659,6 @@ class PlayerEventHandler implements Listener
 			if(claim != null)
 			{
 				playerData.lastClaim = claim;
-
-				if(clickedBlock.getType() == Material.LECTERN)
-				{
-					String noAccessReason = claim.allowAccess(player);
-					if(noAccessReason != null && instance.config_claims_lecternReadingRequiresAccessTrust)
-					{
-						event.setCancelled(true);
-						GriefPrevention.sendMessage(player, TextMode.Err, noAccessReason);
-						return;
-					}
-					else
-					{
-						return;
-					}
-				}
 
 				String noContainersReason = claim.allowContainers(player);
 				if(noContainersReason != null)
@@ -1735,7 +1720,8 @@ class PlayerEventHandler implements Listener
 				clickedBlockType == Material.BIRCH_FENCE_GATE    ||
 				clickedBlockType == Material.JUNGLE_FENCE_GATE   ||
 				clickedBlockType == Material.SPRUCE_FENCE_GATE   ||
-				clickedBlockType == Material.DARK_OAK_FENCE_GATE)))
+				clickedBlockType == Material.DARK_OAK_FENCE_GATE)) ||
+				(instance.config_claims_lecternReadingRequiresAccessTrust && clickedBlock.getType() == Material.LECTERN))
 		{
 		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);

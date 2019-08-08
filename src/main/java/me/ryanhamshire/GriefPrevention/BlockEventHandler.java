@@ -242,16 +242,12 @@ public class BlockEventHandler implements Listener
 				{
 					playerData.lastClaim = claim;
 					String noContainerReason = claim.allowContainers(player);
-					if (noContainerReason != null)
-					{
-						placeEvent.setCancelled(true);
-						GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason);
+					if (noContainerReason == null)
 						return;
-					}
-					else
-					{
-						return;
-					}
+
+					placeEvent.setCancelled(true);
+					GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason);
+					return;
 				}
 			}
 			GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
