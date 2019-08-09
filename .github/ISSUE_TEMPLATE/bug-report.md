@@ -1,6 +1,9 @@
 ---
 name: Bug report
 about: Report bugs or scary stacktraces (the big scary red lines that say SomethingException)
+title: ''
+labels: ''
+assignees: ''
 
 ---
 

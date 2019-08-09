@@ -1,14 +1,14 @@
 ---
 name: Feature enhancement or request
 about: Improvements or ideas for GriefPrevention
+title: Name of feature goes here. No brackets, please.
+labels: Add-on suggestion
+assignees: ''
 
 ---
 
 **AS** a player/administrator/etc.
 **I WANT** a feature
-**SO THAT** I can be satisfied with my Minecrafting experience
+**BECAUSE** I want to be satisfied with my Minecrafting experience
 
-### Proposed Criteria
-- Option `minecraft.satisfaction` is in the config.yml
-- Option defaults to true
-- When `minecraft.satisfaction` is set to true, all players on my server receive the `Hero of the village` effect.
+Here's how to increase your chances of your feature request being understood (and potentially considered for implementation): https://content.pivotal.io/blog/how-to-write-well-formed-user-stories
