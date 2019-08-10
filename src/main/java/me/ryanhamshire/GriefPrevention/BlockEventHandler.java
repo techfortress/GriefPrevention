@@ -21,11 +21,13 @@ package me.ryanhamshire.GriefPrevention;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
@@ -863,9 +865,8 @@ public class BlockEventHandler implements Listener
         }
     }
 	
-	@EventHandler(ignoreCancelled = true)
-    public void onInventoryPickupItem (InventoryPickupItemEvent event)
-	{
+	@EventHandler
+    public void onInventoryPickupItem (InventoryPickupItemEvent event) {
 	    //prevent hoppers from picking-up items dropped by players on death
 
 	    InventoryHolder holder = event.getInventory().getHolder();
@@ -873,12 +874,23 @@ public class BlockEventHandler implements Listener
 	    {
 	        Item item = event.getItem();
 	        List<MetadataValue> data = item.getMetadata("GP_ITEMOWNER");
-	        
 	        //if this is marked as belonging to a player
 	        if(data != null && data.size() > 0)
 	        {
-	            //don't allow the pickup
-	            event.setCancelled(true);
+	        	 UUID ownerID = (UUID)data.get(0).value();
+	 		    
+	 		    //has that player unlocked his drops?
+	 		    OfflinePlayer owner = GriefPrevention.instance.getServer().getOfflinePlayer(ownerID);
+	 		    if(owner.isOnline())
+	 		    {
+	 		        PlayerData playerData = this.dataStore.getPlayerData(ownerID);
+
+	                 //if locked, don't allow pickup
+	 		        if(!playerData.dropsAreUnlocked)
+	 		        {
+	 		        	event.setCancelled(true);
+	 		        }
+	 		    }
 	        }
 	    }
 	}
