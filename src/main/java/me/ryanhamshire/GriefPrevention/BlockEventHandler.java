@@ -35,6 +35,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Hopper;
+import org.bukkit.block.Lectern;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.minecart.HopperMinecart;
@@ -234,6 +235,23 @@ public class BlockEventHandler implements Listener
 		String noBuildReason = GriefPrevention.instance.allowBuild(player, block.getLocation(), block.getType());
 		if(noBuildReason != null)
 		{
+			// Allow players with container trust to place books in lecterns
+			PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+			Claim claim = this.dataStore.getClaimAt(block.getLocation(), true, playerData.lastClaim);
+			if (block.getType() == Material.LECTERN && placeEvent.getBlockReplacedState() instanceof Lectern)
+			{
+				if (claim != null)
+				{
+					playerData.lastClaim = claim;
+					String noContainerReason = claim.allowContainers(player);
+					if (noContainerReason == null)
+						return;
+
+					placeEvent.setCancelled(true);
+					GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason);
+					return;
+				}
+			}
 			GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
 			placeEvent.setCancelled(true);
 			return;

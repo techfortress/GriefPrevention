@@ -75,6 +75,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.EquipmentSlot;
@@ -1626,7 +1627,7 @@ class PlayerEventHandler implements Listener
 		//apply rules for containers and crafting blocks
 		if(	clickedBlock != null && instance.config_claims_preventTheft && (
 						event.getAction() == Action.RIGHT_CLICK_BLOCK && (
-						this.isInventoryHolder(clickedBlock) ||
+						(this.isInventoryHolder(clickedBlock) && clickedBlock.getType() != Material.LECTERN) ||
 						clickedBlockType == Material.CAULDRON ||
 						clickedBlockType == Material.JUKEBOX ||
 						clickedBlockType == Material.ANVIL ||
@@ -1658,7 +1659,7 @@ class PlayerEventHandler implements Listener
 			if(claim != null)
 			{
 				playerData.lastClaim = claim;
-				
+
 				String noContainersReason = claim.allowContainers(player);
 				if(noContainersReason != null)
 				{
@@ -1719,7 +1720,8 @@ class PlayerEventHandler implements Listener
 				clickedBlockType == Material.BIRCH_FENCE_GATE    ||
 				clickedBlockType == Material.JUNGLE_FENCE_GATE   ||
 				clickedBlockType == Material.SPRUCE_FENCE_GATE   ||
-				clickedBlockType == Material.DARK_OAK_FENCE_GATE)))
+				clickedBlockType == Material.DARK_OAK_FENCE_GATE)) ||
+				(instance.config_claims_lecternReadingRequiresAccessTrust && clickedBlockType == Material.LECTERN))
 		{
 		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -2617,6 +2619,26 @@ class PlayerEventHandler implements Listener
 
 					instance.autoExtendClaim(result.claim);
 				}
+			}
+		}
+	}
+
+	// Stops an untrusted player from removing a book from a lectern
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+	void onTakeBook(PlayerTakeLecternBookEvent event)
+	{
+		Player player = event.getPlayer();
+		PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+		Claim claim = this.dataStore.getClaimAt(event.getLectern().getLocation(), false, playerData.lastClaim);
+		if (claim != null)
+		{
+			playerData.lastClaim = claim;
+			String noContainerReason = claim.allowContainers(player);
+			if (noContainerReason != null)
+			{
+				event.setCancelled(true);
+				player.closeInventory();
+				GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason);
 			}
 		}
 	}
