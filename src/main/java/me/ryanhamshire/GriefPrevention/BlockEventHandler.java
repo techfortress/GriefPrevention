@@ -866,7 +866,8 @@ public class BlockEventHandler implements Listener
     }
 	
 	@EventHandler(ignoreCancelled = true)
-    public void onInventoryPickupItem (InventoryPickupItemEvent event) {
+    public void onInventoryPickupItem (InventoryPickupItemEvent event) 
+    {
 	    //prevent hoppers from picking-up items dropped by players on death
 
 	    InventoryHolder holder = event.getInventory().getHolder();
