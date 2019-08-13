@@ -33,6 +33,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Explosive;
 import org.bukkit.entity.FallingBlock;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Horse;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.LightningStrike;
@@ -68,6 +69,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.EntityPortalExitEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.ExpBottleEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
@@ -753,6 +755,15 @@ public class EntityEventHandler implements Listener
                 {
                     attacker = (Player)arrow.getShooter();
                 }
+            }else if(subEvent.getDamager() instanceof Firework) {
+	        	damageSource = subEvent.getDamager();
+    	        if(damageSource.hasMetadata("GP_FIREWORK")) {
+    		        List<MetadataValue> data = damageSource.getMetadata("GP_FIREWORK");
+    		        if(data != null && data.size() > 0)
+    		        {
+    		        	attacker = (Player) data.get(0).value();
+    		        }
+    	        }
             }
             
             //protect players from lingering potion damage when protected from pvp
@@ -1086,6 +1097,7 @@ public class EntityEventHandler implements Listener
                             
                             //kill the arrow to avoid infinite bounce between crowded together animals //RoboMWM: except for tridents
                             if(arrow != null && arrow.getType() != EntityType.TRIDENT) arrow.remove();
+                            if(damageSource != null && damageSource.getType() == EntityType.FIREWORK && event.getEntity().getType() != EntityType.PLAYER) return;
                             
                             if(sendErrorMessagesToPlayers)
                             {
@@ -1106,6 +1118,13 @@ public class EntityEventHandler implements Listener
                 }
             }
         }
+	}
+	
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
+	public void onCrossbowFireWork(EntityShootBowEvent shootEvent) {
+		if(shootEvent.getEntity() instanceof Player && shootEvent.getProjectile() instanceof Firework) {
+			shootEvent.getProjectile().setMetadata("GP_FIREWORK", new FixedMetadataValue(GriefPrevention.instance, shootEvent.getEntity()));
+		}
 	}
 	
 	//when an entity is damaged
