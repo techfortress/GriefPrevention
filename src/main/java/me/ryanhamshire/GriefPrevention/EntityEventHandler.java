@@ -740,6 +740,7 @@ public class EntityEventHandler implements Listener
         //determine which player is attacking, if any
         Player attacker = null;
         Projectile arrow = null;
+        Firework firework = null;
         Entity damageSource = subEvent.getDamager();
         
         if(damageSource != null)
@@ -761,6 +762,7 @@ public class EntityEventHandler implements Listener
     		        List<MetadataValue> data = damageSource.getMetadata("GP_FIREWORK");
     		        if(data != null && data.size() > 0)
     		        {
+    		        	firework = (Firework)damageSource;
     		        	attacker = (Player) data.get(0).value();
     		        }
     	        }
@@ -800,6 +802,17 @@ public class EntityEventHandler implements Listener
                 }
             }
         }
+        
+        //if the attacker is a firework from a crossbow by a player and defender is a player (nonpvp)
+        if(firework != null && event.getEntityType() == EntityType.PLAYER && !GriefPrevention.instance.pvpRulesApply(attacker.getWorld()))
+        {
+        	Player defender = (Player)(event.getEntity());
+        	if(attacker != defender) {
+        		event.setCancelled(true);
+        		return;
+        	}
+        }
+        
         
         //if the attacker is a player and defender is a player (pvp combat)
         if(attacker != null && event.getEntityType() == EntityType.PLAYER && GriefPrevention.instance.pvpRulesApply(attacker.getWorld()))
@@ -1168,6 +1181,15 @@ public class EntityEventHandler implements Listener
                     attacker = (Player)arrow.getShooter();
                 }
             }
+            else if(damageSource instanceof Firework) {
+    	        if(damageSource.hasMetadata("GP_FIREWORK")) {
+    		        List<MetadataValue> data = damageSource.getMetadata("GP_FIREWORK");
+    		        if(data != null && data.size() > 0)
+    		        {
+    		        	attacker = (Player) data.get(0).value();
+    		        }
+    	        }
+            }
         }
         
         //if attacker not a player, do nothing
@@ -1221,6 +1243,15 @@ public class EntityEventHandler implements Listener
     				attacker = (Player)arrow.getShooter();
     			}
     		}
+            else if(damageSource instanceof Firework) {
+    	        if(damageSource.hasMetadata("GP_FIREWORK")) {
+    		        List<MetadataValue> data = damageSource.getMetadata("GP_FIREWORK");
+    		        if(data != null && data.size() > 0)
+    		        {
+    		        	attacker = (Player) data.get(0).value();
+    		        }
+    	        }
+            }
 		}
 		
 		//if not a player and not an explosion, always allow
