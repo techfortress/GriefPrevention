@@ -544,7 +544,7 @@ public class EntityEventHandler implements Listener
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onItemMerge(ItemMergeEvent event)
 	{
-		Item item = event.getTarget();
+		Item item = event.getEntity();
 		List<MetadataValue> data = item.getMetadata("GP_ITEMOWNER");
 		event.setCancelled(data != null && data.size() > 0);
 	}
