@@ -847,6 +847,18 @@ public abstract class DataStore
 			smallz = z2;
 			bigz = z1;
 		}
+
+		if(parent != null)
+		{
+			Location lesser = parent.getLesserBoundaryCorner();
+			Location greater = parent.getGreaterBoundaryCorner();
+			if(smallx < lesser.getX() || smallz < lesser.getZ() || bigx > greater.getX() || bigz > greater.getZ())
+			{
+				result.succeeded = false;
+				result.claim = parent;
+				return result;
+			}
+		}
 		
 		//creative mode claims always go to bedrock
 		if(GriefPrevention.instance.config_claims_worldModes.get(world) == ClaimsMode.Creative)
