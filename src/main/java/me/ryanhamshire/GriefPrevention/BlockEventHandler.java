@@ -243,7 +243,7 @@ public class BlockEventHandler implements Listener
 			// Allow players with container trust to place books in lecterns
 			PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
 			Claim claim = this.dataStore.getClaimAt(block.getLocation(), true, playerData.lastClaim);
-			if (block.getType() == Material.LECTERN && placeEvent.getBlockReplacedState() instanceof Lectern)
+			if (block.getType() == Material.LECTERN && placeEvent.getBlockReplacedState().getType() == Material.LECTERN)
 			{
 				if (claim != null)
 				{
