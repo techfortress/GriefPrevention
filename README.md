@@ -11,7 +11,7 @@ from administrators, and with very little (self service) effort from players.
 Solve all your grief problems with a single anti grief download, no database,
 and (for most servers) no configuration customization.
 
-Want to get started?  Downloads are at: [![Downloads](https://img.shields.io/github/downloads/TechFortress/GriefPrevention/total.svg)](https://github.com/TechFortress/GriefPrevention/releases)
+Want to get started?  Downloads are at: [![Financial Contributors on Open Collective](https://opencollective.com/GriefPrevention/all/badge.svg?label=financial+contributors)](https://opencollective.com/GriefPrevention) [![Downloads](https://img.shields.io/github/downloads/TechFortress/GriefPrevention/total.svg)](https://github.com/TechFortress/GriefPrevention/releases)
 
 Found a problem?  Use the issues tab above to raise an issue.  Please include
 all the information requested in the issue template, unless you're certain it's
@@ -56,3 +56,33 @@ You can also add it to gradle/sbt/leiningen projects: https://jitpack.io/#TechFo
 
 [![Weird flex but ok](https://bstats.org/signatures/bukkit/GriefPrevention-legacy.svg)](https://bstats.org/plugin/bukkit/GriefPrevention-legacy)
 (Plugin usage stats since version 16.11 - actual use across all versions is larger)
+
+## Contributors
+
+### Code Contributors
+
+This project exists thanks to all the people who contribute. [[Contribute](CONTRIBUTING.md)].
+<a href="https://github.com/TechFortress/GriefPrevention/graphs/contributors"><img src="https://opencollective.com/GriefPrevention/contributors.svg?width=890&button=false" /></a>
+
+### Financial Contributors
+
+Become a financial contributor and help us sustain our community. [[Contribute](https://opencollective.com/GriefPrevention/contribute)]
+
+#### Individuals
+
+<a href="https://opencollective.com/GriefPrevention"><img src="https://opencollective.com/GriefPrevention/individuals.svg?width=890"></a>
+
+#### Organizations
+
+Support this project with your organization. Your logo will show up here with a link to your website. [[Contribute](https://opencollective.com/GriefPrevention/contribute)]
+
+<a href="https://opencollective.com/GriefPrevention/organization/0/website"><img src="https://opencollective.com/GriefPrevention/organization/0/avatar.svg"></a>
+<a href="https://opencollective.com/GriefPrevention/organization/1/website"><img src="https://opencollective.com/GriefPrevention/organization/1/avatar.svg"></a>
+<a href="https://opencollective.com/GriefPrevention/organization/2/website"><img src="https://opencollective.com/GriefPrevention/organization/2/avatar.svg"></a>
+<a href="https://opencollective.com/GriefPrevention/organization/3/website"><img src="https://opencollective.com/GriefPrevention/organization/3/avatar.svg"></a>
+<a href="https://opencollective.com/GriefPrevention/organization/4/website"><img src="https://opencollective.com/GriefPrevention/organization/4/avatar.svg"></a>
+<a href="https://opencollective.com/GriefPrevention/organization/5/website"><img src="https://opencollective.com/GriefPrevention/organization/5/avatar.svg"></a>
+<a href="https://opencollective.com/GriefPrevention/organization/6/website"><img src="https://opencollective.com/GriefPrevention/organization/6/avatar.svg"></a>
+<a href="https://opencollective.com/GriefPrevention/organization/7/website"><img src="https://opencollective.com/GriefPrevention/organization/7/avatar.svg"></a>
+<a href="https://opencollective.com/GriefPrevention/organization/8/website"><img src="https://opencollective.com/GriefPrevention/organization/8/avatar.svg"></a>
+<a href="https://opencollective.com/GriefPrevention/organization/9/website"><img src="https://opencollective.com/GriefPrevention/organization/9/avatar.svg"></a>
