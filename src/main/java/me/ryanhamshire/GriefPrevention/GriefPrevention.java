@@ -35,6 +35,7 @@ import java.util.regex.Pattern;
 import me.ryanhamshire.GriefPrevention.DataStore.NoTransferException;
 import me.ryanhamshire.GriefPrevention.events.PreventBlockBreakEvent;
 import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
+import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
 import me.ryanhamshire.GriefPrevention.metrics.MetricsHandler;
 import net.milkbowl.vault.economy.Economy;
 
@@ -1587,6 +1588,22 @@ public class GriefPrevention extends JavaPlugin
 			if(claim == null)
 			{
 				PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+				
+				String idToDrop = args[0];
+			    if(otherPlayer != null)
+				{
+				    idToDrop = otherPlayer.getUniqueId().toString(); 
+				}
+
+				//calling event
+				TrustChangedEvent event = new TrustChangedEvent(player, playerData.getClaims(), null, false, idToDrop);
+				Bukkit.getPluginManager().callEvent(event);
+				
+				if (event.isCancelled()) {
+					return true;
+				}
+			    
+			    //dropping permissions
 				for(int i = 0; i < playerData.getClaims().size(); i++)
 				{
 					claim = playerData.getClaims().get(i);
@@ -1600,11 +1617,6 @@ public class GriefPrevention extends JavaPlugin
 					//otherwise drop individual permissions
 					else
 					{
-						String idToDrop = args[0];
-					    if(otherPlayer != null)
-						{
-						    idToDrop = otherPlayer.getUniqueId().toString(); 
-						}
 					    claim.dropPermission(idToDrop);
 						claim.managers.remove(idToDrop);
 					}
@@ -1648,6 +1660,14 @@ public class GriefPrevention extends JavaPlugin
 				        return true;
 				    }
 				    
+				    //calling the event
+				    TrustChangedEvent event = new TrustChangedEvent(player, claim, null, false, args[0]);
+				    Bukkit.getPluginManager().callEvent(event);
+				    
+				    if (event.isCancelled()) {
+				    	return true;
+				    }
+				    
 				    claim.clearPermissions();
 					GriefPrevention.sendMessage(player, TextMode.Success, Messages.ClearPermissionsOneClaim);
 				}
@@ -1668,6 +1688,14 @@ public class GriefPrevention extends JavaPlugin
 					}
                     else
                     {
+                    	//calling the event
+                    	TrustChangedEvent event = new TrustChangedEvent(player, claim, null, false, idToDrop);
+                    	Bukkit.getPluginManager().callEvent(event);
+                    	
+                    	if (event.isCancelled()) {
+                    		return true;
+                    	}
+                    	
 				        claim.dropPermission(idToDrop);
 	                    claim.managers.remove(idToDrop);
 						
@@ -3018,19 +3046,28 @@ public class GriefPrevention extends JavaPlugin
 			return;
 		}
 		
+		String identifierToAdd = recipientName;
+		if(permission != null)
+		{
+		    identifierToAdd = "[" + permission + "]";
+		}
+		else if(recipientID != null)
+		{
+		    identifierToAdd = recipientID.toString(); 
+		}
+		
+		//calling the event
+		TrustChangedEvent event = new TrustChangedEvent(player, targetClaims, permissionLevel, true, identifierToAdd);
+		Bukkit.getPluginManager().callEvent(event);
+		
+		if (event.isCancelled()) {
+			return;
+		}
+		
 		//apply changes
 		for(int i = 0; i < targetClaims.size(); i++)
 		{
 			Claim currentClaim = targetClaims.get(i);
-			String identifierToAdd = recipientName;
-			if(permission != null)
-			{
-			    identifierToAdd = "[" + permission + "]";
-			}
-			else if(recipientID != null)
-			{
-			    identifierToAdd = recipientID.toString(); 
-			}
 			
 			if(permissionLevel == null)
 			{
