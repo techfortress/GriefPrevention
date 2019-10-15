@@ -451,7 +451,7 @@ class PlayerEventHandler implements Listener
                 }
                 
                 PlayerData targetPlayerData = this.dataStore.getPlayerData(targetPlayer.getUniqueId());
-                if(targetPlayerData.ignoredPlayers.containsKey(player.getUniqueId()))
+                if(targetPlayerData.ignoredPlayers.containsKey(player.getUniqueId()) && !player.hasPermission("griefprevention.notignorable"))
                 {
                     event.setCancelled(true);
                     instance.sendMessage(player, TextMode.Err, Messages.IsIgnoringYou);
