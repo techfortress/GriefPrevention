@@ -460,6 +460,7 @@ public class BlockEventHandler implements Listener {
 		// this avoids pistons breaking non-solids just inside a claim, like torches,
 		// doors, and touchplates
 		if (blocks.size() == 0) {
+
 			Block invadedBlock = pistonBlock.getRelative(event.getDirection());
 
 			// pushing "air" is harmless
@@ -620,8 +621,7 @@ public class BlockEventHandler implements Listener {
 				}
 			}
 		} catch (NoSuchMethodError exception) {
-			GriefPrevention.AddLogEntry(
-					"Your server is running an outdated version of 1.8 which has a griefing vulnerability.  Update your server (reruns buildtools.jar to get an updated server JAR file) to ensure players can't steal claimed blocks using pistons.");
+			GriefPrevention.AddLogEntry("Your server is running an outdated version of 1.8 which has a griefing vulnerability.  Update your server (reruns buildtools.jar to get an updated server JAR file) to ensure players can't steal claimed blocks using pistons.");
 		}
 	}
 

@@ -142,6 +142,7 @@ public class GriefPrevention extends JavaPlugin {
 	public ArrayList<Material> config_siege_blocks; // which blocks will be breakable in siege mode
 	public int config_siege_doorsOpenSeconds; // how before claim is re-secured after siege win
 	public int config_siege_cooldownEndInMinutes;
+
 	public boolean config_spam_enabled; // whether or not to monitor for spam
 	public int config_spam_loginCooldownSeconds; // how long players must wait between logins. combats login spam.
 	public int config_spam_loginLogoutNotificationsPerMinute; // how many login/logout notifications to show per minute (global, not per player)
@@ -209,6 +210,7 @@ public class GriefPrevention extends JavaPlugin {
 	public int config_advanced_offlineplayer_cache_days; // Cache players who have logged in within the last x number of days
 
 	// custom log settings
+
 	public int config_logs_daysToKeep;
 	public boolean config_logs_socialEnabled;
 	public boolean config_logs_suspiciousEnabled;
@@ -823,8 +825,7 @@ public class GriefPrevention extends JavaPlugin {
 
 		// claims mode by world
 		for (World world : this.config_claims_worldModes.keySet()) {
-			outConfig.set("GriefPrevention.Claims.Mode." + world.getName(),
-					this.config_claims_worldModes.get(world).name());
+			outConfig.set("GriefPrevention.Claims.Mode." + world.getName(), this.config_claims_worldModes.get(world).name());
 		}
 
 		outConfig.set("GriefPrevention.Claims.PreventGlobalMonsterEggs", this.config_claims_preventGlobalMonsterEggs);
@@ -1031,7 +1032,6 @@ public class GriefPrevention extends JavaPlugin {
 		}
 	}
 
-	// handles slash commands
 	@SuppressWarnings("deprecation")
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 
