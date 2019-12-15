@@ -21,7 +21,7 @@ jobs:
       run: |
         mvn clean install compile package -Dgriefprevention-version=$RELEASE_VERSION
         mkdir dist
-        mv Plugin/target/GriefPrevention-*.jar ./dist
+        mv target/GriefPrevention-*.jar ./dist
     - uses: ncipollo/release-action@v1
       with:
         artifacts: "dist/*"

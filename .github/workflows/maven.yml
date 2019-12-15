@@ -17,7 +17,7 @@ jobs:
       run: |
         mvn clean install compile package "-Dgriefprevention-version=$(git describe --tags `git rev-list --tags --max-count=1`)"
         mkdir dist
-        mv Plugin/target/GriefPrevention-*.jar ./dist
+        mv target/GriefPrevention-*.jar ./dist
     - name: Upload artifacts
       uses: actions/upload-artifact@v1
       with:
