@@ -12,32 +12,32 @@ import org.bukkit.event.HandlerList;
  * @author Tux2
  * 
  */
-public class ClaimDeletedEvent extends Event{
+public class ClaimDeletedEvent extends Event {
 
-    // Custom Event Requirements
-    private static final HandlerList handlers = new HandlerList();
+	// Custom Event Requirements
+	private static final HandlerList handlers = new HandlerList();
 
-    public static HandlerList getHandlerList() {
-        return handlers;
-    }
+	public static HandlerList getHandlerList() {
+		return handlers;
+	}
 
-    private Claim claim;
+	private Claim claim;
 
-    public ClaimDeletedEvent(Claim claim) {
-        this.claim = claim;
-    }
+	public ClaimDeletedEvent(Claim claim) {
+		this.claim = claim;
+	}
 
-    /**
-     * Gets the claim to be deleted.
-     * 
-     * @return
-     */
-    public Claim getClaim() {
-        return claim;
-    }
+	/**
+	 * Gets the claim to be deleted.
+	 * 
+	 * @return
+	 */
+	public Claim getClaim() {
+		return claim;
+	}
 
-    @Override
-    public HandlerList getHandlers() {
-        return handlers;
-    }
+	@Override
+	public HandlerList getHandlers() {
+		return handlers;
+	}
 }

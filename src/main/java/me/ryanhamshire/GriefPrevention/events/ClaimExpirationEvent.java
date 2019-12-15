@@ -7,43 +7,36 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 //if cancelled, the claim will not be deleted
-public class ClaimExpirationEvent extends Event implements Cancellable
-{
-    private static final HandlerList handlers = new HandlerList();
-    private boolean cancelled = false;
-    
-    public static HandlerList getHandlerList()
-    {
-        return handlers;
-    }
+public class ClaimExpirationEvent extends Event implements Cancellable {
+	private static final HandlerList handlers = new HandlerList();
+	private boolean cancelled = false;
 
-    Claim claim;
+	public static HandlerList getHandlerList() {
+		return handlers;
+	}
 
-    public ClaimExpirationEvent(Claim claim)
-    {
-        this.claim = claim;
-    }
+	Claim claim;
 
-    public Claim getClaim()
-    {
-        return this.claim;
-    }
+	public ClaimExpirationEvent(Claim claim) {
+		this.claim = claim;
+	}
 
-    @Override
-    public HandlerList getHandlers()
-    {
-        return handlers;
-    }
-    
-    @Override
-    public boolean isCancelled()
-    {
-        return this.cancelled;
-    }
-    
-    @Override
-    public void setCancelled(boolean cancelled)
-    {
-        this.cancelled = cancelled;
-    }
+	public Claim getClaim() {
+		return this.claim;
+	}
+
+	@Override
+	public HandlerList getHandlers() {
+		return handlers;
+	}
+
+	@Override
+	public boolean isCancelled() {
+		return this.cancelled;
+	}
+
+	@Override
+	public void setCancelled(boolean cancelled) {
+		this.cancelled = cancelled;
+	}
 }

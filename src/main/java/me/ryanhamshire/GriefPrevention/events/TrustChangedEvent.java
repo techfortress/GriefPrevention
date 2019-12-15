@@ -18,18 +18,17 @@ import me.ryanhamshire.GriefPrevention.ClaimPermission;
  *
  */
 public class TrustChangedEvent extends Event implements Cancellable {
-	
-    private static final HandlerList handlers = new HandlerList();
-    
-    private final Player changer;
-    private final List<Claim> claims;
-    private final ClaimPermission claimPermission;
-    private final boolean given;
-    private final String identifier;
-    private boolean cancelled;
-    
-	public TrustChangedEvent(Player changer, List<Claim> claims, ClaimPermission claimPermission, boolean given,
-			String identifier) {
+
+	private static final HandlerList handlers = new HandlerList();
+
+	private final Player changer;
+	private final List<Claim> claims;
+	private final ClaimPermission claimPermission;
+	private final boolean given;
+	private final String identifier;
+	private boolean cancelled;
+
+	public TrustChangedEvent(Player changer, List<Claim> claims, ClaimPermission claimPermission, boolean given, String identifier) {
 		super();
 		this.changer = changer;
 		this.claims = claims;
@@ -51,7 +50,7 @@ public class TrustChangedEvent extends Event implements Cancellable {
 	public HandlerList getHandlers() {
 		return handlers;
 	}
-	
+
 	/**
 	 * Gets who made the change
 	 * 
@@ -89,8 +88,8 @@ public class TrustChangedEvent extends Event implements Cancellable {
 	}
 
 	/**
-	 * Gets the identifier of the receiver of this action
-	 * Can be: "public", "all", a UUID, a permission
+	 * Gets the identifier of the receiver of this action Can be: "public", "all", a
+	 * UUID, a permission
 	 * 
 	 * @return the identifier
 	 */

@@ -15,7 +15,7 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 package me.ryanhamshire.GriefPrevention;
 
 import me.ryanhamshire.GriefPrevention.events.PlayerKickBanEvent;
@@ -25,46 +25,38 @@ import org.bukkit.entity.Player;
 //kicks or bans a player
 //need a task for this because async threads (like the chat event handlers) can't kick or ban.
 //but they CAN schedule a task to run in the main thread to do that job
-class PlayerKickBanTask implements Runnable 
-{
-	//player to kick or ban
+class PlayerKickBanTask implements Runnable {
+	// player to kick or ban
 	private Player player;
-	
-	//message to send player.
+
+	// message to send player.
 	private String reason;
-	
-	//source of ban
+
+	// source of ban
 	private String source;
-	
-	//whether to ban
+
+	// whether to ban
 	private boolean ban;
-	
-	public PlayerKickBanTask(Player player, String reason, String source, boolean ban)
-	{
+
+	public PlayerKickBanTask(Player player, String reason, String source, boolean ban) {
 		this.player = player;
-		this.reason = reason;	
+		this.reason = reason;
 		this.source = source;
 		this.ban = ban;
 	}
-	
-	@Override
-	public void run()
-	{
+
+	public void run() {
 		PlayerKickBanEvent kickBanEvent = new PlayerKickBanEvent(player, reason, source, ban);
 		Bukkit.getPluginManager().callEvent(kickBanEvent);
 
-		if (kickBanEvent.isCancelled())
-		{
+		if (kickBanEvent.isCancelled()) {
 			return; // cancelled by a plugin
 		}
 
-		if(this.ban)
-		{		
-			//ban
+		if (this.ban) {
+			// ban
 			GriefPrevention.banPlayer(this.player, this.reason, this.source);
-		}	
-		else if(this.player.isOnline())
-		{
+		} else if (this.player.isOnline()) {
 			this.player.kickPlayer(this.reason);
 		}
 	}
