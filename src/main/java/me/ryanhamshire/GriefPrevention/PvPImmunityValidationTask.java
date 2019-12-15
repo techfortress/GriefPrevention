@@ -15,41 +15,36 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.entity.Player;
 
 //sends a message to a player
 //used to send delayed messages, for example help text triggered by a player's chat
-class PvPImmunityValidationTask implements Runnable 
-{
+class PvPImmunityValidationTask implements Runnable {
 	private Player player;
-	
-	public PvPImmunityValidationTask(Player player)
-	{
+
+	public PvPImmunityValidationTask(Player player) {
 		this.player = player;
 	}
 
-	@Override
-	public void run()
-	{
-		if(!player.isOnline()) return;
-		
+	public void run() {
+		if (!player.isOnline())
+			return;
+
 		PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
-		if(!playerData.pvpImmune) return;
-		
-		//check the player's inventory for anything
-		if(!GriefPrevention.isInventoryEmpty(player))
-		{
-		    //if found, cancel invulnerability and notify
-		    playerData.pvpImmune = false;
-		    GriefPrevention.sendMessage(player, TextMode.Warn, Messages.PvPImmunityEnd);		    
+		if (!playerData.pvpImmune)
+			return;
+
+		// check the player's inventory for anything
+		if (!GriefPrevention.isInventoryEmpty(player)) {
+			// if found, cancel invulnerability and notify
+			playerData.pvpImmune = false;
+			GriefPrevention.sendMessage(player, TextMode.Warn, Messages.PvPImmunityEnd);
+		} else {
+			// otherwise check again in one minute
+			GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, this, 1200L);
 		}
-		else
-		{
-		    //otherwise check again in one minute
-		    GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, this, 1200L);
-		}
-	}	
+	}
 }

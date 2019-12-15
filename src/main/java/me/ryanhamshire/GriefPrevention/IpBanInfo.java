@@ -19,17 +19,18 @@
 package me.ryanhamshire.GriefPrevention;
 
 import java.net.InetAddress;
+import java.util.UUID;
 
-public class IpBanInfo
-{
-	InetAddress address;
-	long expirationTimestamp;
-	String bannedAccountName;
-	
-	IpBanInfo(InetAddress address, long expirationTimestamp, String bannedAccountName)
-	{
+public class IpBanInfo {
+	public final InetAddress address;
+	public final long expirationTimestamp;
+	public final String bannedAccountName;
+	public final UUID uuid;
+
+	IpBanInfo(InetAddress address, long expirationTimestamp, String bannedAccountName, UUID uuid) {
 		this.address = address;
 		this.expirationTimestamp = expirationTimestamp;
 		this.bannedAccountName = bannedAccountName;
+		this.uuid = uuid;
 	}
 }

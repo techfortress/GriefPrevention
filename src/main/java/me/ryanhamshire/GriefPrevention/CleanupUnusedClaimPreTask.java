@@ -15,8 +15,8 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
- package me.ryanhamshire.GriefPrevention;
+
+package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
@@ -26,55 +26,52 @@ import java.util.UUID;
 //asynchronously loads player data without caching it in the datastore, then
 //passes those data to a claim cleanup task which might decide to delete a claim for inactivity
 
-class CleanupUnusedClaimPreTask implements Runnable 
-{	
+class CleanupUnusedClaimPreTask implements Runnable {
 	private UUID ownerID = null;
-	
-	CleanupUnusedClaimPreTask(UUID uuid)
-	{
+
+	CleanupUnusedClaimPreTask(UUID uuid) {
 		this.ownerID = uuid;
 	}
-	
+
 	@Override
-	public void run()
-	{
-		//get the data
-	    PlayerData ownerData = GriefPrevention.instance.dataStore.getPlayerDataFromStorage(ownerID);
-	    OfflinePlayer ownerInfo = Bukkit.getServer().getOfflinePlayer(ownerID);
-	    
-	    //expiration code uses last logout timestamp to decide whether to expire claims
-	    //don't expire claims for online players
-	    if(ownerInfo.isOnline()) return;
-		if(ownerInfo.getLastPlayed() <= 0) return;
-	    
-	    GriefPrevention.AddLogEntry("Looking for expired claims.  Checking data for " + ownerID.toString(), CustomLogEntryTypes.Debug, true);
-	    
-	    //skip claims belonging to exempted players based on block totals in config
-	    int bonusBlocks = ownerData.getBonusClaimBlocks();
-	    if(bonusBlocks >= GriefPrevention.instance.config_claims_expirationExemptionBonusBlocks || bonusBlocks + ownerData.getAccruedClaimBlocks() >= GriefPrevention.instance.config_claims_expirationExemptionTotalBlocks)
-        {
-            GriefPrevention.AddLogEntry("Player exempt from claim expiration based on claim block counts vs. config file settings.", CustomLogEntryTypes.Debug, true);
-            return;
-        }
+	public void run() {
+		// get the data
+		PlayerData ownerData = GriefPrevention.instance.dataStore.getPlayerDataFromStorage(ownerID);
+		OfflinePlayer ownerInfo = Bukkit.getServer().getOfflinePlayer(ownerID);
 
-        Claim claimToExpire = null;
+		// expiration code uses last logout timestamp to decide whether to expire claims
+		// don't expire claims for online players
+		if (ownerInfo.isOnline())
+			return;
+		if (ownerInfo.getLastPlayed() <= 0)
+			return;
 
-	    for (Claim claim : GriefPrevention.instance.dataStore.getClaims())
-		{
-			if (ownerID.equals(claim.ownerID))
-			{
+		GriefPrevention.AddLogEntry("Looking for expired claims.  Checking data for " + ownerID.toString(), CustomLogEntryTypes.Debug, true);
+
+		// skip claims belonging to exempted players based on block totals in config
+		int bonusBlocks = ownerData.getBonusClaimBlocks();
+		if (bonusBlocks >= GriefPrevention.instance.config_claims_expirationExemptionBonusBlocks
+				|| bonusBlocks + ownerData.getAccruedClaimBlocks() >= GriefPrevention.instance.config_claims_expirationExemptionTotalBlocks) {
+			GriefPrevention.AddLogEntry("Player exempt from claim expiration based on claim block counts vs. config file settings.", CustomLogEntryTypes.Debug, true);
+			return;
+		}
+
+		Claim claimToExpire = null;
+
+		for (Claim claim : GriefPrevention.instance.dataStore.getClaims()) {
+			if (ownerID.equals(claim.ownerID)) {
 				claimToExpire = claim;
 				break;
 			}
 		}
 
-		if (claimToExpire == null)
-		{
+		if (claimToExpire == null) {
 			GriefPrevention.AddLogEntry("Unable to find a claim to expire for " + ownerID.toString(), CustomLogEntryTypes.Debug, false);
 			return;
 		}
 
-	    //pass it back to the main server thread, where it's safe to delete a claim if needed
-	    Bukkit.getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, new CleanupUnusedClaimTask(claimToExpire, ownerData, ownerInfo), 1L);
+		// pass it back to the main server thread, where it's safe to delete a claim if
+		// needed
+		Bukkit.getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, new CleanupUnusedClaimTask(claimToExpire, ownerData, ownerInfo), 1L);
 	}
 }

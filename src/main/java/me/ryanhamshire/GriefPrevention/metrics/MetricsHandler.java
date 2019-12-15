@@ -11,117 +11,107 @@ import java.util.concurrent.Callable;
  *
  * @author RoboMWM
  */
-public class MetricsHandler
-{
-    private Metrics metrics;
-    public MetricsHandler(GriefPrevention plugin, String dataMode)
-    {
-        metrics = new Metrics(plugin);
+public class MetricsHandler {
+	private Metrics metrics;
 
-        try
-        {
-            addSimplePie("custom_build", plugin.getDescription().getVersion().equals("15.2.2"));
-            addSimplePie("bukkit_impl", plugin.getServer().getVersion().split("-")[1]);
-        }
-        catch (Throwable ignored){}
+	public MetricsHandler(GriefPrevention plugin, String dataMode) {
+		metrics = new Metrics(plugin);
 
-        //enums and etc. would be amazing.
+		try {
+			addSimplePie("custom_build", plugin.getDescription().getVersion().equals("15.2.2"));
+			addSimplePie("bukkit_impl", plugin.getServer().getVersion().split("-")[1]);
+		} catch (Throwable ignored) {
+		}
 
-        addSimplePie("lock_death_drops_pvp", plugin.config_lockDeathDropsInPvpWorlds);
-        addSimplePie("lock_death_drops_nonpvp", plugin.config_lockDeathDropsInNonPvpWorlds);
+		// enums and etc. would be amazing.
 
-        //PvP - only send PvP configs for those who use them
-        boolean pvpApplies = false;
-        for (World world : plugin.getServer().getWorlds())
-        {
-            if (plugin.pvpRulesApply(world))
-            {
-                addSimplePie("no_pvp_in_player_claims", plugin.config_pvp_noCombatInPlayerLandClaims);
-                addSimplePie("protect_pets_pvp", plugin.config_pvp_protectPets);
-                addSimplePie("protect_fresh_spawns_pvp", plugin.config_pvp_protectFreshSpawns);
-                pvpApplies = true;
-                break;
-            }
-        }
+		addSimplePie("lock_death_drops_pvp", plugin.config_lockDeathDropsInPvpWorlds);
+		addSimplePie("lock_death_drops_nonpvp", plugin.config_lockDeathDropsInNonPvpWorlds);
 
-        addSimplePie("uses_pvp", pvpApplies);
+		// PvP - only send PvP configs for those who use them
+		boolean pvpApplies = false;
+		for (World world : plugin.getServer().getWorlds()) {
+			if (plugin.pvpRulesApply(world)) {
+				addSimplePie("no_pvp_in_player_claims", plugin.config_pvp_noCombatInPlayerLandClaims);
+				addSimplePie("protect_pets_pvp", plugin.config_pvp_protectPets);
+				addSimplePie("protect_fresh_spawns_pvp", plugin.config_pvp_protectFreshSpawns);
+				pvpApplies = true;
+				break;
+			}
+		}
 
-        //spam
-        addSimplePie("uses_spam", plugin.config_spam_enabled);
-        if (plugin.config_spam_enabled)
-        {
-            addSimplePie("ban_spam_offenders", plugin.config_spam_banOffenders);
-            addSimplePie("use_ban_command", plugin.config_ban_useCommand);
-        }
+		addSimplePie("uses_pvp", pvpApplies);
 
-        //Used for claims?
-        boolean claimsEnabled = false;
-        for (ClaimsMode mode : plugin.config_claims_worldModes.values())
-        {
-            if (mode != ClaimsMode.Disabled)
-            {
-                claimsEnabled = true;
-                break;
-            }
-        }
+		// spam
+		addSimplePie("uses_spam", plugin.config_spam_enabled);
+		if (plugin.config_spam_enabled) {
+			addSimplePie("ban_spam_offenders", plugin.config_spam_banOffenders);
+			addSimplePie("use_ban_command", plugin.config_ban_useCommand);
+		}
 
-        addSimplePie("uses_claims", claimsEnabled);
+		// Used for claims?
+		boolean claimsEnabled = false;
+		for (ClaimsMode mode : plugin.config_claims_worldModes.values()) {
+			if (mode != ClaimsMode.Disabled) {
+				claimsEnabled = true;
+				break;
+			}
+		}
 
-        //Don't send any claim/nature-related configs if claim protections aren't used at all
-        if (!claimsEnabled)
-            return;
+		addSimplePie("uses_claims", claimsEnabled);
 
-        //How many people want vanilla fire behavior?
-        addSimplePie("fire_spreads", plugin.config_fireSpreads);
-        addSimplePie("fire_destroys", plugin.config_fireDestroys);
+		// Don't send any claim/nature-related configs if claim protections aren't used
+		// at all
+		if (!claimsEnabled)
+			return;
 
-        //Everything that is wooden should be accessible by default?
-        addSimplePie("lock_wooden_doors", plugin.config_claims_lockWoodenDoors);
-        addSimplePie("lock_fence_gates", plugin.config_claims_lockFenceGates);
-        addSimplePie("lock_trapdoors", plugin.config_claims_lockTrapDoors);
+		// How many people want vanilla fire behavior?
+		addSimplePie("fire_spreads", plugin.config_fireSpreads);
+		addSimplePie("fire_destroys", plugin.config_fireDestroys);
 
-        addSimplePie("protect_horses", plugin.config_claims_protectHorses);
-        addSimplePie("protect_donkeys", plugin.config_claims_protectDonkeys);
-        addSimplePie("protect_llamas", plugin.config_claims_protectLlamas);
+		// Everything that is wooden should be accessible by default?
+		addSimplePie("lock_wooden_doors", plugin.config_claims_lockWoodenDoors);
+		addSimplePie("lock_fence_gates", plugin.config_claims_lockFenceGates);
+		addSimplePie("lock_trapdoors", plugin.config_claims_lockTrapDoors);
 
-        addSimplePie("prevent_buttons_switches", plugin.config_claims_preventButtonsSwitches);
-        addSimplePie("villager_trading_requires_trust", plugin.config_claims_villagerTradingRequiresTrust);
+		addSimplePie("protect_horses", plugin.config_claims_protectHorses);
+		addSimplePie("protect_donkeys", plugin.config_claims_protectDonkeys);
+		addSimplePie("protect_llamas", plugin.config_claims_protectLlamas);
 
-        //CPU-intensive options
-        addSimplePie("survival_nature_restoration", plugin.config_claims_survivalAutoNatureRestoration);
-        addSimplePie("block_sky_trees", plugin.config_blockSkyTrees);
-        addSimplePie("limit_tree_growth", plugin.config_limitTreeGrowth);
+		addSimplePie("prevent_buttons_switches", plugin.config_claims_preventButtonsSwitches);
+		addSimplePie("villager_trading_requires_trust", plugin.config_claims_villagerTradingRequiresTrust);
 
-        addSimplePie("pistons_only_work_in_claims", plugin.config_pistonsInClaimsOnly);
-        addSimplePie("creatures_trample_crops", plugin.config_creaturesTrampleCrops);
+		// CPU-intensive options
+		addSimplePie("survival_nature_restoration", plugin.config_claims_survivalAutoNatureRestoration);
+		addSimplePie("block_sky_trees", plugin.config_blockSkyTrees);
+		addSimplePie("limit_tree_growth", plugin.config_limitTreeGrowth);
 
-        addSimplePie("claim_tool", plugin.config_claims_modificationTool.name());
-        addSimplePie("claim_inspect_tool", plugin.config_claims_investigationTool.name());
+		addSimplePie("pistons_only_work_in_claims", plugin.config_pistonsInClaimsOnly);
+		addSimplePie("creatures_trample_crops", plugin.config_creaturesTrampleCrops);
 
-        addSimplePie("block_surface_creeper_explosions", plugin.config_blockSurfaceCreeperExplosions);
-        addSimplePie("block_surface_other_explosions", plugin.config_blockSurfaceOtherExplosions);
-        addSimplePie("endermen_move_blocks", plugin.config_endermenMoveBlocks);
+		addSimplePie("claim_tool", plugin.config_claims_modificationTool.name());
+		addSimplePie("claim_inspect_tool", plugin.config_claims_investigationTool.name());
 
-        addSimplePie("storage_mode", dataMode);
+		addSimplePie("block_surface_creeper_explosions", plugin.config_blockSurfaceCreeperExplosions);
+		addSimplePie("block_surface_other_explosions", plugin.config_blockSurfaceOtherExplosions);
+		addSimplePie("endermen_move_blocks", plugin.config_endermenMoveBlocks);
 
-        //siege
-        addSimplePie("uses_siege", !plugin.config_siege_enabledWorlds.isEmpty());
-    }
+		addSimplePie("storage_mode", dataMode);
 
-    private void addSimplePie(String id, boolean value)
-    {
-        addSimplePie(id, Boolean.toString(value));
-    }
+		// siege
+		addSimplePie("uses_siege", !plugin.config_siege_enabledWorlds.isEmpty());
+	}
 
-    private void addSimplePie(String id, String value)
-    {
-        metrics.addCustomChart(new Metrics.SimplePie(id, new Callable<String>()
-        {
-            @Override
-            public String call() throws Exception
-            {
-                return value;
-            }
-        }));
-    }
+	private void addSimplePie(String id, boolean value) {
+		addSimplePie(id, Boolean.toString(value));
+	}
+
+	private void addSimplePie(String id, String value) {
+		metrics.addCustomChart(new Metrics.SimplePie(id, new Callable<String>() {
+			@Override
+			public String call() throws Exception {
+				return value;
+			}
+		}));
+	}
 }
