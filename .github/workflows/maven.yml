@@ -15,7 +15,7 @@ jobs:
         java-version: 1.8
     - name: Build
       run: |
-        mvn clean compile package "-Dgriefprevention-version=$(git describe --tags `git rev-list --tags --max-count=1`)"
+        mvn clean install compile package "-Dgriefprevention-version=$(git describe --tags `git rev-list --tags --max-count=1`)"
         mkdir dist
         mv Plugin/target/GriefPrevention-*.jar ./dist
     - name: Upload artifacts
