@@ -4,12 +4,15 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>me.ryanhamshire</groupId>
 	<artifactId>GriefPrevention</artifactId>
-	<version>0.0.1</version>
+
+  	<version>${griefprevention-version}</version>
 	<name>GriefPrevention</name>
 
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 
 	<repositories>
