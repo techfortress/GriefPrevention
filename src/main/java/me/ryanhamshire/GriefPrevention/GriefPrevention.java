@@ -203,6 +203,7 @@ public class GriefPrevention extends JavaPlugin
 	public HashMap<String, Integer> config_seaLevelOverride;		//override for sea level, because bukkit doesn't report the right value for all situations
 	
 	public boolean config_limitTreeGrowth;                          //whether trees should be prevented from growing into a claim from outside
+	public boolean config_checkPistonMovement;                      //whether to check piston movement
 	public boolean config_pistonsInClaimsOnly;                      //whether pistons are limited to only move blocks located within the piston's land claim
 
 	public boolean config_advanced_fixNegativeClaimblockAmounts;	//whether to attempt to fix negative claim block amounts (some addons cause/assume players can go into negative amounts)
@@ -622,6 +623,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_blockSurfaceOtherExplosions = config.getBoolean("GriefPrevention.BlockSurfaceOtherExplosions", true);
         this.config_blockSkyTrees = config.getBoolean("GriefPrevention.LimitSkyTrees", true);
         this.config_limitTreeGrowth = config.getBoolean("GriefPrevention.LimitTreeGrowth", false);
+        this.config_checkPistonMovement = config.getBoolean("GriefPrevention.CheckPistonMovement", true);
         this.config_pistonsInClaimsOnly = config.getBoolean("GriefPrevention.LimitPistonsToLandClaims", true);
                 
         this.config_fireSpreads = config.getBoolean("GriefPrevention.FireSpreads", false);
@@ -887,6 +889,7 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.BlockSurfaceOtherExplosions", this.config_blockSurfaceOtherExplosions);
         outConfig.set("GriefPrevention.LimitSkyTrees", this.config_blockSkyTrees);
         outConfig.set("GriefPrevention.LimitTreeGrowth", this.config_limitTreeGrowth);
+        outConfig.set("GriefPrevention.CheckPistonMovement",  this.config_checkPistonMovement);
         outConfig.set("GriefPrevention.LimitPistonsToLandClaims", this.config_pistonsInClaimsOnly);
         
         outConfig.set("GriefPrevention.FireSpreads", this.config_fireSpreads);

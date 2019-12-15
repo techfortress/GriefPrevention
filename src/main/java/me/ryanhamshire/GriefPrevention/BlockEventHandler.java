@@ -461,6 +461,9 @@ public class BlockEventHandler implements Listener
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onBlockPistonExtend (BlockPistonExtendEvent event)
 	{		
+	    //return if piston checks are not enabled
+	    if(!GriefPrevention.instance.config_checkPistonMovement) return;
+	    
 	    //pushing down is ALWAYS safe
 	    if(event.getDirection() == BlockFace.DOWN) return;
 	    
@@ -583,7 +586,10 @@ public class BlockEventHandler implements Listener
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onBlockPistonRetract (BlockPistonRetractEvent event)
 	{
-		//pulling up is always safe
+	    //return if piston checks are not enabled
+        if(!GriefPrevention.instance.config_checkPistonMovement) return;
+        
+	    //pulling up is always safe
 		if(event.getDirection() == BlockFace.UP) return;
 		
 		try
