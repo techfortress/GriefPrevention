@@ -12,10 +12,10 @@ Grief Prevention stops grief before it starts automatically without any effort f
 - **[GriefPrevention Bukkit.org](https://dev.bukkit.org/projects/grief-prevention)**
 - **[![Latest Release](https://github.com/TeamWuffy/GriefPrevention/workflows/Releases/badge.svg)](https://github.com/TeamWuffy/GriefPrevention/releases/latest)**
 - **[![Latest Build](https://github.com/TeamWuffy/GriefPrevention/workflows/Build/badge.svg)](https://github.com/TeamWuffy/GriefPrevention/actions?query=workflow%3ABuild)**
-- **[Wiki](https://github.com/TeamWuffy/GriefPrevention/wiki)**
+- **[Wiki](https://github.com/TechFortress/GriefPrevention/wiki)**
 
 ### Wiki
-The [GriefPrevention wiki here on GitHub](https://github.com/TeamWuffy/GriefPrevention/wiki)
+The [GriefPrevention wiki here on GitHub](https://github.com/TechFortress/GriefPrevention/wiki)
 contains documentation on using Grief Prevention, its range of commands and
 permissions, etc.
 
