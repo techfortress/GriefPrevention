@@ -53,6 +53,7 @@ permissions, etc.
 3. Finished
 
 ### Maven
+Replace `<version>` number with this number: [![](https://jitpack.io/v/TechFortress/GriefPrevention.svg)](https://jitpack.io/#TechFortress/GriefPrevention)
 ```xml
 <repositories>
 		<repository>
@@ -63,7 +64,7 @@ permissions, etc.
 <dependencies>
 	    <groupId>com.github.TechFortress</groupId>
 	    <artifactId>GriefPrevention</artifactId>
-	    <version>17.0.0</version>
+	    <version><version></version>
 	</dependency>
 </dependencies>
 ```
