@@ -95,6 +95,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
+import org.bukkit.entity.Bee;
 
 //handles events related to entities
 public class EntityEventHandler implements Listener
@@ -1130,6 +1131,44 @@ public class EntityEventHandler implements Listener
                     }
                 }
             }
+	    
+	    // Protect bees which wander outside of the claim their nest/hive is in
+	    if (subEvent.getEntity().getType() == EntityType.BEE && attacker != null && attacker instanceof Player)
+	    {
+		PlayerData playerData = this.dataStore.getPlayerData(attacker.getUniqueId());
+		
+		
+		Bee bee = (Bee) subEvent.getEntity();
+		Location hiveLocation = bee.getHive();
+                
+		if (hiveLocation != null && bee.getAnger() == 0)
+		{
+		    Claim claim = this.dataStore.getClaimAt(hiveLocation, false, playerData.lastClaim); // claim at bee's hive location
+		    
+		    if (claim != null)
+		    {
+			String noContainersReason = claim.allowContainers(attacker);
+			if(noContainersReason != null)
+			{
+			    if(sendErrorMessagesToPlayers)
+			    {
+				String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+				if(attacker.hasPermission("griefprevention.ignoreclaims"))
+				    message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+				GriefPrevention.sendMessage(attacker, TextMode.Err, message);
+			    }
+			    event.setCancelled(true);
+			}
+
+			// Cache claim for later, but note player may not be in or near the claim the bee belongs to;
+			// We may not want to override the previously cached claim here.
+			if(playerData != null)
+			{
+			    playerData.lastClaim = claim;
+			}
+		    }
+		}
+	    }
         }
 	}
 	
