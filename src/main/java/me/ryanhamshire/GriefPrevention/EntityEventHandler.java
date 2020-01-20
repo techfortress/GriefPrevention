@@ -1142,25 +1142,28 @@ public class EntityEventHandler implements Listener
 		if (hiveLocation != null)
 		{
 		    Claim claim = this.dataStore.getClaimAt(hiveLocation, false, playerData.lastClaim); // claim at bee's hive location
-
-		    String noContainersReason = claim.allowContainers(attacker);
-		    if(noContainersReason != null)
+		    
+		    if (claim != null)
 		    {
-			if(sendErrorMessagesToPlayers)
+			String noContainersReason = claim.allowContainers(attacker);
+			if(noContainersReason != null)
 			{
-			    String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
-			    if(attacker.hasPermission("griefprevention.ignoreclaims"))
-				message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-			    GriefPrevention.sendMessage(attacker, TextMode.Err, message);
+			    if(sendErrorMessagesToPlayers)
+			    {
+				String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+				if(attacker.hasPermission("griefprevention.ignoreclaims"))
+				    message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+				GriefPrevention.sendMessage(attacker, TextMode.Err, message);
+			    }
+			    event.setCancelled(true);
 			}
-			event.setCancelled(true);
-		    }
 
-		    // Cache claim for later, but note player may not be in or near the claim the bee belongs to;
-		    // We may not want to override the previously cached claim here.
-		    if(playerData != null)
-		    {
-			playerData.lastClaim = claim;
+			// Cache claim for later, but note player may not be in or near the claim the bee belongs to;
+			// We may not want to override the previously cached claim here.
+			if(playerData != null)
+			{
+			    playerData.lastClaim = claim;
+			}
 		    }
 		}
 	    }
