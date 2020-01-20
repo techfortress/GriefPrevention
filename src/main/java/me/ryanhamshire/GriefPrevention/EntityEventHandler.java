@@ -1137,9 +1137,11 @@ public class EntityEventHandler implements Listener
 	    {
 		PlayerData playerData = this.dataStore.getPlayerData(attacker.getUniqueId());
 		
-		Location hiveLocation = ((Bee) subEvent.getEntity()).getHive();
+		
+		Bee bee = (Bee) subEvent.getEntity();
+		Location hiveLocation = bee.getHive();
                 
-		if (hiveLocation != null)
+		if (hiveLocation != null && bee.getAnger() == 0)
 		{
 		    Claim claim = this.dataStore.getClaimAt(hiveLocation, false, playerData.lastClaim); // claim at bee's hive location
 		    
