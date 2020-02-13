@@ -2109,7 +2109,7 @@ public class GriefPrevention extends JavaPlugin
             return true;
         }
 		
-		else if(cmd.getName().equalsIgnoreCase("deleteclaimsinworld"))
+		else if(cmd.getName().equalsIgnoreCase("deleteuserclaimsinworld"))
         {
             //must be executed at the console
             if(player != null)
