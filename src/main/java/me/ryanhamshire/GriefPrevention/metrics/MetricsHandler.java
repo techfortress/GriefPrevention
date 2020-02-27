@@ -89,7 +89,6 @@ public class MetricsHandler
 
         //CPU-intensive options
         addSimplePie("survival_nature_restoration", plugin.config_claims_survivalAutoNatureRestoration);
-        addSimplePie("portals_require_build_permission", plugin.config_claims_portalsRequirePermission);
         addSimplePie("block_sky_trees", plugin.config_blockSkyTrees);
         addSimplePie("limit_tree_growth", plugin.config_limitTreeGrowth);
 

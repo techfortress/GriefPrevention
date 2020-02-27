@@ -6,7 +6,7 @@
 
     <groupId>me.ryanhamshire</groupId>
     <artifactId>GriefPrevention</artifactId>
-    <version>16.11.6.dev</version>
+    <version>16.13.0</version>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -50,13 +50,30 @@
                 </includes>
             </resource>
         </resources>
+        <plugins>
+            <!-- append git commit hash to version-->
+            <plugin>
+                <groupId>pl.project13.maven</groupId>
+                <artifactId>git-commit-id-plugin</artifactId>
+                <version>3.0.0</version>
+                <executions>
+                    <execution>
+                        <id>get-the-git-infos</id>
+                        <goals>
+                            <goal>revision</goal>
+                        </goals>
+                        <phase>validate</phase>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
     </build>
     <dependencies>
         <!--Bukkit API-->
         <dependency>
                 <groupId>org.bukkit</groupId>
                 <artifactId>bukkit</artifactId>
-                <version>1.13.1-R0.1-SNAPSHOT</version>
+                <version>1.15.2-R0.1-SNAPSHOT</version>
                 <scope>provided</scope>
         </dependency>
          <!--Worldguard dependency-->
@@ -97,7 +114,6 @@
                     </exclusion>
                 </exclusions>
         </dependency>
-
     </dependencies>
 
 </project>
