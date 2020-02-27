@@ -738,11 +738,12 @@ class RestoreNatureProcessingTask implements Runnable
 		playerBlocks.add(Material.CRAFTING_TABLE);
 		playerBlocks.add(Material.FURNACE);
 		playerBlocks.add(Material.OAK_DOOR);
-		playerBlocks.add(Material.SIGN);
+		playerBlocks.add(Material.ACACIA_SIGN);
+		playerBlocks.addAll(Tag.SIGNS.getValues());
+		playerBlocks.addAll(Tag.WALL_SIGNS.getValues());
 		playerBlocks.add(Material.LADDER);
 		playerBlocks.add(Material.RAIL);
 		playerBlocks.add(Material.COBBLESTONE_STAIRS);
-		playerBlocks.add(Material.WALL_SIGN);
 		playerBlocks.add(Material.STONE_PRESSURE_PLATE);
 		playerBlocks.add(Material.LEVER);
 		playerBlocks.add(Material.IRON_DOOR);

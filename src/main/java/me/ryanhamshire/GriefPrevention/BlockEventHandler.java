@@ -21,11 +21,14 @@ package me.ryanhamshire.GriefPrevention;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
@@ -33,8 +36,12 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Hopper;
+import org.bukkit.block.Lectern;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.minecart.HopperMinecart;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -52,6 +59,7 @@ import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.InventoryHolder;
@@ -163,7 +171,7 @@ public class BlockEventHandler implements Listener
 	}
 	
 	//when a player places multiple blocks...
-	@EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onBlocksPlace(BlockMultiPlaceEvent placeEvent)
 	{
 	    Player player = placeEvent.getPlayer();
@@ -194,7 +202,7 @@ public class BlockEventHandler implements Listener
 	
 	//when a player places a block...
 	@SuppressWarnings("null")
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onBlockPlace(BlockPlaceEvent placeEvent)
 	{
 		Player player = placeEvent.getPlayer();
@@ -232,6 +240,23 @@ public class BlockEventHandler implements Listener
 		String noBuildReason = GriefPrevention.instance.allowBuild(player, block.getLocation(), block.getType());
 		if(noBuildReason != null)
 		{
+			// Allow players with container trust to place books in lecterns
+			PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+			Claim claim = this.dataStore.getClaimAt(block.getLocation(), true, playerData.lastClaim);
+			if (block.getType() == Material.LECTERN && placeEvent.getBlockReplacedState().getType() == Material.LECTERN)
+			{
+				if (claim != null)
+				{
+					playerData.lastClaim = claim;
+					String noContainerReason = claim.allowContainers(player);
+					if (noContainerReason == null)
+						return;
+
+					placeEvent.setCancelled(true);
+					GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason);
+					return;
+				}
+			}
 			GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
 			placeEvent.setCancelled(true);
 			return;
@@ -436,6 +461,9 @@ public class BlockEventHandler implements Listener
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onBlockPistonExtend (BlockPistonExtendEvent event)
 	{		
+	    //return if piston checks are not enabled
+	    if(!GriefPrevention.instance.config_checkPistonMovement) return;
+	    
 	    //pushing down is ALWAYS safe
 	    if(event.getDirection() == BlockFace.DOWN) return;
 	    
@@ -558,7 +586,10 @@ public class BlockEventHandler implements Listener
 	@EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
 	public void onBlockPistonRetract (BlockPistonRetractEvent event)
 	{
-		//pulling up is always safe
+	    //return if piston checks are not enabled
+        if(!GriefPrevention.instance.config_checkPistonMovement) return;
+        
+	    //pulling up is always safe
 		if(event.getDirection() == BlockFace.UP) return;
 		
 		try
@@ -632,9 +663,9 @@ public class BlockEventHandler implements Listener
         if(!GriefPrevention.instance.claimsEnabledForWorld(igniteEvent.getBlock().getWorld())) return;
 
         if(igniteEvent.getCause() == IgniteCause.LIGHTNING && GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getIgnitingEntity().getLocation(), false, null) != null){
-        	if(igniteEvent.getIgnitingEntity().hasMetadata("GP_TRIDENT")){
+//        	if(igniteEvent.getIgnitingEntity().hasMetadata("GP_TRIDENT")){ //BlockIgniteEvent is called before LightningStrikeEvent. See #532
         		igniteEvent.setCancelled(true);
-			}
+//			}
         }
 	    
 	    if(!GriefPrevention.instance.config_fireSpreads && igniteEvent.getCause() != IgniteCause.FLINT_AND_STEEL &&  igniteEvent.getCause() != IgniteCause.LIGHTNING)
@@ -726,6 +757,8 @@ public class BlockEventHandler implements Listener
 			burnEvent.setCancelled(true);
 		}
 	}
+
+
 	
 	//ensures fluids don't flow into land claims from outside
 	private Claim lastSpreadClaim = null;
@@ -782,6 +815,46 @@ public class BlockEventHandler implements Listener
 	            }
 	        }
 	    }
+	}
+
+	//Stop projectiles from destroying blocks that don't fire a proper event
+	@EventHandler(ignoreCancelled = true)
+	private void chorusFlower(ProjectileHitEvent event)
+	{
+		//don't track in worlds where claims are not enabled
+		if(!GriefPrevention.instance.claimsEnabledForWorld(event.getEntity().getWorld())) return;
+
+		if (event.getHitBlock() == null || event.getHitBlock().getType() != Material.CHORUS_FLOWER)
+			return;
+
+		Block block = event.getHitBlock();
+
+		Claim claim = dataStore.getClaimAt(block.getLocation(), false, null);
+		if (claim == null)
+			return;
+
+		Player shooter = null;
+		Projectile projectile = event.getEntity();
+
+		if (projectile.getShooter() instanceof Player)
+			shooter = (Player)projectile.getShooter();
+
+		if (shooter == null)
+		{
+			event.getHitBlock().setType(Material.AIR);
+			Bukkit.getScheduler().runTask(GriefPrevention.instance, () -> event.getHitBlock().setType(Material.CHORUS_FLOWER));
+			return;
+		}
+
+		String allowContainer = claim.allowContainers(shooter);
+
+		if (allowContainer != null)
+		{
+			event.getHitBlock().setType(Material.AIR);
+			Bukkit.getScheduler().runTask(GriefPrevention.instance, () -> event.getHitBlock().setType(Material.CHORUS_FLOWER));
+			GriefPrevention.sendMessage(shooter, TextMode.Err, allowContainer);
+			return;
+		}
 	}
 	
 	//ensures dispensers can't be used to dispense a block(like water or lava) or item across a claim boundary
@@ -864,8 +937,8 @@ public class BlockEventHandler implements Listener
     }
 	
 	@EventHandler(ignoreCancelled = true)
-    public void onInventoryPickupItem (InventoryPickupItemEvent event)
-	{
+    public void onInventoryPickupItem (InventoryPickupItemEvent event) 
+    {
 	    //prevent hoppers from picking-up items dropped by players on death
 
 	    InventoryHolder holder = event.getInventory().getHolder();
@@ -873,12 +946,23 @@ public class BlockEventHandler implements Listener
 	    {
 	        Item item = event.getItem();
 	        List<MetadataValue> data = item.getMetadata("GP_ITEMOWNER");
-	        
 	        //if this is marked as belonging to a player
 	        if(data != null && data.size() > 0)
 	        {
-	            //don't allow the pickup
-	            event.setCancelled(true);
+	        	 UUID ownerID = (UUID)data.get(0).value();
+	 		    
+	 		    //has that player unlocked his drops?
+	 		    OfflinePlayer owner = GriefPrevention.instance.getServer().getOfflinePlayer(ownerID);
+	 		    if(owner.isOnline())
+	 		    {
+	 		        PlayerData playerData = this.dataStore.getPlayerData(ownerID);
+
+	                 //if locked, don't allow pickup
+	 		        if(!playerData.dropsAreUnlocked)
+	 		        {
+	 		        	event.setCancelled(true);
+	 		        }
+	 		    }
 	        }
 	    }
 	}

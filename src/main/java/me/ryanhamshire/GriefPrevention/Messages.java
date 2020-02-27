@@ -200,7 +200,6 @@ public enum Messages
     ClaimCreationFailedOverClaimCountLimit,
     CreateClaimFailOverlapRegion,
     ResizeFailOverlapRegion,
-    NoBuildPortalPermission,
     ShowNearbyClaims,
     NoChatUntilMove,
     SiegeImmune,

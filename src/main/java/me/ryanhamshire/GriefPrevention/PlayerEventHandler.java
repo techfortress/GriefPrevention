@@ -27,7 +27,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Tag;
-import org.bukkit.TravelAgent;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
@@ -76,6 +75,7 @@ import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.EquipmentSlot;
@@ -451,7 +451,7 @@ class PlayerEventHandler implements Listener
                 }
                 
                 PlayerData targetPlayerData = this.dataStore.getPlayerData(targetPlayer.getUniqueId());
-                if(targetPlayerData.ignoredPlayers.containsKey(player.getUniqueId()))
+                if(targetPlayerData.ignoredPlayers.containsKey(player.getUniqueId()) && !player.hasPermission("griefprevention.notignorable"))
                 {
                     event.setCancelled(true);
                     instance.sendMessage(player, TextMode.Err, Messages.IsIgnoringYou);
@@ -548,6 +548,8 @@ class PlayerEventHandler implements Listener
 	    aliases.add("minecraft:" + commandName);
 	    for(Plugin plugin : Bukkit.getServer().getPluginManager().getPlugins())
         {
+            if (!(plugin instanceof JavaPlugin))
+                continue;
             JavaPlugin javaPlugin = (JavaPlugin)plugin;
             Command command = javaPlugin.getCommand(commandName);
             if(command != null)
@@ -1059,42 +1061,6 @@ class PlayerEventHandler implements Listener
 
 			//don't track in worlds where claims are not enabled
 			if(!instance.claimsEnabledForWorld(event.getTo().getWorld())) return;
-        
-            //FEATURE: if the player teleporting doesn't have permission to build a nether portal and none already exists at the destination, cancel the teleportation
-            if(instance.config_claims_portalsRequirePermission)
-            {
-                Location destination = event.getTo();
-                if(event.useTravelAgent())
-                {
-                    if(event.getPortalTravelAgent().getCanCreatePortal())
-                    {
-                        //hypothetically find where the portal would be created if it were
-                        //this is VERY expensive for the cpu, so this feature is off by default
-                        TravelAgent agent = event.getPortalTravelAgent();
-                        agent.setCanCreatePortal(false);
-                        destination = agent.findOrCreate(destination);
-                        agent.setCanCreatePortal(true);
-                    }
-                    else
-                    {
-                        //if not able to create a portal, we don't have to do anything here
-                        return;
-                    }
-                }
-            
-                //if creating a new portal
-                if(destination.getBlock().getType() != Material.NETHER_PORTAL)
-                {
-                    //check for a land claim and the player's permission that land claim
-                    Claim claim = this.dataStore.getClaimAt(destination, false, null);
-                    if(claim != null && claim.allowBuild(player, Material.NETHER_PORTAL) != null)
-                    {
-                        //cancel and inform about the reason
-                        event.setCancelled(true);
-                        instance.sendMessage(player, TextMode.Err, Messages.NoBuildPortalPermission, claim.getOwnerName());
-                    }
-                }
-            }
         }
 	}
 	
@@ -1663,13 +1629,22 @@ class PlayerEventHandler implements Listener
 		//apply rules for containers and crafting blocks
 		if(	clickedBlock != null && instance.config_claims_preventTheft && (
 						event.getAction() == Action.RIGHT_CLICK_BLOCK && (
-						this.isInventoryHolder(clickedBlock) ||
+						(this.isInventoryHolder(clickedBlock) && clickedBlock.getType() != Material.LECTERN) ||
 						clickedBlockType == Material.CAULDRON ||
 						clickedBlockType == Material.JUKEBOX ||
 						clickedBlockType == Material.ANVIL ||
 						clickedBlockType == Material.CHIPPED_ANVIL ||
 						clickedBlockType == Material.DAMAGED_ANVIL ||
-						clickedBlockType == Material.CAKE)))
+						clickedBlockType == Material.CAKE ||
+						clickedBlockType == Material.SWEET_BERRY_BUSH ||
+						clickedBlockType == Material.BEE_NEST ||
+						clickedBlockType == Material.BEEHIVE ||
+						clickedBlockType == Material.BEACON ||
+						clickedBlockType == Material.BELL ||
+						clickedBlockType == Material.STONECUTTER ||
+						clickedBlockType == Material.GRINDSTONE ||
+						clickedBlockType == Material.CARTOGRAPHY_TABLE ||
+						clickedBlockType == Material.LOOM)))
 		{			
                         if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    
@@ -1694,7 +1669,7 @@ class PlayerEventHandler implements Listener
 			if(claim != null)
 			{
 				playerData.lastClaim = claim;
-				
+
 				String noContainersReason = claim.allowContainers(player);
 				if(noContainersReason != null)
 				{
@@ -1755,7 +1730,8 @@ class PlayerEventHandler implements Listener
 				clickedBlockType == Material.BIRCH_FENCE_GATE    ||
 				clickedBlockType == Material.JUNGLE_FENCE_GATE   ||
 				clickedBlockType == Material.SPRUCE_FENCE_GATE   ||
-				clickedBlockType == Material.DARK_OAK_FENCE_GATE)))
+				clickedBlockType == Material.DARK_OAK_FENCE_GATE)) ||
+				(instance.config_claims_lecternReadingRequiresAccessTrust && clickedBlockType == Material.LECTERN))
 		{
 		    if(playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 		    Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -1847,7 +1823,8 @@ class PlayerEventHandler implements Listener
 			ItemStack itemInHand = instance.getItemInHand(player, hand);
 			Material materialInHand = itemInHand.getType();	
 			
-			ArrayList<Material> spawn_eggs = new ArrayList<Material>();
+			Set<Material> spawn_eggs = new HashSet<>();
+			Set<Material> dyes = new HashSet<>();
 			
 			spawn_eggs.add(Material.BAT_SPAWN_EGG);
 			spawn_eggs.add(Material.BLAZE_SPAWN_EGG);
@@ -1900,11 +1877,26 @@ class PlayerEventHandler implements Listener
 			spawn_eggs.add(Material.ZOMBIE_HORSE_SPAWN_EGG);
 			spawn_eggs.add(Material.ZOMBIE_PIGMAN_SPAWN_EGG);
 			spawn_eggs.add(Material.ZOMBIE_VILLAGER_SPAWN_EGG);
+
+			for (Material material : Material.values())
+			{
+				if (!material.isLegacy() && material.name().endsWith("_DYE"))
+					dyes.add(material);
+			}
+
 			
 			//if it's bonemeal, armor stand, spawn egg, etc - check for build permission //RoboMWM: also check flint and steel to stop TNT ignition
-			if(clickedBlock != null && (materialInHand == Material.BONE_MEAL || materialInHand == Material.ARMOR_STAND || (spawn_eggs.contains(materialInHand) && GriefPrevention.instance.config_claims_preventGlobalMonsterEggs) || materialInHand == Material.END_CRYSTAL || materialInHand == Material.FLINT_AND_STEEL))
+			if(clickedBlock != null && (materialInHand == Material.BONE_MEAL
+					|| materialInHand == Material.ARMOR_STAND
+					|| (spawn_eggs.contains(materialInHand) && GriefPrevention.instance.config_claims_preventGlobalMonsterEggs)
+					|| materialInHand == Material.END_CRYSTAL
+					|| materialInHand == Material.FLINT_AND_STEEL
+					|| dyes.contains(materialInHand)))
 			{
-				String noBuildReason = instance.allowBuild(player, clickedBlock.getLocation(), clickedBlockType);
+				String noBuildReason = instance
+						.allowBuild(player, clickedBlock
+								.getLocation(),
+								clickedBlockType);
 				if(noBuildReason != null)
 				{
 					instance.sendMessage(player, TextMode.Err, noBuildReason);
@@ -2640,6 +2632,26 @@ class PlayerEventHandler implements Listener
 
 					instance.autoExtendClaim(result.claim);
 				}
+			}
+		}
+	}
+
+	// Stops an untrusted player from removing a book from a lectern
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+	void onTakeBook(PlayerTakeLecternBookEvent event)
+	{
+		Player player = event.getPlayer();
+		PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+		Claim claim = this.dataStore.getClaimAt(event.getLectern().getLocation(), false, playerData.lastClaim);
+		if (claim != null)
+		{
+			playerData.lastClaim = claim;
+			String noContainerReason = claim.allowContainers(player);
+			if (noContainerReason != null)
+			{
+				event.setCancelled(true);
+				player.closeInventory();
+				GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason);
 			}
 		}
 	}

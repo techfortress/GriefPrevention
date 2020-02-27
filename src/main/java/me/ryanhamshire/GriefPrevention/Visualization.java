@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -285,15 +286,16 @@ public class Visualization
 	//helper method for above.  allows visualization blocks to sit underneath partly transparent blocks like grass and fence
 	private static boolean isTransparent(Block block, boolean waterIsTransparent)
 	{
+		Material blockMaterial = block.getType();
 		//Blacklist
-		switch (block.getType())
+		switch (blockMaterial)
 		{
 			case SNOW:
 				return false;
 		}
 
 		//Whitelist TODO: some of this might already be included in isTransparent()
-		switch (block.getType())
+		switch (blockMaterial)
 		{
 			case AIR:
 			case OAK_FENCE:
@@ -309,10 +311,11 @@ public class Visualization
 			case DARK_OAK_FENCE_GATE:
 			case SPRUCE_FENCE_GATE:
 			case JUNGLE_FENCE_GATE:
-			case SIGN:
-			case WALL_SIGN:
 				return true;
 		}
+
+		if (Tag.SIGNS.isTagged(blockMaterial) || Tag.WALL_SIGNS.isTagged(blockMaterial))
+			return true;
 
 		return (waterIsTransparent && block.getType() == Material.WATER) ||
 			block.getType().isTransparent();
