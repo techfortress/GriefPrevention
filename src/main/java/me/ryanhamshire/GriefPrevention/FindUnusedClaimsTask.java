@@ -63,8 +63,8 @@ class FindUnusedClaimsTask implements Runnable
 
 	public void refreshUUIDs() {
 		// Fetch owner UUIDs from list of claims
-		Set<UUID> uuidSet = GriefPrevention.instance.dataStore.claims.stream().filter(Objects::nonNull)
-						.distinct().map(claim -> claim.ownerID).collect(Collectors.toSet());
+		Set<UUID> uuidSet = GriefPrevention.instance.dataStore.claims.stream()
+						.map(claim -> claim.ownerID).filter(Objects::nonNull).collect(Collectors.toSet());
 
 		claimOwnerUUIDs = new ArrayList<>(uuidSet);
 
