@@ -18,12 +18,10 @@
 
 package me.ryanhamshire.GriefPrevention;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -63,10 +61,8 @@ class FindUnusedClaimsTask implements Runnable
 
 	public void refreshUUIDs() {
 		// Fetch owner UUIDs from list of claims
-		Set<UUID> uuidSet = GriefPrevention.instance.dataStore.claims.stream()
-						.map(claim -> claim.ownerID).filter(Objects::nonNull).collect(Collectors.toSet());
-
-		claimOwnerUUIDs = new ArrayList<>(uuidSet);
+		claimOwnerUUIDs = GriefPrevention.instance.dataStore.claims.stream().map(claim -> claim.ownerID)
+						.distinct().filter(Objects::nonNull).collect(Collectors.toList());
 
 		if (!claimOwnerUUIDs.isEmpty()) {
 			// Randomize order
