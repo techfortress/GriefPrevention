@@ -2032,10 +2032,10 @@ public class GriefPrevention extends JavaPlugin
 			
 			else
 			{
-				String noBuildReason = claim.allowBuild(player, Material.STONE);
-				if(noBuildReason != null)
+				String noPermissionReason = claim.allowGrantPermission(player);
+				if(noPermissionReason != null)
 				{
-					GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
+					GriefPrevention.sendMessage(player, TextMode.Err, noPermissionReason);
 					return true;
 				}
 				
