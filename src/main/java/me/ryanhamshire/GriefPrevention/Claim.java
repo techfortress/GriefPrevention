@@ -87,6 +87,10 @@ public class Claim
 		return (this.ownerID == null);
 	}
 	
+	public HashMap<String, ClaimPermission> getClaimPermissionMap () {
+		return this.playerIDToClaimPermissionMap;
+	}
+	
 	//accessor for ID
 	public Long getID()
 	{
