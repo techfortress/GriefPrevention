@@ -91,10 +91,6 @@ public class Claim
 		return Collections.unmodifiableMap(playerIDToClaimPermissionMap);
 	}
 	
-	public void setClaimPermissionMap (HashMap<String, ClaimPermission> claimPermissionMap) {
-		this.playerIDToClaimPermissionMap = claimPermissionMap;
-	}
-	
 	//accessor for ID
 	public Long getID()
 	{
@@ -670,6 +666,15 @@ public class Claim
 			managers.add(this.managers.get(i));
 		}
 	}
+	
+    //Allows retrieving lists of users who have the specified claim permissionType.
+    public List<String> getPermissions (ClaimPermission permissionType) {
+        List<String> list = new ArrayList();
+        this.playerIDToClaimPermissionMap.forEach((key, value) -> {
+            if (value == permissionType) list.add(key);
+        });
+        return list;
+    }
 	
 	//returns a copy of the location representing lower x, y, z limits
 	public Location getLesserBoundaryCorner()
