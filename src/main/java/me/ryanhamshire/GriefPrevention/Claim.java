@@ -87,8 +87,12 @@ public class Claim
 		return (this.ownerID == null);
 	}
 	
-	public HashMap<String, ClaimPermission> getClaimPermissionMap () {
-		return this.playerIDToClaimPermissionMap;
+	public Map<String, ClaimPermission> getClaimPermissionMap () {
+		return Collections.unmodifiableMap(playerIDToClaimPermissionMap);
+	}
+	
+	public void setClaimPermissionMap (HashMap<String, ClaimPermission> claimPermissionMap) {
+		this.playerIDToClaimPermissionMap = claimPermissionMap;
 	}
 	
 	//accessor for ID
