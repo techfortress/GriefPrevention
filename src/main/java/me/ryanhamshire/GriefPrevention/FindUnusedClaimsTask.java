@@ -25,8 +25,6 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.bukkit.Bukkit;
-
 //FEATURE: automatically remove claims owned by inactive players which:
 //...aren't protecting much OR
 //...are a free new player claim (and the player has no other claims) OR
@@ -56,7 +54,7 @@ class FindUnusedClaimsTask implements Runnable
 			return;
 		}
 		
-		Bukkit.getScheduler().runTaskAsynchronously(GriefPrevention.instance, new CleanupUnusedClaimPreTask(claimOwnerIterator.next()));
+		GriefPrevention.instance.getServer().getScheduler().runTaskAsynchronously(GriefPrevention.instance, new CleanupUnusedClaimPreTask(claimOwnerIterator.next()));
 	}
 
 	public void refreshUUIDs() {
@@ -68,6 +66,11 @@ class FindUnusedClaimsTask implements Runnable
 			// Randomize order
 			Collections.shuffle(claimOwnerUUIDs);
 		}
+
+		GriefPrevention.AddLogEntry("The following UUIDs own a claim and will be checked for inactivity in the following order:", CustomLogEntryTypes.Debug, true);
+
+		for (UUID uuid : claimOwnerUUIDs)
+			GriefPrevention.AddLogEntry(uuid.toString(), CustomLogEntryTypes.Debug, true);
 
 		claimOwnerIterator = claimOwnerUUIDs.iterator();
 	}
