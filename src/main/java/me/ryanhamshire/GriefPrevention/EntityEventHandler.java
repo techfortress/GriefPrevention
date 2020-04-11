@@ -315,8 +315,13 @@ public class EntityEventHandler implements Listener
         
         //FEATURE: explosions don't destroy surface blocks by default
         boolean isCreeper = (entity != null && entity.getType() == EntityType.CREEPER);
+
+        boolean isWither = (entity != null && (entity.getType() == EntityType.WITHER || entity.getType() == EntityType.WITHER_SKULL));
         
         boolean applySurfaceRules = world.getEnvironment() == Environment.NORMAL && ((isCreeper && GriefPrevention.instance.config_blockSurfaceCreeperExplosions) || (!isCreeper && GriefPrevention.instance.config_blockSurfaceOtherExplosions));
+
+        boolean isWitherInNether = world.getEnvironment() == Environment.NETHER && (isWither && !GriefPrevention.instance.config_blockLandClaimWitherExplosions);
+
         
         //special rule for creative worlds: explosions don't destroy anything
         if(GriefPrevention.instance.creativeRulesApply(location))
@@ -347,9 +352,14 @@ public class EntityEventHandler implements Listener
             {
                 cachedClaim = claim;
             }
-                    
+            //Can Wither destroy user's claimed blocks?
+            if(isWitherInNether && !claim.isAdminClaim())
+			{
+				explodedBlocks.add(block);
+				continue;
+			}
             //if yes, apply claim exemptions if they should apply
-            if(claim != null && (claim.areExplosivesAllowed || !GriefPrevention.instance.config_blockClaimExplosions))
+            else if(claim != null && (claim.areExplosivesAllowed || !GriefPrevention.instance.config_blockClaimExplosions))
             {
                 explodedBlocks.add(block);
                 continue;
