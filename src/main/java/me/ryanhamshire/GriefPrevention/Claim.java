@@ -208,26 +208,17 @@ public class Claim
 		//other permissions
 		for(String builderID : builderIDs)
 		{
-			if(builderID != null && !builderID.isEmpty())
-			{
-				this.playerIDToClaimPermissionMap.put(builderID, ClaimPermission.Build);
-			}
+			this.setPermission(builderID, ClaimPermission.Build);
 		}
 		
 		for(String containerID : containerIDs)
 		{
-			if(containerID != null && !containerID.isEmpty())
-			{
-				this.playerIDToClaimPermissionMap.put(containerID, ClaimPermission.Inventory);
-			}
+			this.setPermission(containerID, ClaimPermission.Inventory);
 		}
 		
 		for(String accessorID : accessorIDs)
 		{
-			if(accessorID != null && !accessorID.isEmpty())
-			{
-				this.playerIDToClaimPermissionMap.put(accessorID, ClaimPermission.Access);
-			}
+			this.setPermission(accessorID, ClaimPermission.Access);
 		}
 		
 		for(String managerID : managerIDs)
@@ -381,8 +372,7 @@ public class Claim
 		if(this.hasExplicitPermission(player, ClaimPermission.Build)) return null;
 		
 		//also everyone is a member of the "public", so check for public permission
-		ClaimPermission permissionLevel = this.playerIDToClaimPermissionMap.get("public");
-		if(ClaimPermission.Build == permissionLevel) return null;
+		if(ClaimPermission.Build.isGrantedBy(this.playerIDToClaimPermissionMap.get("public"))) return null;
 		
 		//allow for farming with /containertrust permission
 		if(this.allowContainers(player) == null)
@@ -410,31 +400,36 @@ public class Claim
 		
 		return reason;
 	}
-	
-	private boolean hasExplicitPermission(Player player, ClaimPermission level)
+
+	public boolean hasExplicitPermission(UUID uuid, ClaimPermission level)
 	{
-		String playerID = player.getUniqueId().toString();
-		Set<String> keys = this.playerIDToClaimPermissionMap.keySet();
-		Iterator<String> iterator = keys.iterator();
-		while(iterator.hasNext())
+		return level.isGrantedBy(this.playerIDToClaimPermissionMap.get(uuid.toString()));
+	}
+
+	public boolean hasExplicitPermission(Player player, ClaimPermission level)
+	{
+		// Check explicit ClaimPermission for UUID
+		if (this.hasExplicitPermission(player.getUniqueId(), level)) return true;
+
+		// Check permission-based ClaimPermission
+		for (Map.Entry<String, ClaimPermission> stringToPermission : this.playerIDToClaimPermissionMap.entrySet())
 		{
-			String identifier = iterator.next();
-			if(playerID.equalsIgnoreCase(identifier) && this.playerIDToClaimPermissionMap.get(identifier) == level) return true;
-			
-			else if(identifier.startsWith("[") && identifier.endsWith("]"))
+			String node = stringToPermission.getKey();
+			// Ensure valid permission format for permissions - [permission.node]
+			if (node.length() < 3 || node.charAt(0) != '[' || node.charAt(node.length() -1) != ']')
 			{
-				//drop the brackets
-				String permissionIdentifier = identifier.substring(1, identifier.length() - 1);
-				
-				//defensive coding
-				if(permissionIdentifier == null || permissionIdentifier.isEmpty()) continue;
-				
-				//check permission
-				if(player.hasPermission(permissionIdentifier) && this.playerIDToClaimPermissionMap.get(identifier) == level) return true;
+				continue;
+			}
+
+			// Check if level is high enough and player has node
+			if (level.isGrantedBy(stringToPermission.getValue())
+					&& player.hasPermission(node.substring(1, node.length() - 1)))
+			{
+				return true;
 			}
 		}
-		
-		return false;			
+
+		return false;
 	}
 	
 	//break permission check
@@ -492,12 +487,9 @@ public class Claim
 		
 		//look for explicit individual access, inventory, or build permission
 		if(this.hasExplicitPermission(player, ClaimPermission.Access)) return null;
-		if(this.hasExplicitPermission(player, ClaimPermission.Inventory)) return null;
-		if(this.hasExplicitPermission(player, ClaimPermission.Build)) return null;
-		
+
 		//also check for public permission
-		ClaimPermission permissionLevel = this.playerIDToClaimPermissionMap.get("public");
-		if(ClaimPermission.Build == permissionLevel || ClaimPermission.Inventory == permissionLevel || ClaimPermission.Access == permissionLevel) return null;		
+		if(ClaimPermission.Access.isGrantedBy(this.playerIDToClaimPermissionMap.get("public"))) return null;
 		
 		//permission inheritance for subdivisions
 		if(this.parent != null)
@@ -541,11 +533,9 @@ public class Claim
 		
 		//check for explicit individual container or build permission 
 		if(this.hasExplicitPermission(player, ClaimPermission.Inventory)) return null;
-		if(this.hasExplicitPermission(player, ClaimPermission.Build)) return null;
 		
 		//check for public container or build permission
-		ClaimPermission permissionLevel = this.playerIDToClaimPermissionMap.get("public");
-		if(ClaimPermission.Build == permissionLevel || ClaimPermission.Inventory == permissionLevel) return null;
+		if(ClaimPermission.Inventory.isGrantedBy(this.playerIDToClaimPermissionMap.get("public"))) return null;
 		
 		//permission inheritance for subdivisions
 		if(this.parent != null)
@@ -605,7 +595,12 @@ public class Claim
 	//grants a permission for a player or the public
 	public void setPermission(String playerID, ClaimPermission permissionLevel)
 	{
-		this.playerIDToClaimPermissionMap.put(playerID.toLowerCase(),  permissionLevel);
+		if (playerID == null || playerID.isEmpty())
+		{
+			return;
+		}
+
+		this.playerIDToClaimPermissionMap.put(playerID.toLowerCase(), permissionLevel);
 	}
 	
 	//revokes a permission for a player or the public
