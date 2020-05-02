@@ -370,7 +370,7 @@ public class Claim
 		
 		//anyone with explicit build permission can make changes
 		if(this.hasExplicitPermission(player, ClaimPermission.Build)) return null;
-		
+
 		//also everyone is a member of the "public", so check for public permission
 		if(ClaimPermission.Build.isGrantedBy(this.playerIDToClaimPermissionMap.get("public"))) return null;
 		
@@ -591,6 +591,16 @@ public class Claim
 			reason += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
 		return reason;
 	}
+
+	public ClaimPermission getPermission(String playerID)
+	{
+		if (playerID == null || playerID.isEmpty())
+		{
+			return null;
+		}
+
+		return this.playerIDToClaimPermissionMap.get(playerID.toLowerCase());
+	}
 	
 	//grants a permission for a player or the public
 	public void setPermission(String playerID, ClaimPermission permissionLevel)
@@ -631,11 +641,11 @@ public class Claim
 	public void getPermissions(ArrayList<String> builders, ArrayList<String> containers, ArrayList<String> accessors, ArrayList<String> managers)
 	{
 		//loop through all the entries in the hash map
-		Iterator<Map.Entry<String, ClaimPermission>> mappingsIterator = this.playerIDToClaimPermissionMap.entrySet().iterator(); 
+		Iterator<Map.Entry<String, ClaimPermission>> mappingsIterator = this.playerIDToClaimPermissionMap.entrySet().iterator();
 		while(mappingsIterator.hasNext())
 		{
 			Map.Entry<String, ClaimPermission> entry = mappingsIterator.next();
-			
+
 			//build up a list for each permission level
 			if(entry.getValue() == ClaimPermission.Build)
 			{
@@ -648,7 +658,7 @@ public class Claim
 			else
 			{
 				accessors.add(entry.getKey());
-			}			
+			}
 		}
 		
 		//managers are handled a little differently
