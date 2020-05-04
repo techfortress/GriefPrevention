@@ -23,5 +23,18 @@ public enum ClaimPermission
 {
 	Build,
 	Inventory,
-	Access
+	Access;
+
+	/**
+	 * Check if a ClaimPermission is granted by another ClaimPermission.
+	 *
+	 * @param other the ClaimPermission to compare against
+	 * @return true if this ClaimPermission is equal or lesser than the provided ClaimPermission
+	 */
+	public boolean isGrantedBy(ClaimPermission other)
+	{
+		// As this uses declaration order to compare, if trust levels are reordered this method must be rewritten.
+		return other != null && other.ordinal() <= this.ordinal();
+	}
+
 }
