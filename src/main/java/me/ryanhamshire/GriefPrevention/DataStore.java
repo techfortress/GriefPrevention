@@ -1288,10 +1288,14 @@ public abstract class DataStore
 	
 	void resizeClaimWithChecks(Player player, PlayerData playerData, int newx1, int newx2, int newy1, int newy2, int newz1, int newz2)
     {
-		if(GriefPrevention.realEstate != null && GriefPrevention.realEstate.anyTransaction(playerData.claimResizing))
+		for(IAddonPlugin addonPlugin : GriefPrevention.addonPlugins)
 		{
-			GriefPrevention.sendMessage(player, TextMode.Err, Messages.OngoingTransaction);
-            return;
+			String msg = addonPlugin.mayResizeClaim(playerData.claimResizing, player, newx1, newx2, newy1, newy2, newz1, newz2);
+			if(msg != null)
+			{
+				GriefPrevention.sendMessage(player, TextMode.Err, msg);
+	            return;
+			}
 		}
 	    //for top level claims, apply size rules and claim blocks requirement
         if(playerData.claimResizing.parent == null)
@@ -1694,8 +1698,6 @@ public abstract class DataStore
 
 		this.addDefault(defaults, Messages.NetherPortalTrapDetectionMessage, "It seems you might be stuck inside a nether portal. We will rescue you in a few seconds if that is the case!", "Sent to player on join, if they left while inside a nether portal.");
 
-		this.addDefault(defaults, Messages.OngoingTransaction, "This claim has an ongoing transaction!", null);
-		
 		//load the config file
 		FileConfiguration config = YamlConfiguration.loadConfiguration(new File(messagesFilePath));
 		

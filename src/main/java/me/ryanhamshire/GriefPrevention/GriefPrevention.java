@@ -231,8 +231,8 @@ public class GriefPrevention extends JavaPlugin
 	//reference to the economy plugin, if economy integration is enabled
 	public static Economy economy = null;
 	
-	// hook point for RealEstate plugin
-	public static IRealEstate realEstate = null;
+	// hook point array for Addon plugins
+	public static ArrayList<IAddonPlugin> addonPlugins = new ArrayList<IAddonPlugin>();
 	
 	//how far away to search from a tree trunk for its branch blocks
 	public static final int TREE_RADIUS = 5;
@@ -2921,14 +2921,18 @@ public class GriefPrevention extends JavaPlugin
 			return true;
 		}
 		
-		// RealEstate transaction : can't abandon if there's a transaction
-		else if(realEstate != null && realEstate.anyTransaction(claim))
-		{
-			GriefPrevention.sendMessage(player, TextMode.Err, Messages.OngoingTransaction);
-		}
 		
 		else
 		{
+			for(IAddonPlugin addonPlugin : addonPlugins)
+			{
+				String msg = addonPlugin.mayAbandonClaim(claim, player);
+				if(msg != null)
+				{
+					GriefPrevention.sendMessage(player, TextMode.Err, msg);
+					return true;
+				}
+			}
 			//delete it
 			claim.removeSurfaceFluids(null);
 			this.dataStore.deleteClaim(claim, true, false);

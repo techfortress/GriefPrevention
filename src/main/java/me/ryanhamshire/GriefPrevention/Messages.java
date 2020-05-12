@@ -252,8 +252,5 @@ public enum Messages
     StandInSubclaim,
     SubclaimRestricted,
     SubclaimUnrestricted,
-    NetherPortalTrapDetectionMessage,
-    
-    //Real Estate
-    OngoingTransaction
+    NetherPortalTrapDetectionMessage
 }

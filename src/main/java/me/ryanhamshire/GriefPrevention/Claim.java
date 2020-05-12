@@ -306,9 +306,15 @@ public class Claim
 				return GriefPrevention.instance.dataStore.getMessage(Messages.NoModifyDuringSiege);
 			}
 			
-			// Real Estate implementation : RealEstate takes over default behaviour
-			if(GriefPrevention.realEstate != null)
-				return GriefPrevention.realEstate.allowEdit(this, player);
+			// Addon plugin implementation : the Addon takes over default behaviour
+			for(IAddonPlugin addonPlugin : GriefPrevention.addonPlugins)
+			{
+				String s =  addonPlugin.allowEdit(this, player);
+				if(s != null)
+				{
+					return s;
+				}
+			}
 			
 			//otherwise, owners can do whatever
 			return null;
@@ -319,9 +325,15 @@ public class Claim
 		{
 			if (player.getUniqueId().equals(this.parent.ownerID))
 			{
-				// Real Estate implementation : RealEstate takes over default behaviour
-				if(GriefPrevention.realEstate != null)
-					return GriefPrevention.realEstate.allowEdit(this, player);
+				// Addon plugin implementation : the Addon takes over default behaviour
+				for(IAddonPlugin addonPlugin : GriefPrevention.addonPlugins)
+				{
+					String s =  addonPlugin.allowEdit(this, player);
+					if(s != null)
+					{
+						return s;
+					}
+				}
 				return null;
 			}
 			if (!inheritNothing)
@@ -379,9 +391,15 @@ public class Claim
 			return null;
 		if(player.getUniqueId().equals(this.ownerID))
 		{
-			// Real Estate implementation : RealEstate takes over default behaviour
-			if(GriefPrevention.realEstate != null)
-				return GriefPrevention.realEstate.allowBuild(this, player, material);
+			// Addon plugin implementation : the Addon takes over default behaviour
+			for(IAddonPlugin addonPlugin : GriefPrevention.addonPlugins)
+			{
+				String s =  addonPlugin.allowBuild(this, player, material);
+				if(s != null)
+				{
+					return s;
+				}
+			}
 			return null;
 		}
 		
@@ -406,9 +424,15 @@ public class Claim
 		{
 			if (player.getUniqueId().equals(this.parent.ownerID))
 			{
-				// Real Estate implementation : RealEstate takes over default behaviour
-				if(GriefPrevention.realEstate != null)
-					return GriefPrevention.realEstate.allowBuild(this, player, material);
+				// Addon plugin implementation : the Addon takes over default behaviour
+				for(IAddonPlugin addonPlugin : GriefPrevention.addonPlugins)
+				{
+					String s =  addonPlugin.allowBuild(this, player, material);
+					if(s != null)
+					{
+						return s;
+					}
+				}
 				return null;
 			}
 			if (!inheritNothing)
@@ -509,9 +533,15 @@ public class Claim
 			return null;
 		if(player.getUniqueId().equals(this.ownerID))
 		{
-			// Real Estate implementation : RealEstate takes over default behaviour
-			if(GriefPrevention.realEstate != null)
-				return GriefPrevention.realEstate.allowAccess(this, player);
+			// Addon plugin implementation : the Addon takes over default behaviour
+			for(IAddonPlugin addonPlugin : GriefPrevention.addonPlugins)
+			{
+				String s =  addonPlugin.allowAccess(this, player);
+				if(s != null)
+				{
+					return s;
+				}
+			}
 			return null;
 		}
 		
@@ -526,9 +556,15 @@ public class Claim
 		{
 			if (player.getUniqueId().equals(this.parent.ownerID))
 			{
-				// Real Estate implementation : RealEstate takes over default behaviour
-				if(GriefPrevention.realEstate != null)
-					return GriefPrevention.realEstate.allowAccess(this, player);
+				// Addon plugin implementation : the Addon takes over default behaviour
+				for(IAddonPlugin addonPlugin : GriefPrevention.addonPlugins)
+				{
+					String s =  addonPlugin.allowAccess(this, player);
+					if(s != null)
+					{
+						return s;
+					}
+				}
 				return null;
 			}
 			if (!inheritNothing)
@@ -562,9 +598,15 @@ public class Claim
 			return null;
 		if(player.getUniqueId().equals(this.ownerID))
 		{
-			// Real Estate implementation : RealEstate takes over default behaviour
-			if(GriefPrevention.realEstate != null)
-				return GriefPrevention.realEstate.allowContainers(this, player);
+			// Addon plugin implementation : the Addon takes over default behaviour
+			for(IAddonPlugin addonPlugin : GriefPrevention.addonPlugins)
+			{
+				String s =  addonPlugin.allowContainers(this, player);
+				if(s != null)
+				{
+					return s;
+				}
+			}
 			return null;
 		}
 		
@@ -585,9 +627,15 @@ public class Claim
 		{
 			if (player.getUniqueId().equals(this.parent.ownerID))
 			{
-				// Real Estate implementation : RealEstate takes over default behaviour
-				if(GriefPrevention.realEstate != null)
-					return GriefPrevention.realEstate.allowContainers(this, player);
+				// Addon plugin implementation : the Addon takes over default behaviour
+				for(IAddonPlugin addonPlugin : GriefPrevention.addonPlugins)
+				{
+					String s =  addonPlugin.allowContainers(this, player);
+					if(s != null)
+					{
+						return s;
+					}
+				}
 				return null;
 			}
 			if (!inheritNothing)
@@ -606,11 +654,11 @@ public class Claim
 	{
 		//if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
 		if(player == null) return "";
-		
-		// RealEstate is the most important here, since a Rented/Leased calim cannot have permissions changes in any case
-		if(GriefPrevention.realEstate != null)
+
+		// Addon plugin implementation : the Addon takes over default behaviour
+		for(IAddonPlugin addonPlugin : GriefPrevention.addonPlugins)
 		{
-			String s = GriefPrevention.realEstate.allowGrantPermission(this, player);
+			String s = addonPlugin.allowGrantPermission(this, player);
 			if(s != null)
 				return s;
 		}
