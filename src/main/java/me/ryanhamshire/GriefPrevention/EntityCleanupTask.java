@@ -18,15 +18,15 @@
 
 package me.ryanhamshire.GriefPrevention;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Vehicle;
+
+import java.util.ArrayList;
+import java.util.List;
 
 //FEATURE: creative mode worlds get a regular entity cleanup
 
@@ -115,7 +115,7 @@ class EntityCleanupTask implements Runnable
 				
 				if(remove)
 				{
-					GriefPrevention.AddLogEntry("Removing entity " + entity.getType().name() + " @ " + entity.getLocation(), CustomLogEntryTypes.Debug);
+					GriefPrevention.AddLogEntry("Removing entity " + entity.getType().name() + " @ " + entity.getLocation(), CustomLogEntryTypes.Debug, true);
 					entity.remove();
 				}
 			}

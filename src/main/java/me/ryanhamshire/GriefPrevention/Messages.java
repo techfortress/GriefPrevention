@@ -43,6 +43,7 @@ public enum Messages
     BlockPurchaseCost,
     ClaimBlockLimit,
     InsufficientFunds,
+    MaxBonusReached,
     PurchaseConfirmation,
     OnlyPurchaseBlocks,
     BlockSaleValue,

@@ -15,15 +15,15 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
- package me.ryanhamshire.GriefPrevention;
 
-import java.util.HashSet;
+package me.ryanhamshire.GriefPrevention;
+
+import java.util.Collections;
 import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
-
-import org.bukkit.Bukkit;
+import java.util.stream.Collectors;
 
 //FEATURE: automatically remove claims owned by inactive players which:
 //...aren't protecting much OR
@@ -33,7 +33,7 @@ import org.bukkit.Bukkit;
 //runs every 1 minute in the main thread
 class FindUnusedClaimsTask implements Runnable 
 {
-	private Set<UUID> claimOwnerUUIDs = new HashSet<>();
+	private List<UUID> claimOwnerUUIDs;
 	private Iterator<UUID> claimOwnerIterator;
 	
 	FindUnusedClaimsTask()
@@ -54,15 +54,24 @@ class FindUnusedClaimsTask implements Runnable
 			return;
 		}
 		
-		Bukkit.getScheduler().runTaskAsynchronously(GriefPrevention.instance, new CleanupUnusedClaimPreTask(claimOwnerIterator.next()));
+		GriefPrevention.instance.getServer().getScheduler().runTaskAsynchronously(GriefPrevention.instance, new CleanupUnusedClaimPreTask(claimOwnerIterator.next()));
 	}
 
-	public void refreshUUIDs()
-	{
-		claimOwnerUUIDs.clear();
-		for (Claim claim : GriefPrevention.instance.dataStore.claims)
-			claimOwnerUUIDs.add(claim.ownerID);
-		claimOwnerUUIDs.remove(null);
+	public void refreshUUIDs() {
+		// Fetch owner UUIDs from list of claims
+		claimOwnerUUIDs = GriefPrevention.instance.dataStore.claims.stream().map(claim -> claim.ownerID)
+						.distinct().filter(Objects::nonNull).collect(Collectors.toList());
+
+		if (!claimOwnerUUIDs.isEmpty()) {
+			// Randomize order
+			Collections.shuffle(claimOwnerUUIDs);
+		}
+
+		GriefPrevention.AddLogEntry("The following UUIDs own a claim and will be checked for inactivity in the following order:", CustomLogEntryTypes.Debug, true);
+
+		for (UUID uuid : claimOwnerUUIDs)
+			GriefPrevention.AddLogEntry(uuid.toString(), CustomLogEntryTypes.Debug, true);
+
 		claimOwnerIterator = claimOwnerUUIDs.iterator();
 	}
 }

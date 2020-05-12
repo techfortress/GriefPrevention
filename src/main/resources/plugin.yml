@@ -35,7 +35,7 @@ commands:
       aliases: ct
       permission: griefprevention.claims
     accesstrust:
-      description: Grants a player entry to your claim(s) and use of your bed.
+      description: Grants a player entry to your claim(s) and use of your bed, buttons, and levers.
       usage: /AccessTrust <player>.  Grants a player access to your bed, buttons, and levers.
       aliases: at
       permission: griefprevention.claims

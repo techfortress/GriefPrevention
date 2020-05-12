@@ -41,13 +41,21 @@ class CleanupUnusedClaimPreTask implements Runnable
 		//get the data
 	    PlayerData ownerData = GriefPrevention.instance.dataStore.getPlayerDataFromStorage(ownerID);
 	    OfflinePlayer ownerInfo = Bukkit.getServer().getOfflinePlayer(ownerID);
+
+		GriefPrevention.AddLogEntry("Looking for expired claims.  Checking data for " + ownerID.toString(), CustomLogEntryTypes.Debug, true);
 	    
 	    //expiration code uses last logout timestamp to decide whether to expire claims
 	    //don't expire claims for online players
-	    if(ownerInfo.isOnline()) return;
-		if(ownerInfo.getLastPlayed() <= 0) return;
-	    
-	    GriefPrevention.AddLogEntry("Looking for expired claims.  Checking data for " + ownerID.toString(), CustomLogEntryTypes.Debug, true);
+	    if(ownerInfo.isOnline())
+		{
+			GriefPrevention.AddLogEntry("Player is online. Ignoring.", CustomLogEntryTypes.Debug, true);
+			return;
+		}
+		if(ownerInfo.getLastPlayed() <= 0)
+		{
+			GriefPrevention.AddLogEntry("Player is new or not in the server's cached userdata. Ignoring. getLastPlayed = " + ownerInfo.getLastPlayed(), CustomLogEntryTypes.Debug, true);
+			return;
+		}
 	    
 	    //skip claims belonging to exempted players based on block totals in config
 	    int bonusBlocks = ownerData.getBonusClaimBlocks();
