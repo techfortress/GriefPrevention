@@ -865,9 +865,7 @@ public class BlockEventHandler implements Listener
 	    //from where?
 		Block fromBlock = dispenseEvent.getBlock();
 		BlockData fromData = fromBlock.getBlockData();
-		if (!(fromData instanceof Dispenser)) {
-			return;
-		}
+		if(!(fromData instanceof Dispenser)) return;
 		Dispenser dispenser = (Dispenser) fromData;
 		
 		//to where?
