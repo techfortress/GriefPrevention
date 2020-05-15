@@ -36,10 +36,9 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Hopper;
-import org.bukkit.block.Lectern;
-import org.bukkit.entity.Entity;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Dispenser;
 import org.bukkit.entity.Item;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.minecart.HopperMinecart;
@@ -64,7 +63,6 @@ import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.material.Dispenser;
 import org.bukkit.metadata.MetadataValue;
 
 //event handlers related to blocks
@@ -866,8 +864,11 @@ public class BlockEventHandler implements Listener
 	    
 	    //from where?
 		Block fromBlock = dispenseEvent.getBlock();
-		@SuppressWarnings("deprecation")
-        Dispenser dispenser = new Dispenser(Material.DISPENSER, fromBlock.getData());
+		BlockData fromData = fromBlock.getBlockData();
+		if (!(fromData instanceof Dispenser)) {
+			return;
+		}
+		Dispenser dispenser = (Dispenser) fromData;
 		
 		//to where?
 		Block toBlock = fromBlock.getRelative(dispenser.getFacing());
