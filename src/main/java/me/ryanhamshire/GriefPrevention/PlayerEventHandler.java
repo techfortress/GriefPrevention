@@ -1656,7 +1656,9 @@ class PlayerEventHandler implements Listener
                                 clickedBlockType == Material.STONECUTTER ||
                                 clickedBlockType == Material.GRINDSTONE ||
                                 clickedBlockType == Material.CARTOGRAPHY_TABLE ||
-                                clickedBlockType == Material.LOOM)))
+                                clickedBlockType == Material.LOOM ||
+                                clickedBlockType == Material.RESPAWN_ANCHOR
+                        )))
         {
             if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
 
@@ -1854,6 +1856,7 @@ class PlayerEventHandler implements Listener
             spawn_eggs.add(Material.EVOKER_SPAWN_EGG);
             spawn_eggs.add(Material.GHAST_SPAWN_EGG);
             spawn_eggs.add(Material.GUARDIAN_SPAWN_EGG);
+            spawn_eggs.add(Material.HOGLIN_SPAWN_EGG);
             spawn_eggs.add(Material.HORSE_SPAWN_EGG);
             spawn_eggs.add(Material.HUSK_SPAWN_EGG);
             spawn_eggs.add(Material.LLAMA_SPAWN_EGG);
@@ -1864,6 +1867,7 @@ class PlayerEventHandler implements Listener
             spawn_eggs.add(Material.PARROT_SPAWN_EGG);
             spawn_eggs.add(Material.PHANTOM_SPAWN_EGG);
             spawn_eggs.add(Material.PIG_SPAWN_EGG);
+            spawn_eggs.add(Material.PIGLIN_SPAWN_EGG);
             spawn_eggs.add(Material.POLAR_BEAR_SPAWN_EGG);
             spawn_eggs.add(Material.PUFFERFISH_SPAWN_EGG);
             spawn_eggs.add(Material.RABBIT_SPAWN_EGG);
@@ -1877,6 +1881,7 @@ class PlayerEventHandler implements Listener
             spawn_eggs.add(Material.SPIDER_SPAWN_EGG);
             spawn_eggs.add(Material.SQUID_SPAWN_EGG);
             spawn_eggs.add(Material.STRAY_SPAWN_EGG);
+            spawn_eggs.add(Material.STRIDER_SPAWN_EGG);
             spawn_eggs.add(Material.TROPICAL_FISH_SPAWN_EGG);
             spawn_eggs.add(Material.TURTLE_SPAWN_EGG);
             spawn_eggs.add(Material.VEX_SPAWN_EGG);
@@ -1885,10 +1890,11 @@ class PlayerEventHandler implements Listener
             spawn_eggs.add(Material.WITCH_SPAWN_EGG);
             spawn_eggs.add(Material.WITHER_SKELETON_SPAWN_EGG);
             spawn_eggs.add(Material.WOLF_SPAWN_EGG);
+            spawn_eggs.add(Material.ZOGLIN_SPAWN_EGG);
             spawn_eggs.add(Material.ZOMBIE_SPAWN_EGG);
             spawn_eggs.add(Material.ZOMBIE_HORSE_SPAWN_EGG);
-            spawn_eggs.add(Material.ZOMBIE_PIGMAN_SPAWN_EGG);
             spawn_eggs.add(Material.ZOMBIE_VILLAGER_SPAWN_EGG);
+            spawn_eggs.add(Material.ZOMBIFIED_PIGLIN_SPAWN_EGG);
 
             for (Material material : Material.values())
             {

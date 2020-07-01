@@ -934,11 +934,34 @@ class RestoreNatureProcessingTask implements Runnable
         {
             playerBlocks.add(Material.NETHERRACK);
             playerBlocks.add(Material.SOUL_SAND);
+            playerBlocks.add(Material.SOUL_SOIL);
             playerBlocks.add(Material.GLOWSTONE);
             playerBlocks.add(Material.NETHER_BRICK);
             playerBlocks.add(Material.NETHER_BRICK_FENCE);
             playerBlocks.add(Material.NETHER_BRICK_STAIRS);
             playerBlocks.add(Material.MAGMA_BLOCK);
+            playerBlocks.add(Material.ANCIENT_DEBRIS);
+            playerBlocks.add(Material.BASALT);
+            playerBlocks.add(Material.BLACKSTONE);
+            playerBlocks.add(Material.GILDED_BLACKSTONE);
+            playerBlocks.add(Material.CHAIN);
+            playerBlocks.add(Material.SHROOMLIGHT);
+            playerBlocks.add(Material.NETHER_GOLD_ORE);
+            playerBlocks.add(Material.NETHER_SPROUTS);
+            playerBlocks.add(Material.CRIMSON_FUNGUS);
+            playerBlocks.add(Material.CRIMSON_NYLIUM);
+            playerBlocks.add(Material.CRIMSON_ROOTS);
+            playerBlocks.add(Material.CRIMSON_STEM);
+            playerBlocks.add(Material.NETHER_WART_BLOCK);
+            playerBlocks.add(Material.WEEPING_VINES);
+            playerBlocks.add(Material.WEEPING_VINES_PLANT);
+            playerBlocks.add(Material.WARPED_FUNGUS);
+            playerBlocks.add(Material.WARPED_NYLIUM);
+            playerBlocks.add(Material.WARPED_ROOTS);
+            playerBlocks.add(Material.WARPED_STEM);
+            playerBlocks.add(Material.WARPED_WART_BLOCK);
+            playerBlocks.add(Material.TWISTING_VINES);
+            playerBlocks.add(Material.TWISTING_VINES_PLANT);
         }
 
         //these are unnatural in the standard and nether worlds, but not in the end
