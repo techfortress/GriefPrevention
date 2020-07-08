@@ -1711,7 +1711,9 @@ class PlayerEventHandler implements Listener
                                 clickedBlockType == Material.BIRCH_DOOR ||
                                 clickedBlockType == Material.JUNGLE_DOOR ||
                                 clickedBlockType == Material.SPRUCE_DOOR ||
-                                clickedBlockType == Material.DARK_OAK_DOOR)) ||
+                                clickedBlockType == Material.DARK_OAK_DOOR ||
+                                clickedBlockType == Material.WARPED_DOOR ||
+                                clickedBlockType == Material.CRIMSON_DOOR)) ||
 
                 (instance.config_claims_preventButtonsSwitches && (clickedBlockType == Material.WHITE_BED ||
                         clickedBlockType == Material.ORANGE_BED ||
@@ -1736,7 +1738,9 @@ class PlayerEventHandler implements Listener
                                 clickedBlockType == Material.BIRCH_TRAPDOOR ||
                                 clickedBlockType == Material.JUNGLE_TRAPDOOR ||
                                 clickedBlockType == Material.ACACIA_TRAPDOOR ||
-                                clickedBlockType == Material.DARK_OAK_TRAPDOOR)) ||
+                                clickedBlockType == Material.DARK_OAK_TRAPDOOR ||
+                                clickedBlockType == Material.CRIMSON_TRAPDOOR ||
+                                clickedBlockType == Material.WARPED_TRAPDOOR)) ||
 
                 (instance.config_claims_lockFenceGates && (
                         clickedBlockType == Material.OAK_FENCE_GATE ||
@@ -1744,7 +1748,9 @@ class PlayerEventHandler implements Listener
                                 clickedBlockType == Material.BIRCH_FENCE_GATE ||
                                 clickedBlockType == Material.JUNGLE_FENCE_GATE ||
                                 clickedBlockType == Material.SPRUCE_FENCE_GATE ||
-                                clickedBlockType == Material.DARK_OAK_FENCE_GATE)) ||
+                                clickedBlockType == Material.DARK_OAK_FENCE_GATE ||
+                                clickedBlockType == Material.WARPED_FENCE_GATE ||
+                                clickedBlockType == Material.CRIMSON_FENCE_GATE)) ||
                 (instance.config_claims_lecternReadingRequiresAccessTrust && clickedBlockType == Material.LECTERN))
         {
             if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
@@ -1764,7 +1770,7 @@ class PlayerEventHandler implements Listener
         }
 
         //otherwise apply rules for buttons and switches
-        else if (clickedBlock != null && instance.config_claims_preventButtonsSwitches && (clickedBlockType == null || clickedBlockType == Material.STONE_BUTTON || Tag.BUTTONS.isTagged(clickedBlockType) || clickedBlockType == Material.LEVER))
+        else if (clickedBlock != null && instance.config_claims_preventButtonsSwitches && (clickedBlockType == null || clickedBlockType == Material.STONE_BUTTON || clickedBlockType == Material.WARPED_BUTTON || clickedBlockType == Material.CRIMSON_BUTTON || Tag.BUTTONS.isTagged(clickedBlockType) || clickedBlockType == Material.LEVER))
         {
             if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
             Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -2703,6 +2709,8 @@ class PlayerEventHandler implements Listener
             case OAK_BUTTON:
             case SPRUCE_BUTTON:
             case BIRCH_BUTTON:
+            case WARPED_BUTTON:
+            case CRIMSON_BUTTON:
             case JUNGLE_BUTTON:
             case ACACIA_BUTTON:
             case DARK_OAK_BUTTON:
