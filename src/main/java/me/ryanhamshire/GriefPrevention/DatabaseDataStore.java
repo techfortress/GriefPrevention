@@ -411,6 +411,9 @@ public class DatabaseDataStore extends DataStore
             statement.execute("DELETE FROM griefprevention_claimdata WHERE id='-1';");
         }
 
+        results.close();
+        statement.close();
+
         super.initialize();
     }
 
@@ -512,6 +515,7 @@ public class DatabaseDataStore extends DataStore
                 playerData.setAccruedClaimBlocks(results.getInt("accruedblocks"));
                 playerData.setBonusClaimBlocks(results.getInt("bonusblocks"));
             }
+            results.close();
         }
         catch (SQLException e)
         {
@@ -550,6 +554,7 @@ public class DatabaseDataStore extends DataStore
             insertStmnt.setInt(3, playerData.getAccruedClaimBlocks());
             insertStmnt.setInt(4, playerData.getBonusClaimBlocks());
             insertStmnt.executeUpdate();
+            insertStmnt.close();
         }
         catch (SQLException e)
         {
@@ -661,12 +666,15 @@ public class DatabaseDataStore extends DataStore
             if (!results.next())
             {
                 this.setSchemaVersion(0);
+                results.close();
                 return 0;
             }
             //otherwise return the value that's in the table
             else
             {
-                return results.getInt("version");
+                int ver = results.getInt("version");
+                results.close();
+                return ver;
             }
         }
         catch (SQLException e)
