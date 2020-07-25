@@ -35,6 +35,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.Waterlogged;
+import org.bukkit.block.data.type.Gate;
 import org.bukkit.command.Command;
 import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Animals;
@@ -1705,47 +1706,15 @@ class PlayerEventHandler implements Listener
         //otherwise apply rules for doors and beds, if configured that way
         else if (clickedBlock != null &&
 
-                (instance.config_claims_lockWoodenDoors && (
-                        clickedBlockType == Material.OAK_DOOR ||
-                                clickedBlockType == Material.ACACIA_DOOR ||
-                                clickedBlockType == Material.BIRCH_DOOR ||
-                                clickedBlockType == Material.JUNGLE_DOOR ||
-                                clickedBlockType == Material.SPRUCE_DOOR ||
-                                clickedBlockType == Material.DARK_OAK_DOOR)) ||
+                (instance.config_claims_lockWoodenDoors && Tag.WOODEN_DOORS.isTagged(clickedBlockType) ||
 
-                (instance.config_claims_preventButtonsSwitches && (clickedBlockType == Material.WHITE_BED ||
-                        clickedBlockType == Material.ORANGE_BED ||
-                        clickedBlockType == Material.MAGENTA_BED ||
-                        clickedBlockType == Material.LIGHT_BLUE_BED ||
-                        clickedBlockType == Material.YELLOW_BED ||
-                        clickedBlockType == Material.LIME_BED ||
-                        clickedBlockType == Material.PINK_BED ||
-                        clickedBlockType == Material.GRAY_BED ||
-                        clickedBlockType == Material.LIGHT_GRAY_BED ||
-                        clickedBlockType == Material.CYAN_BED ||
-                        clickedBlockType == Material.PURPLE_BED ||
-                        clickedBlockType == Material.BLUE_BED ||
-                        clickedBlockType == Material.BROWN_BED ||
-                        clickedBlockType == Material.GREEN_BED ||
-                        clickedBlockType == Material.RED_BED ||
-                        clickedBlockType == Material.BLACK_BED)) ||
+                instance.config_claims_preventButtonsSwitches && Tag.BEDS.isTagged(clickedBlockType) ||
 
-                (instance.config_claims_lockTrapDoors && (
-                        clickedBlockType == Material.OAK_TRAPDOOR ||
-                                clickedBlockType == Material.SPRUCE_TRAPDOOR ||
-                                clickedBlockType == Material.BIRCH_TRAPDOOR ||
-                                clickedBlockType == Material.JUNGLE_TRAPDOOR ||
-                                clickedBlockType == Material.ACACIA_TRAPDOOR ||
-                                clickedBlockType == Material.DARK_OAK_TRAPDOOR)) ||
+                instance.config_claims_lockTrapDoors && Tag.WOODEN_TRAPDOORS.isTagged(clickedBlockType) ||
 
-                (instance.config_claims_lockFenceGates && (
-                        clickedBlockType == Material.OAK_FENCE_GATE ||
-                                clickedBlockType == Material.ACACIA_FENCE_GATE ||
-                                clickedBlockType == Material.BIRCH_FENCE_GATE ||
-                                clickedBlockType == Material.JUNGLE_FENCE_GATE ||
-                                clickedBlockType == Material.SPRUCE_FENCE_GATE ||
-                                clickedBlockType == Material.DARK_OAK_FENCE_GATE)) ||
-                (instance.config_claims_lecternReadingRequiresAccessTrust && clickedBlockType == Material.LECTERN))
+                instance.config_claims_lecternReadingRequiresAccessTrust && clickedBlockType == Material.LECTERN ||
+
+                instance.config_claims_lockFenceGates && clickedBlock.getBlockData() instanceof Gate))
         {
             if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
             Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -1764,7 +1733,7 @@ class PlayerEventHandler implements Listener
         }
 
         //otherwise apply rules for buttons and switches
-        else if (clickedBlock != null && instance.config_claims_preventButtonsSwitches && (clickedBlockType == null || clickedBlockType == Material.STONE_BUTTON || Tag.BUTTONS.isTagged(clickedBlockType) || clickedBlockType == Material.LEVER))
+        else if (clickedBlock != null && instance.config_claims_preventButtonsSwitches && (Tag.BUTTONS.isTagged(clickedBlockType) || clickedBlockType == Material.LEVER))
         {
             if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
             Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -1841,65 +1810,12 @@ class PlayerEventHandler implements Listener
             Set<Material> spawn_eggs = new HashSet<>();
             Set<Material> dyes = new HashSet<>();
 
-            spawn_eggs.add(Material.BAT_SPAWN_EGG);
-            spawn_eggs.add(Material.BLAZE_SPAWN_EGG);
-            spawn_eggs.add(Material.CAVE_SPIDER_SPAWN_EGG);
-            spawn_eggs.add(Material.CHICKEN_SPAWN_EGG);
-            spawn_eggs.add(Material.COD_SPAWN_EGG);
-            spawn_eggs.add(Material.COW_SPAWN_EGG);
-            spawn_eggs.add(Material.CREEPER_SPAWN_EGG);
-            spawn_eggs.add(Material.DOLPHIN_SPAWN_EGG);
-            spawn_eggs.add(Material.DONKEY_SPAWN_EGG);
-            spawn_eggs.add(Material.DROWNED_SPAWN_EGG);
-            spawn_eggs.add(Material.ELDER_GUARDIAN_SPAWN_EGG);
-            spawn_eggs.add(Material.ENDERMAN_SPAWN_EGG);
-            spawn_eggs.add(Material.ENDERMITE_SPAWN_EGG);
-            spawn_eggs.add(Material.EVOKER_SPAWN_EGG);
-            spawn_eggs.add(Material.GHAST_SPAWN_EGG);
-            spawn_eggs.add(Material.GUARDIAN_SPAWN_EGG);
-            spawn_eggs.add(Material.HOGLIN_SPAWN_EGG);
-            spawn_eggs.add(Material.HORSE_SPAWN_EGG);
-            spawn_eggs.add(Material.HUSK_SPAWN_EGG);
-            spawn_eggs.add(Material.LLAMA_SPAWN_EGG);
-            spawn_eggs.add(Material.MAGMA_CUBE_SPAWN_EGG);
-            spawn_eggs.add(Material.MOOSHROOM_SPAWN_EGG);
-            spawn_eggs.add(Material.MULE_SPAWN_EGG);
-            spawn_eggs.add(Material.OCELOT_SPAWN_EGG);
-            spawn_eggs.add(Material.PARROT_SPAWN_EGG);
-            spawn_eggs.add(Material.PHANTOM_SPAWN_EGG);
-            spawn_eggs.add(Material.PIG_SPAWN_EGG);
-            spawn_eggs.add(Material.PIGLIN_SPAWN_EGG);
-            spawn_eggs.add(Material.POLAR_BEAR_SPAWN_EGG);
-            spawn_eggs.add(Material.PUFFERFISH_SPAWN_EGG);
-            spawn_eggs.add(Material.RABBIT_SPAWN_EGG);
-            spawn_eggs.add(Material.SALMON_SPAWN_EGG);
-            spawn_eggs.add(Material.SHEEP_SPAWN_EGG);
-            spawn_eggs.add(Material.SHULKER_SPAWN_EGG);
-            spawn_eggs.add(Material.SILVERFISH_SPAWN_EGG);
-            spawn_eggs.add(Material.SKELETON_SPAWN_EGG);
-            spawn_eggs.add(Material.SKELETON_HORSE_SPAWN_EGG);
-            spawn_eggs.add(Material.SLIME_SPAWN_EGG);
-            spawn_eggs.add(Material.SPIDER_SPAWN_EGG);
-            spawn_eggs.add(Material.SQUID_SPAWN_EGG);
-            spawn_eggs.add(Material.STRAY_SPAWN_EGG);
-            spawn_eggs.add(Material.STRIDER_SPAWN_EGG);
-            spawn_eggs.add(Material.TROPICAL_FISH_SPAWN_EGG);
-            spawn_eggs.add(Material.TURTLE_SPAWN_EGG);
-            spawn_eggs.add(Material.VEX_SPAWN_EGG);
-            spawn_eggs.add(Material.VILLAGER_SPAWN_EGG);
-            spawn_eggs.add(Material.VINDICATOR_SPAWN_EGG);
-            spawn_eggs.add(Material.WITCH_SPAWN_EGG);
-            spawn_eggs.add(Material.WITHER_SKELETON_SPAWN_EGG);
-            spawn_eggs.add(Material.WOLF_SPAWN_EGG);
-            spawn_eggs.add(Material.ZOGLIN_SPAWN_EGG);
-            spawn_eggs.add(Material.ZOMBIE_SPAWN_EGG);
-            spawn_eggs.add(Material.ZOMBIE_HORSE_SPAWN_EGG);
-            spawn_eggs.add(Material.ZOMBIE_VILLAGER_SPAWN_EGG);
-            spawn_eggs.add(Material.ZOMBIFIED_PIGLIN_SPAWN_EGG);
-
             for (Material material : Material.values())
             {
-                if (!material.isLegacy() && material.name().endsWith("_DYE"))
+                if (material.isLegacy()) continue;
+                if (material.name().endsWith("_SPAWN_EGG"))
+                    spawn_eggs.add(material);
+                else if (material.name().endsWith("_DYE"))
                     dyes.add(material);
             }
 
@@ -1924,13 +1840,7 @@ class PlayerEventHandler implements Listener
 
                 return;
             }
-            else if (clickedBlock != null && (
-                    materialInHand == Material.OAK_BOAT ||
-                            materialInHand == Material.SPRUCE_BOAT ||
-                            materialInHand == Material.BIRCH_BOAT ||
-                            materialInHand == Material.JUNGLE_BOAT ||
-                            materialInHand == Material.ACACIA_BOAT ||
-                            materialInHand == Material.DARK_OAK_BOAT))
+            else if (clickedBlock != null && Tag.ITEMS_BOATS.isTagged(materialInHand))
             {
                 if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
                 Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
