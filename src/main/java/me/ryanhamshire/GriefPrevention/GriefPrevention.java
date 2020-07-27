@@ -625,6 +625,10 @@ public class GriefPrevention extends JavaPlugin
         this.config_limitTreeGrowth = config.getBoolean("GriefPrevention.LimitTreeGrowth", false);
         this.config_checkPistonMovement = config.getBoolean("GriefPrevention.CheckPistonMovement", true);
         this.config_pistonsInClaimsOnly = config.getBoolean("GriefPrevention.LimitPistonsToLandClaims", true);
+        if (!this.config_checkPistonMovement && this.config_pistonsInClaimsOnly) {
+            AddLogEntry("Error: You have enabled LimitPistonsToLandClaims, but CheckPistonMovement is off!");
+            this.config_pistonsInClaimsOnly = false;
+        }
 
         this.config_fireSpreads = config.getBoolean("GriefPrevention.FireSpreads", false);
         this.config_fireDestroys = config.getBoolean("GriefPrevention.FireDestroys", false);
