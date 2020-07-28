@@ -80,6 +80,7 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTakeLecternBookEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
+import org.bukkit.event.raid.RaidTriggerEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -1126,6 +1127,27 @@ class PlayerEventHandler implements Listener
             event.setCancelled(true);
             return;
         }
+    }
+
+    //when a player triggers a raid (in a claim)
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerTriggerRaid(RaidTriggerEvent event)
+    {
+        if (!instance.config_claims_raidTriggersRequireBuildTrust)
+            return;
+
+        Player player = event.getPlayer();
+        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+
+        Claim toClaim = this.dataStore.getClaimAt(player.getLocation(), false, playerData.lastClaim);
+        if (toClaim == null)
+            return;
+
+        playerData.lastClaim = toClaim;
+        if (toClaim.allowBuild(player, Material.AIR) == null)
+            return;
+
+        event.setCancelled(true);
     }
 
     //when a player interacts with a specific part of entity...
