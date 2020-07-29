@@ -53,7 +53,7 @@ class PlayerRescueTask implements Runnable
         playerData.pendingTrapped = false;
 
         //if the player moved three or more blocks from where he used /trapped, admonish him and don't save him
-        if (player.getLocation().distance(this.location) > 3)
+        if (!player.getLocation().getWorld().equals(this.location.getWorld()) || player.getLocation().distance(this.location) > 3)
         {
             GriefPrevention.sendMessage(player, TextMode.Err, Messages.RescueAbortedMoved);
             return;
