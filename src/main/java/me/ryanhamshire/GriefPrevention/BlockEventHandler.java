@@ -675,16 +675,15 @@ public class BlockEventHandler implements Listener
 //			}
         }
 
-        // If a fire is started by a fireball from a dispenser, require the dispenser to be in the same claim.
+        // If a fire is started by a fireball from a dispenser, allow it if the dispenser is in the same claim.
         if (igniteEvent.getCause() == IgniteCause.FIREBALL && igniteEvent.getIgnitingEntity() instanceof Fireball)
         {
             ProjectileSource shooter = ((Fireball) igniteEvent.getIgnitingEntity()).getShooter();
             if (shooter instanceof BlockProjectileSource)
             {
                 Claim claim = GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getBlock().getLocation(), false, null);
-                if (claim != null && GriefPrevention.instance.dataStore.getClaimAt(((BlockProjectileSource) shooter).getBlock().getLocation(), false, claim) != claim)
+                if (claim != null && GriefPrevention.instance.dataStore.getClaimAt(((BlockProjectileSource) shooter).getBlock().getLocation(), false, claim) == claim)
                 {
-                    igniteEvent.setCancelled(true);
                     return;
                 }
             }
