@@ -42,6 +42,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Llama;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Mule;
+import org.bukkit.entity.Panda;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Rabbit;
@@ -657,14 +658,15 @@ public class EntityEventHandler implements Listener
         if (entity instanceof Monster) return true;
 
         EntityType type = entity.getType();
-        if (type == EntityType.GHAST || type == EntityType.MAGMA_CUBE || type == EntityType.SHULKER || type == EntityType.POLAR_BEAR)
+        if (type == EntityType.GHAST || type == EntityType.MAGMA_CUBE || type == EntityType.SLIME
+                || type == EntityType.SHULKER || type == EntityType.POLAR_BEAR || type == EntityType.HOGLIN)
             return true;
 
         if (type == EntityType.RABBIT)
-        {
-            Rabbit rabbit = (Rabbit) entity;
-            if (rabbit.getRabbitType() == Rabbit.Type.THE_KILLER_BUNNY) return true;
-        }
+            return ((Rabbit) entity).getRabbitType() == Rabbit.Type.THE_KILLER_BUNNY;
+
+        if (type == EntityType.PANDA)
+            return ((Panda) entity).getMainGene() == Panda.Gene.AGGRESSIVE;
 
         return false;
     }
