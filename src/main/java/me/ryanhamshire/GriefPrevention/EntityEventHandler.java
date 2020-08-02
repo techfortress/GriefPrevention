@@ -40,12 +40,14 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.LightningStrike;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Llama;
+import org.bukkit.entity.Mob;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Mule;
 import org.bukkit.entity.Panda;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Rabbit;
+import org.bukkit.entity.Slime;
 import org.bukkit.entity.Tameable;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.entity.Vehicle;
@@ -658,15 +660,20 @@ public class EntityEventHandler implements Listener
         if (entity instanceof Monster) return true;
 
         EntityType type = entity.getType();
-        if (type == EntityType.GHAST || type == EntityType.MAGMA_CUBE || type == EntityType.SLIME
-                || type == EntityType.SHULKER || type == EntityType.POLAR_BEAR || type == EntityType.HOGLIN)
+        if (type == EntityType.GHAST || type == EntityType.MAGMA_CUBE || type == EntityType.SHULKER)
             return true;
+
+        if (type == EntityType.SLIME)
+            return ((Slime) entity).getSize() > 0;
 
         if (type == EntityType.RABBIT)
             return ((Rabbit) entity).getRabbitType() == Rabbit.Type.THE_KILLER_BUNNY;
 
         if (type == EntityType.PANDA)
             return ((Panda) entity).getMainGene() == Panda.Gene.AGGRESSIVE;
+
+        if (type == EntityType.POLAR_BEAR || type == EntityType.HOGLIN)
+            return ((Mob) entity).getTarget() != null;
 
         return false;
     }
