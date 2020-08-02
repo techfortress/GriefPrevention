@@ -23,6 +23,7 @@ import me.ryanhamshire.GriefPrevention.events.ProtectDeathDropsEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
@@ -73,6 +74,7 @@ import org.bukkit.event.entity.EntityInteractEvent;
 import org.bukkit.event.entity.EntityPortalEnterEvent;
 import org.bukkit.event.entity.EntityPortalExitEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
+import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.entity.ExpBottleEvent;
 import org.bukkit.event.entity.ItemMergeEvent;
 import org.bukkit.event.entity.ItemSpawnEvent;
@@ -86,6 +88,7 @@ import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
@@ -105,11 +108,13 @@ public class EntityEventHandler implements Listener
     //convenience reference for the singleton datastore
     private DataStore dataStore;
     GriefPrevention instance;
+    private final NamespacedKey luredByPlayer;
 
     public EntityEventHandler(DataStore dataStore, GriefPrevention plugin)
     {
         this.dataStore = dataStore;
         instance = plugin;
+        luredByPlayer = new NamespacedKey(plugin, "lured_by_player");
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
@@ -672,10 +677,27 @@ public class EntityEventHandler implements Listener
         if (type == EntityType.PANDA)
             return ((Panda) entity).getMainGene() == Panda.Gene.AGGRESSIVE;
 
-        if (type == EntityType.POLAR_BEAR || type == EntityType.HOGLIN)
-            return ((Mob) entity).getTarget() != null;
+        if (type == EntityType.HOGLIN || type == EntityType.POLAR_BEAR)
+            return !entity.getPersistentDataContainer().has(luredByPlayer, PersistentDataType.BYTE) && ((Mob) entity).getTarget() != null;
 
         return false;
+    }
+
+    // Tag passive animals that can become aggressive so we can tell whether or not they are hostile later
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onEntityTarget(EntityTargetEvent event)
+    {
+        if (!GriefPrevention.instance.claimsEnabledForWorld(event.getEntity().getWorld())) return;
+
+        EntityType entityType = event.getEntityType();
+        if (entityType != EntityType.HOGLIN && entityType != EntityType.POLAR_BEAR)
+            return;
+
+        if (event.getReason() == EntityTargetEvent.TargetReason.TEMPT)
+            event.getEntity().getPersistentDataContainer().set(luredByPlayer, PersistentDataType.BYTE, (byte) 1);
+        else
+            event.getEntity().getPersistentDataContainer().remove(luredByPlayer);
+
     }
 
     //when an entity is damaged
