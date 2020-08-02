@@ -33,6 +33,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Hopper;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Dispenser;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -59,6 +60,7 @@ import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.projectiles.BlockProjectileSource;
 import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.ArrayList;
@@ -673,10 +675,25 @@ public class BlockEventHandler implements Listener
 //			}
         }
 
+        // If a fire is started by a fireball from a dispenser, require the dispenser to be in the same claim.
+        if (igniteEvent.getCause() == IgniteCause.FIREBALL && igniteEvent.getIgnitingEntity() instanceof Fireball)
+        {
+            ProjectileSource shooter = ((Fireball) igniteEvent.getIgnitingEntity()).getShooter();
+            if (shooter instanceof BlockProjectileSource)
+            {
+                Claim claim = GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getBlock().getLocation(), false, null);
+                if (claim != null && GriefPrevention.instance.dataStore.getClaimAt(((BlockProjectileSource) shooter).getBlock().getLocation(), false, claim) != claim)
+                {
+                    igniteEvent.setCancelled(true);
+                    return;
+                }
+            }
+        }
+
         // Handle arrows igniting TNT.
         if (igniteEvent.getCause() == IgniteCause.ARROW)
         {
-            Claim claim = GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getIgnitingEntity().getLocation(), false, null);
+            Claim claim = GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getBlock().getLocation(), false, null);
 
             if (claim == null)
             {
@@ -686,11 +703,17 @@ public class BlockEventHandler implements Listener
                 return;
             }
 
-            // Allow ignition if arrow was shot by a player with build permission.
             if (igniteEvent.getIgnitingEntity() instanceof Projectile)
             {
                 ProjectileSource shooter = ((Projectile) igniteEvent.getIgnitingEntity()).getShooter();
+
+                // Allow ignition if arrow was shot by a player with build permission.
                 if (shooter instanceof Player && claim.allowBuild((Player) shooter, Material.TNT) == null) return;
+
+                // Allow ignition if arrow was shot by a dispenser in the same claim.
+                if (shooter instanceof BlockProjectileSource &&
+                        GriefPrevention.instance.dataStore.getClaimAt(((BlockProjectileSource) shooter).getBlock().getLocation(), false, claim) == claim)
+                    return;
             }
 
             // Block all other ignition by arrows in claims.
