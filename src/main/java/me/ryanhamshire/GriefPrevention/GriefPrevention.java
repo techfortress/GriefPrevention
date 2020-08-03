@@ -205,8 +205,7 @@ public class GriefPrevention extends JavaPlugin
     public HashMap<String, Integer> config_seaLevelOverride;        //override for sea level, because bukkit doesn't report the right value for all situations
 
     public boolean config_limitTreeGrowth;                          //whether trees should be prevented from growing into a claim from outside
-    public boolean config_checkPistonMovement;                      //whether to check piston movement
-    public boolean config_pistonsInClaimsOnly;                      //whether pistons are limited to only move blocks located within the piston's land claim
+    public PistonMode config_pistonMovement;                            //Setting for piston check options
 
     public boolean config_advanced_fixNegativeClaimblockAmounts;    //whether to attempt to fix negative claim block amounts (some addons cause/assume players can go into negative amounts)
     public int config_advanced_claim_expiration_check_rate;            //How often GP should check for expired claims, amount in seconds
@@ -625,12 +624,11 @@ public class GriefPrevention extends JavaPlugin
         this.config_blockSurfaceOtherExplosions = config.getBoolean("GriefPrevention.BlockSurfaceOtherExplosions", true);
         this.config_blockSkyTrees = config.getBoolean("GriefPrevention.LimitSkyTrees", true);
         this.config_limitTreeGrowth = config.getBoolean("GriefPrevention.LimitTreeGrowth", false);
-        this.config_checkPistonMovement = config.getBoolean("GriefPrevention.CheckPistonMovement", true);
-        this.config_pistonsInClaimsOnly = config.getBoolean("GriefPrevention.LimitPistonsToLandClaims", true);
-        if (!this.config_checkPistonMovement && this.config_pistonsInClaimsOnly) {
-            AddLogEntry("Error: You have enabled LimitPistonsToLandClaims, but CheckPistonMovement is off!");
-            this.config_pistonsInClaimsOnly = false;
-        }
+        this.config_pistonMovement = PistonMode.of(config.getString("GriefPrevention.PistonMovement", "CLAIMS_ONLY"));
+        if (config.isBoolean("GriefPrevention.LimitPistonsToLandClaims") && !config.isBoolean("GriefPrevention.LimitPistonsToLandClaims"))
+            this.config_pistonMovement = PistonMode.EVERYWHERE_FAST;
+        if (config.isBoolean("GriefPrevention.CheckPistonMovement") && !config.getBoolean("GriefPrevention.CheckPistonMovement"))
+            this.config_pistonMovement = PistonMode.IGNORED;
 
         this.config_fireSpreads = config.getBoolean("GriefPrevention.FireSpreads", false);
         this.config_fireDestroys = config.getBoolean("GriefPrevention.FireDestroys", false);
@@ -897,8 +895,9 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.BlockSurfaceOtherExplosions", this.config_blockSurfaceOtherExplosions);
         outConfig.set("GriefPrevention.LimitSkyTrees", this.config_blockSkyTrees);
         outConfig.set("GriefPrevention.LimitTreeGrowth", this.config_limitTreeGrowth);
-        outConfig.set("GriefPrevention.CheckPistonMovement", this.config_checkPistonMovement);
-        outConfig.set("GriefPrevention.LimitPistonsToLandClaims", this.config_pistonsInClaimsOnly);
+        outConfig.set("GriefPrevention.PistonMovement", this.config_pistonMovement.name());
+        outConfig.set("GriefPrevention.CheckPistonMovement", null);
+        outConfig.set("GriefPrevention.LimitPistonsToLandClaims", null);
 
         outConfig.set("GriefPrevention.FireSpreads", this.config_fireSpreads);
         outConfig.set("GriefPrevention.FireDestroys", this.config_fireDestroys);
