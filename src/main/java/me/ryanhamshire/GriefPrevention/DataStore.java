@@ -950,7 +950,7 @@ public abstract class DataStore
                     if (!ownerID.equals(otherClaim.ownerID) && !neighbours.computeIfAbsent(ownerID, k -> new HashSet<>()).contains(otherClaim.ownerID))
                     {
                         //result = fail, return conflicting claim, and set overlappedAntiZone flag to true.
-                        return new CreateClaimResult(false, otherClaim, true);
+                        return new CreateClaimResult(false, otherClaim, newClaim, true);
                     }
                 }
             }
@@ -1313,6 +1313,26 @@ public abstract class DataStore
     {
         //try to create this new claim, ignoring the original when checking for overlap
         CreateClaimResult result = this.createClaim(claim.getLesserBoundaryCorner().getWorld(), newx1, newx2, newy1, newy2, newz1, newz2, claim.ownerID, claim.parent, claim.id, resizingPlayer, true);
+
+        //player should be able to shrink their claim if they are neighboured with other people.
+        if (!result.succeeded && result.overlappedAntiZone)
+        {
+            Location min = new Location(claim.getLesserBoundaryCorner().getWorld(),
+                    Math.min(newx1, newx2),
+                    Math.min(newy1, newy2),
+                    Math.min(newz1, newz2));
+            Location max = new Location(claim.getLesserBoundaryCorner().getWorld(),
+                    Math.max(newx1, newx2),
+                    Math.max(newy1, newy2),
+                    Math.max(newz1, newz2));
+
+            //if they shrunk their claim, allow it, and set the result claim to the "supposed to be newclaim" instead of the overlapping claim.
+            if ((max.getBlockX() - min.getBlockX() + 1) <= claim.getWidth() && (max.getBlockZ() - min.getBlockZ() + 1) <= claim.getHeight())
+            {
+                result.claim = result.newClaim;
+                result.succeeded = true;
+            }
+        }
 
         //if succeeded
         if (result.succeeded)

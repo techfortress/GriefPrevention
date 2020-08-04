@@ -31,16 +31,20 @@ public class CreateClaimResult
     //when failed, this is a reference to the pre-existing, conflicting claim
     public Claim claim;
 
+    //when failed, this is a reference to the "supposed to be created" claim
+    public Claim newClaim;
+
     //convenience constructor defaulting overlappedAntiZone to false.
     public CreateClaimResult(boolean succeeded, Claim claim)
     {
-        this(succeeded, claim, false);
+        this(succeeded, claim, null, false);
     }
 
-    public CreateClaimResult(boolean succeeded, Claim claim, boolean overlappedAntiZone)
+    public CreateClaimResult(boolean succeeded, Claim claim, Claim newClaim, boolean overlappedAntiZone)
     {
         this.succeeded = succeeded;
         this.claim = claim;
+        this.newClaim = newClaim;
         this.overlappedAntiZone = overlappedAntiZone;
     }
 }
