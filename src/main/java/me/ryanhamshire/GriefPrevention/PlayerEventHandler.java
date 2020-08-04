@@ -1995,7 +1995,15 @@ class PlayerEventHandler implements Listener
                 }
 
                 if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
-                Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false /*ignore height*/, playerData.lastClaim, GriefPrevention.instance.config_claims_preventBullyClaims);
+
+                //try to fetch a real claim
+                Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false /*ignore height*/, playerData.lastClaim);
+
+                //if claim is null, try to fetch a claim within an AntiBullyArea, if enabled
+                if (claim == null && GriefPrevention.instance.config_claims_preventBullyClaims)
+                {
+                    claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false /*ignore height*/, playerData.lastClaim, true);
+                }
 
                 //no claim case
                 if (claim == null)
