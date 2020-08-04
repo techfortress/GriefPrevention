@@ -140,6 +140,9 @@ public class GriefPrevention extends JavaPlugin
 
     public boolean config_claims_lecternReadingRequiresAccessTrust;                    //reading lecterns requires access trust
 
+    public boolean config_claims_preventBullyClaims;                        //whether or not to disable claiming in a x block zone if they dont have trust permissions
+    public int config_claims_antiBullyZoneRadius;                           // the radius around the claim which is protected from other claims
+
     public ArrayList<World> config_siege_enabledWorlds;                //whether or not /siege is enabled on this server
     public ArrayList<Material> config_siege_blocks;                    //which blocks will be breakable in siege mode
     public int config_siege_doorsOpenSeconds;  // how before claim is re-secured after siege win
@@ -595,6 +598,9 @@ public class GriefPrevention extends JavaPlugin
         this.config_claims_firedamages = config.getBoolean("GriefPrevention.Claims.FireDamagesInClaims", false);
         this.config_claims_lecternReadingRequiresAccessTrust = config.getBoolean("GriefPrevention.Claims.LecternReadingRequiresAccessTrust", true);
 
+        this.config_claims_preventBullyClaims = config.getBoolean("GriefPrevention.Claims.PreventBullyClaims", false);
+        this.config_claims_antiBullyZoneRadius = config.getInt("GriefPrevention.Claims.AntiBullyZoneRadius", 10);
+
         this.config_spam_enabled = config.getBoolean("GriefPrevention.Spam.Enabled", true);
         this.config_spam_loginCooldownSeconds = config.getInt("GriefPrevention.Spam.LoginCooldownSeconds", 60);
         this.config_spam_loginLogoutNotificationsPerMinute = config.getInt("GriefPrevention.Spam.LoginLogoutNotificationsPerMinute", 5);
@@ -854,6 +860,9 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.Claims.FireSpreadsInClaims", config_claims_firespreads);
         outConfig.set("GriefPrevention.Claims.FireDamagesInClaims", config_claims_firedamages);
         outConfig.set("GriefPrevention.Claims.LecternReadingRequiresAccessTrust", config_claims_lecternReadingRequiresAccessTrust);
+
+        outConfig.set("GriefPrevention.Claims.PreventBullyClaims", config_claims_preventBullyClaims);
+        outConfig.set("GriefPrevention.Claims.AntiBullyZoneRadius", config_claims_antiBullyZoneRadius);
 
         outConfig.set("GriefPrevention.Spam.Enabled", this.config_spam_enabled);
         outConfig.set("GriefPrevention.Spam.LoginCooldownSeconds", this.config_spam_loginCooldownSeconds);

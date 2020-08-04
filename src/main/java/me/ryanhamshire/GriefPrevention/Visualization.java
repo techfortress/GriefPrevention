@@ -94,24 +94,32 @@ public class Visualization
         }
     }
 
+    //convenience method for backwards compatibility
+    public static Visualization FromClaim(Claim claim, int height, VisualizationType visualizationType, Location locality)
+    {
+        return FromClaim(claim, height, visualizationType, locality, false);
+    }
+
     //convenience method to build a visualization from a claim
     //visualizationType determines the style (gold blocks, silver, red, diamond, etc)
-    public static Visualization FromClaim(Claim claim, int height, VisualizationType visualizationType, Location locality)
+    public static Visualization FromClaim(Claim claim, int height, VisualizationType visualizationType, Location locality, boolean displayAntiZone)
     {
         //visualize only top level claims
         if (claim.parent != null)
         {
-            return FromClaim(claim.parent, height, visualizationType, locality);
+            return FromClaim(claim.parent, height, visualizationType, locality, displayAntiZone);
         }
 
         Visualization visualization = new Visualization();
 
         //add subdivisions first
-        for (int i = 0; i < claim.children.size(); i++)
-        {
-            Claim child = claim.children.get(i);
-            if (!child.inDataStore) continue;
-            visualization.addClaimElements(child, height, VisualizationType.Subdivision, locality);
+        if (visualizationType != VisualizationType.ErrorClaim && !displayAntiZone) {
+            for (int i = 0; i < claim.children.size(); i++)
+            {
+                Claim child = claim.children.get(i);
+                if (!child.inDataStore) continue;
+                visualization.addClaimElements(child, height, VisualizationType.Subdivision, locality, false);
+            }
         }
 
         //special visualization for administrative land claims
@@ -121,7 +129,7 @@ public class Visualization
         }
 
         //add top level last so that it takes precedence (it shows on top when the child claim boundaries overlap with its boundaries)
-        visualization.addClaimElements(claim, height, visualizationType, locality);
+        visualization.addClaimElements(claim, height, visualizationType, locality, displayAntiZone);
 
         return visualization;
     }
@@ -130,22 +138,10 @@ public class Visualization
     //handy for combining several visualizations together, as when visualization a top level claim with several subdivisions inside
     //locality is a performance consideration.  only create visualization blocks for around 100 blocks of the locality
 
-    private void addClaimElements(Claim claim, int height, VisualizationType visualizationType, Location locality)
+    private void addClaimElements(Claim claim, int height, VisualizationType visualizationType, Location locality, boolean displayAntiZone)
     {
-        Location smallXsmallZ = claim.getLesserBoundaryCorner();
-        Location bigXbigZ = claim.getGreaterBoundaryCorner();
-        World world = smallXsmallZ.getWorld();
-        boolean waterIsTransparent = locality.getBlock().getType() == Material.WATER;
-
-        int smallx = smallXsmallZ.getBlockX();
-        int smallz = smallXsmallZ.getBlockZ();
-        int bigx = bigXbigZ.getBlockX();
-        int bigz = bigXbigZ.getBlockZ();
-
         BlockData cornerBlockData;
         BlockData accentBlockData;
-
-        ArrayList<VisualizationElement> newElements = new ArrayList<VisualizationElement>();
 
         if (visualizationType == VisualizationType.Claim)
         {
@@ -172,10 +168,38 @@ public class Visualization
             cornerBlockData = Material.REDSTONE_ORE.createBlockData();
             ((Lightable) cornerBlockData).setLit(true);
             accentBlockData = Material.NETHERRACK.createBlockData();
+
+            //if overlapping don't show the actual claim, but instead show the anticlaimzone as the "overlapped" claim
+            if (displayAntiZone) {
+                addClaimElements(claim.lesserAntiClaimZoneCorner, claim.greaterAntiClaimZoneCorner, height, cornerBlockData, accentBlockData, locality, false);
+                return;
+            }
         }
+
+        addClaimElements(claim.lesserBoundaryCorner, claim.greaterBoundaryCorner, height, cornerBlockData, accentBlockData, locality, true);
+        if (displayAntiZone) {
+            cornerBlockData = Material.SEA_LANTERN.createBlockData();
+            accentBlockData = Material.PRISMARINE.createBlockData();
+            addClaimElements(claim.lesserAntiClaimZoneCorner, claim.greaterAntiClaimZoneCorner, height, cornerBlockData, accentBlockData, locality, false);
+        }
+    }
+
+    //adds claim elements based on a radius from the locality,
+    //used for defining the "anti claim zone" next to the actual claim definition.
+    private void addClaimElements(Location min, Location max, int height, BlockData cornerBlockData, BlockData accentBlockData, Location locality, boolean removeOutside)
+    {
+        World world = min.getWorld();
+        boolean waterIsTransparent = locality.getBlock().getType() == Material.WATER;
+
+        int smallx = min.getBlockX();
+        int smallz = min.getBlockZ();
+        int bigx = max.getBlockX();
+        int bigz = max.getBlockZ();
 
         //initialize visualization elements without Y values and real data
         //that will be added later for only the visualization elements within visualization range
+
+        ArrayList<VisualizationElement> newElements = new ArrayList<>();
 
         //locality
         int minx = locality.getBlockX() - 75;
@@ -228,13 +252,22 @@ public class Visualization
         //remove any out of range elements
         this.removeElementsOutOfRange(newElements, minx, minz, maxx, maxz);
 
+        newElements.add(new VisualizationElement(new Location(world, bigx, 0, bigz - 1), accentBlockData, Material.AIR.createBlockData()));
+        newElements.add(new VisualizationElement(new Location(world, bigx, 0, bigz), cornerBlockData, Material.AIR.createBlockData()));
+
+        //remove any out of range elements
+        this.removeElementsOutOfRange(newElements, minx, minz, maxx, maxz);
+
         //remove any elements outside the claim
-        for (int i = 0; i < newElements.size(); i++)
+        if (removeOutside)
         {
-            VisualizationElement element = newElements.get(i);
-            if (!claim.contains(element.location, true, false))
+            for (int i = 0; i < newElements.size(); i++)
             {
-                newElements.remove(i--);
+                VisualizationElement element = newElements.get(i);
+                if (!Claim.contains(element.location, min, max, true))
+                {
+                    newElements.remove(i--);
+                }
             }
         }
 
@@ -317,13 +350,19 @@ public class Visualization
                 block.getType().isTransparent();
     }
 
+    //convenience method for backwards compatibility
     public static Visualization fromClaims(Iterable<Claim> claims, int height, VisualizationType type, Location locality)
+    {
+        return fromClaims(claims, height, type, locality, false);
+    }
+
+    public static Visualization fromClaims(Iterable<Claim> claims, int height, VisualizationType type, Location locality, boolean displayAntiZone)
     {
         Visualization visualization = new Visualization();
 
         for (Claim claim : claims)
         {
-            visualization.addClaimElements(claim, height, type, locality);
+            visualization.addClaimElements(claim, height, type, locality, displayAntiZone);
         }
 
         return visualization;

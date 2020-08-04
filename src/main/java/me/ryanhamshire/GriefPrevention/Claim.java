@@ -27,6 +27,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,6 +48,9 @@ public class Claim
     //note that the upper Y value is always ignored, because claims ALWAYS extend up to the sky
     Location lesserBoundaryCorner;
     Location greaterBoundaryCorner;
+
+    Location lesserAntiClaimZoneCorner;
+    Location greaterAntiClaimZoneCorner;
 
     //modification date.  this comes from the file timestamp during load, and is updated with runtime changes
     public Date modifiedDate;
@@ -215,6 +219,9 @@ public class Claim
         this.lesserBoundaryCorner = lesserBoundaryCorner;
         this.greaterBoundaryCorner = greaterBoundaryCorner;
 
+        //anticlaimzone corners
+        recalculateAntiBullyZone();
+
         //owner
         this.ownerID = ownerID;
 
@@ -250,13 +257,20 @@ public class Claim
         this(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderIDs, containerIDs, accessorIDs, managerIDs, false, id);
     }
 
+    public void recalculateAntiBullyZone() {
+        int radius = GriefPrevention.instance.config_claims_antiBullyZoneRadius;
+        this.lesserAntiClaimZoneCorner = lesserBoundaryCorner.clone().subtract(radius, 0, radius);
+        this.greaterAntiClaimZoneCorner = greaterBoundaryCorner.clone().add(radius, 0, radius);
+    }
+
     //measurements.  all measurements are in blocks
     public int getArea()
     {
-        int claimWidth = this.greaterBoundaryCorner.getBlockX() - this.lesserBoundaryCorner.getBlockX() + 1;
-        int claimHeight = this.greaterBoundaryCorner.getBlockZ() - this.lesserBoundaryCorner.getBlockZ() + 1;
+        return getWidth() * getHeight();
+    }
 
-        return claimWidth * claimHeight;
+    public int getAntiClaimArea() {
+        return getAntiClaimWidth() * getAntiClaimHeight();
     }
 
     public int getWidth()
@@ -264,9 +278,19 @@ public class Claim
         return this.greaterBoundaryCorner.getBlockX() - this.lesserBoundaryCorner.getBlockX() + 1;
     }
 
+    public int getAntiClaimWidth()
+    {
+        return this.greaterAntiClaimZoneCorner.getBlockX() - this.lesserAntiClaimZoneCorner.getBlockX() + 1;
+    }
+
     public int getHeight()
     {
         return this.greaterBoundaryCorner.getBlockZ() - this.lesserBoundaryCorner.getBlockZ() + 1;
+    }
+
+    public int getAntiClaimHeight()
+    {
+        return this.greaterAntiClaimZoneCorner.getBlockZ() - this.lesserAntiClaimZoneCorner.getBlockZ() + 1;
     }
 
     public boolean getSubclaimRestrictions()
@@ -690,11 +714,21 @@ public class Claim
         return this.lesserBoundaryCorner.clone();
     }
 
+    public Location getLesserAntiClaimZoneCorner()
+    {
+        return lesserAntiClaimZoneCorner.clone();
+    }
+
     //returns a copy of the location representing upper x, y, z limits
     //NOTE: remember upper Y will always be ignored, all claims always extend to the sky
     public Location getGreaterBoundaryCorner()
     {
         return this.greaterBoundaryCorner.clone();
+    }
+
+    public Location getGreaterAntiClaimZoneCorner()
+    {
+        return greaterAntiClaimZoneCorner.clone();
     }
 
     //returns a friendly owner name (for admin claims, returns "an administrator" as the owner)
@@ -714,21 +748,7 @@ public class Claim
     //excludeSubdivisions = true means that locations inside subdivisions of the claim will return FALSE
     public boolean contains(Location location, boolean ignoreHeight, boolean excludeSubdivisions)
     {
-        //not in the same world implies false
-        if (!location.getWorld().equals(this.lesserBoundaryCorner.getWorld())) return false;
-
-        double x = location.getX();
-        double y = location.getY();
-        double z = location.getZ();
-
-        //main check
-        boolean inClaim = (ignoreHeight || y >= this.lesserBoundaryCorner.getY()) &&
-                x >= this.lesserBoundaryCorner.getX() &&
-                x < this.greaterBoundaryCorner.getX() + 1 &&
-                z >= this.lesserBoundaryCorner.getZ() &&
-                z < this.greaterBoundaryCorner.getZ() + 1;
-
-        if (!inClaim) return false;
+        if (!contains(location, lesserBoundaryCorner, greaterBoundaryCorner, ignoreHeight)) return false;
 
         //additional check for subdivisions
         //you're only in a subdivision when you're also in its parent claim
@@ -757,52 +777,61 @@ public class Claim
         return true;
     }
 
+    public static boolean contains(Location location, Location min, Location max, boolean ignoreHeight)
+    {
+        //not in the same world implies false
+        if (!location.getWorld().equals(min.getWorld())) return false;
+
+        double x = location.getX();
+        double y = location.getY();
+        double z = location.getZ();
+
+        //main check
+        return (ignoreHeight || y >= min.getY()) &&
+                x >= min.getX() &&
+                x < max.getX() + 1 &&
+                z >= min.getZ() &&
+                z < max.getZ() + 1;
+    }
+
+    public boolean containsAntiZone(Location location) {
+        return contains(location, lesserAntiClaimZoneCorner, greaterAntiClaimZoneCorner, true);
+    }
+
     //whether or not two claims overlap
     //used internally to prevent overlaps when creating claims
     boolean overlaps(Claim otherClaim)
     {
-        //NOTE:  if trying to understand this makes your head hurt, don't feel bad - it hurts mine too.
-        //try drawing pictures to visualize test cases.
+        return overlaps(lesserBoundaryCorner, greaterBoundaryCorner, otherClaim.lesserBoundaryCorner, otherClaim.greaterBoundaryCorner);
+    }
 
-        if (!this.lesserBoundaryCorner.getWorld().equals(otherClaim.getLesserBoundaryCorner().getWorld())) return false;
+    boolean overlapsAntiZone(Claim otherClaim)
+    {
+        return overlaps(lesserAntiClaimZoneCorner, greaterAntiClaimZoneCorner, otherClaim.lesserBoundaryCorner, otherClaim.greaterBoundaryCorner);
+    }
 
-        //first, check the corners of this claim aren't inside any existing claims
-        if (otherClaim.contains(this.lesserBoundaryCorner, true, false)) return true;
-        if (otherClaim.contains(this.greaterBoundaryCorner, true, false)) return true;
-        if (otherClaim.contains(new Location(this.lesserBoundaryCorner.getWorld(), this.lesserBoundaryCorner.getBlockX(), 0, this.greaterBoundaryCorner.getBlockZ()), true, false))
-            return true;
-        if (otherClaim.contains(new Location(this.lesserBoundaryCorner.getWorld(), this.greaterBoundaryCorner.getBlockX(), 0, this.lesserBoundaryCorner.getBlockZ()), true, false))
-            return true;
+    boolean overlaps(Location min1, Location max1, Location min2, Location max2) {
+        if (!min1.getWorld().equals(min2.getWorld())) return false;
+        int max = min1.getWorld().getMaxHeight();
+        min1 = min1.clone();
+        min1.setY(0);
+        max1 = max1.clone();
+        max1.setY(max);
+        min2 = min2.clone();
+        min2.setY(0);
+        max2 = max2.clone();
+        max2.setY(max);
 
-        //verify that no claim's lesser boundary point is inside this new claim, to cover the "existing claim is entirely inside new claim" case
-        if (this.contains(otherClaim.getLesserBoundaryCorner(), true, false)) return true;
+        return overlapsIncluding(BoundingBox.of(min1, max1), BoundingBox.of(min2, max2));
+    }
 
-        //verify this claim doesn't band across an existing claim, either horizontally or vertically
-        if (this.getLesserBoundaryCorner().getBlockZ() <= otherClaim.getGreaterBoundaryCorner().getBlockZ() &&
-                this.getLesserBoundaryCorner().getBlockZ() >= otherClaim.getLesserBoundaryCorner().getBlockZ() &&
-                this.getLesserBoundaryCorner().getBlockX() < otherClaim.getLesserBoundaryCorner().getBlockX() &&
-                this.getGreaterBoundaryCorner().getBlockX() > otherClaim.getGreaterBoundaryCorner().getBlockX())
-            return true;
-
-        if (this.getGreaterBoundaryCorner().getBlockZ() <= otherClaim.getGreaterBoundaryCorner().getBlockZ() &&
-                this.getGreaterBoundaryCorner().getBlockZ() >= otherClaim.getLesserBoundaryCorner().getBlockZ() &&
-                this.getLesserBoundaryCorner().getBlockX() < otherClaim.getLesserBoundaryCorner().getBlockX() &&
-                this.getGreaterBoundaryCorner().getBlockX() > otherClaim.getGreaterBoundaryCorner().getBlockX())
-            return true;
-
-        if (this.getLesserBoundaryCorner().getBlockX() <= otherClaim.getGreaterBoundaryCorner().getBlockX() &&
-                this.getLesserBoundaryCorner().getBlockX() >= otherClaim.getLesserBoundaryCorner().getBlockX() &&
-                this.getLesserBoundaryCorner().getBlockZ() < otherClaim.getLesserBoundaryCorner().getBlockZ() &&
-                this.getGreaterBoundaryCorner().getBlockZ() > otherClaim.getGreaterBoundaryCorner().getBlockZ())
-            return true;
-
-        if (this.getGreaterBoundaryCorner().getBlockX() <= otherClaim.getGreaterBoundaryCorner().getBlockX() &&
-                this.getGreaterBoundaryCorner().getBlockX() >= otherClaim.getLesserBoundaryCorner().getBlockX() &&
-                this.getLesserBoundaryCorner().getBlockZ() < otherClaim.getLesserBoundaryCorner().getBlockZ() &&
-                this.getGreaterBoundaryCorner().getBlockZ() > otherClaim.getGreaterBoundaryCorner().getBlockZ())
-            return true;
-
-        return false;
+    public static boolean overlapsIncluding(BoundingBox box, BoundingBox other) {
+        return box.getMinX() <= other.getMaxX()
+                && box.getMaxX() >= other.getMinX()
+                && box.getMinY() <= other.getMaxY()
+                && box.getMaxY() >= other.getMinY()
+                && box.getMinZ() <= other.getMaxZ()
+                && box.getMaxZ() >= other.getMinZ();
     }
 
     //whether more entities may be added to a claim
@@ -974,13 +1003,13 @@ public class Claim
         return chunks;
     }
 
-    ArrayList<Long> getChunkHashes()
+    ArrayList<Long> getChunkHashes(Location min, Location max)
     {
-        ArrayList<Long> hashes = new ArrayList<Long>();
-        int smallX = this.getLesserBoundaryCorner().getBlockX() >> 4;
-        int smallZ = this.getLesserBoundaryCorner().getBlockZ() >> 4;
-        int largeX = this.getGreaterBoundaryCorner().getBlockX() >> 4;
-        int largeZ = this.getGreaterBoundaryCorner().getBlockZ() >> 4;
+        ArrayList<Long> hashes = new ArrayList<>();
+        int smallX = min.getBlockX() >> 4;
+        int smallZ = min.getBlockZ() >> 4;
+        int largeX = max.getBlockX() >> 4;
+        int largeZ = max.getBlockZ() >> 4;
 
         for (int x = smallX; x <= largeX; x++)
         {
@@ -991,5 +1020,15 @@ public class Claim
         }
 
         return hashes;
+    }
+
+    ArrayList<Long> getChunkHashes()
+    {
+        return getChunkHashes(lesserBoundaryCorner, greaterBoundaryCorner);
+    }
+
+    ArrayList<Long> getAntiClaimZoneChunkHashes()
+    {
+        return getChunkHashes(lesserAntiClaimZoneCorner, greaterAntiClaimZoneCorner);
     }
 }

@@ -1960,7 +1960,7 @@ class PlayerEventHandler implements Listener
                     Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claims));
 
                     //visualize boundaries
-                    Visualization visualization = Visualization.fromClaims(claims, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation());
+                    Visualization visualization = Visualization.fromClaims(claims, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation(), GriefPrevention.instance.config_claims_preventBullyClaims);
                     Visualization.Apply(player, visualization);
 
                     instance.sendMessage(player, TextMode.Info, Messages.ShowNearbyClaims, String.valueOf(claims.size()));
@@ -1995,7 +1995,7 @@ class PlayerEventHandler implements Listener
                 }
 
                 if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
-                Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false /*ignore height*/, playerData.lastClaim);
+                Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false /*ignore height*/, playerData.lastClaim, GriefPrevention.instance.config_claims_preventBullyClaims);
 
                 //no claim case
                 if (claim == null)
@@ -2012,10 +2012,20 @@ class PlayerEventHandler implements Listener
                 else
                 {
                     playerData.lastClaim = claim;
-                    instance.sendMessage(player, TextMode.Info, Messages.BlockClaimed, claim.getOwnerName());
+
+                    //if player inspected the actual claim, not the antibullyzone area
+                    if (claim.contains(clickedBlock.getLocation(), true, false))
+                    {
+                        instance.sendMessage(player, TextMode.Info, Messages.BlockClaimed, claim.getOwnerName());
+                    }
+                    //else the player clicked in the antibullyzone area
+                    else
+                    {
+                        instance.sendMessage(player, TextMode.Info, Messages.BlockAntiBullyZone, claim.getOwnerName());
+                    }
 
                     //visualize boundary
-                    Visualization visualization = Visualization.FromClaim(claim, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation());
+                    Visualization visualization = Visualization.FromClaim(claim, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation(), GriefPrevention.instance.config_claims_preventBullyClaims);
 
                     // alert plugins of a visualization
                     Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claim));
@@ -2452,6 +2462,20 @@ class PlayerEventHandler implements Listener
                     return;
                 }
 
+                Claim bullyClaim = this.dataStore.getClaimAt(clickedBlock.getLocation(), true /*ignore height*/, playerData.lastClaim, GriefPrevention.instance.config_claims_preventBullyClaims);
+
+                //if he set the corner in the anti bully area, display and error and visualize the claim.
+                if (bullyClaim != null && bullyClaim.containsAntiZone(clickedBlock.getLocation())) {
+                    instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapOtherPlayerAntiBullyZone, bullyClaim.getOwnerName());
+                    Visualization visualization = Visualization.FromClaim(bullyClaim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation(), true);
+
+                    // alert plugins of a visualization
+                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, bullyClaim));
+
+                    Visualization.Apply(player, visualization);
+                    return;
+                }
+
                 //remember it, and start him on the new claim
                 playerData.lastShovelLocation = clickedBlock.getLocation();
                 instance.sendMessage(player, TextMode.Instr, Messages.ClaimStart);
@@ -2544,9 +2568,16 @@ class PlayerEventHandler implements Listener
                 {
                     if (result.claim != null)
                     {
-                        instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapShort);
+                        if (result.overlappedAntiZone)
+                        {
+                            instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapAntiBullyZone);
+                        }
+                        else
+                        {
+                            instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapShort);
+                        }
 
-                        Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation());
+                        Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation(), result.overlappedAntiZone);
 
                         // alert plugins of a visualization
                         Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, result.claim));

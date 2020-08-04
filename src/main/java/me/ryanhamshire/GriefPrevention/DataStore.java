@@ -72,6 +72,7 @@ public abstract class DataStore
     //in-memory cache for claim data
     ArrayList<Claim> claims = new ArrayList<Claim>();
     ConcurrentHashMap<Long, ArrayList<Claim>> chunksToClaimsMap = new ConcurrentHashMap<Long, ArrayList<Claim>>();
+    ConcurrentHashMap<Long, ArrayList<Claim>> chunksToAntiBullyZoneClaimsMap = new ConcurrentHashMap<Long, ArrayList<Claim>>();
 
     //in-memory cache for messages
     private String[] messages;
@@ -469,27 +470,30 @@ public abstract class DataStore
         }
     }
 
-    private void addToChunkClaimMap(Claim claim)
-    {
-        ArrayList<Long> chunkHashes = claim.getChunkHashes();
+    private void addToChunkClaimMap(ConcurrentHashMap<Long, ArrayList<Claim>> map, Claim claim, ArrayList<Long> chunkHashes) {
         for (Long chunkHash : chunkHashes)
         {
-            ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkHash);
+            ArrayList<Claim> claimsInChunk = map.get(chunkHash);
             if (claimsInChunk == null)
             {
-                this.chunksToClaimsMap.put(chunkHash, claimsInChunk = new ArrayList<>());
+                map.put(chunkHash, claimsInChunk = new ArrayList<>());
             }
 
             claimsInChunk.add(claim);
         }
     }
 
-    private void removeFromChunkClaimMap(Claim claim)
+    private void addToChunkClaimMap(Claim claim)
     {
-        ArrayList<Long> chunkHashes = claim.getChunkHashes();
+        addToChunkClaimMap(this.chunksToClaimsMap, claim, claim.getChunkHashes());
+        addToChunkClaimMap(this.chunksToAntiBullyZoneClaimsMap, claim, claim.getAntiClaimZoneChunkHashes());
+    }
+
+    private void removeFromChunkClaimMap(ConcurrentHashMap<Long, ArrayList<Claim>> map, Claim claim, ArrayList<Long> chunkHashes)
+    {
         for (Long chunkHash : chunkHashes)
         {
-            ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkHash);
+            ArrayList<Claim> claimsInChunk = map.get(chunkHash);
             if (claimsInChunk != null)
             {
                 for (Iterator<Claim> it = claimsInChunk.iterator(); it.hasNext(); )
@@ -503,10 +507,16 @@ public abstract class DataStore
                 }
                 if (claimsInChunk.isEmpty())
                 { // if nothing's left, remove this chunk's cache
-                    this.chunksToClaimsMap.remove(chunkHash);
+                    map.remove(chunkHash);
                 }
             }
         }
+    }
+
+    private void removeFromChunkClaimMap(Claim claim)
+    {
+        removeFromChunkClaimMap(this.chunksToClaimsMap, claim, claim.getChunkHashes());
+        removeFromChunkClaimMap(this.chunksToAntiBullyZoneClaimsMap, claim, claim.getAntiClaimZoneChunkHashes());
     }
 
     //turns a location into a string, useful in data storage
@@ -717,10 +727,17 @@ public abstract class DataStore
 
     abstract void deleteClaimFromSecondaryStorage(Claim claim);
 
+    //convenience method for backwards compatibility
+    synchronized public Claim getClaimAt(Location location, boolean ignoreHeight, Claim cachedClaim)
+    {
+        return getClaimAt(location, ignoreHeight, cachedClaim, false);
+    }
+
     //gets the claim at a specific location
     //ignoreHeight = TRUE means that a location UNDER an existing claim will return the claim
     //cachedClaim can be NULL, but will help performance if you have a reasonable guess about which claim the location is in
-    synchronized public Claim getClaimAt(Location location, boolean ignoreHeight, Claim cachedClaim)
+    //checkAntiBullyZone flag is used for getting a claim with antibullyzone radius.
+    synchronized public Claim getClaimAt(Location location, boolean ignoreHeight, Claim cachedClaim, boolean checkAntiBullyZone)
     {
         //check cachedClaim guess first.  if it's in the datastore and the location is inside it, we're done
         if (cachedClaim != null && cachedClaim.inDataStore && cachedClaim.contains(location, ignoreHeight, true))
@@ -728,23 +745,32 @@ public abstract class DataStore
 
         //find a top level claim
         Long chunkID = getChunkHash(location);
-        ArrayList<Claim> claimsInChunk = this.chunksToClaimsMap.get(chunkID);
+        ArrayList<Claim> claimsInChunk;
+        if (checkAntiBullyZone) {
+            claimsInChunk = this.chunksToAntiBullyZoneClaimsMap.get(chunkID);
+        } else {
+            claimsInChunk = this.chunksToClaimsMap.get(chunkID);
+        }
         if (claimsInChunk == null) return null;
 
         for (Claim claim : claimsInChunk)
         {
-            if (claim.inDataStore && claim.contains(location, ignoreHeight, false))
-            {
-                //when we find a top level claim, if the location is in one of its subdivisions,
-                //return the SUBDIVISION, not the top level claim
-                for (int j = 0; j < claim.children.size(); j++)
+            if (claim.inDataStore) {
+                if (claim.contains(location, ignoreHeight, false))
                 {
-                    Claim subdivision = claim.children.get(j);
-                    if (subdivision.inDataStore && subdivision.contains(location, ignoreHeight, false))
-                        return subdivision;
-                }
+                    //when we find a top level claim, if the location is in one of its subdivisions,
+                    //return the SUBDIVISION, not the top level claim
+                    for (int j = 0; j < claim.children.size(); j++)
+                    {
+                        Claim subdivision = claim.children.get(j);
+                        if (subdivision.inDataStore && subdivision.contains(location, ignoreHeight, false))
+                            return subdivision;
+                    }
 
-                return claim;
+                    return claim;
+                } else if (checkAntiBullyZone && claim.containsAntiZone(location)) {
+                    return claim;
+                }
             }
         }
 
@@ -771,9 +797,15 @@ public abstract class DataStore
         return Collections.unmodifiableCollection(this.claims);
     }
 
-    public Collection<Claim> getClaims(int chunkx, int chunkz)
+    public Collection<Claim> getClaims(int chunkx, int chunkz, boolean checkAntiBullyZone)
     {
-        ArrayList<Claim> chunkClaims = this.chunksToClaimsMap.get(getChunkHash(chunkx, chunkz));
+        ArrayList<Claim> chunkClaims;
+        if (checkAntiBullyZone) {
+            chunkClaims = this.chunksToAntiBullyZoneClaimsMap.get(getChunkHash(chunkx, chunkz));
+        } else {
+            chunkClaims = this.chunksToClaimsMap.get(getChunkHash(chunkx, chunkz));
+        }
+
         if (chunkClaims != null)
         {
             return Collections.unmodifiableCollection(chunkClaims);
@@ -817,8 +849,6 @@ public abstract class DataStore
     //does NOT visualize the new claim for any players
     synchronized public CreateClaimResult createClaim(World world, int x1, int x2, int y1, int y2, int z1, int z2, UUID ownerID, Claim parent, Long id, Player creatingPlayer, boolean dryRun)
     {
-        CreateClaimResult result = new CreateClaimResult();
-
         int smallx, bigx, smally, bigy, smallz, bigz;
 
         if (y1 < GriefPrevention.instance.config_claims_maxDepth) y1 = GriefPrevention.instance.config_claims_maxDepth;
@@ -864,9 +894,7 @@ public abstract class DataStore
             Location greater = parent.getGreaterBoundaryCorner();
             if (smallx < lesser.getX() || smallz < lesser.getZ() || bigx > greater.getX() || bigz > greater.getZ())
             {
-                result.succeeded = false;
-                result.claim = parent;
-                return result;
+                return new CreateClaimResult(false, parent);
             }
         }
 
@@ -905,12 +933,18 @@ public abstract class DataStore
             Claim otherClaim = claimsToCheck.get(i);
 
             //if we find an existing claim which will be overlapped
-            if (otherClaim.id != newClaim.id && otherClaim.inDataStore && otherClaim.overlaps(newClaim))
+            if (otherClaim.id != newClaim.id && otherClaim.inDataStore)
             {
-                //result = fail, return conflicting claim
-                result.succeeded = false;
-                result.claim = otherClaim;
-                return result;
+                if (otherClaim.overlaps(newClaim))
+                {
+                    //result = fail, return conflicting claim
+                    return new CreateClaimResult(false, otherClaim);
+                }
+                else if (GriefPrevention.instance.config_claims_preventBullyClaims && otherClaim.overlapsAntiZone(newClaim))
+                {
+                    //result = fail, return conflicting claim, and set overlappedAntiZone flag to true.
+                    return new CreateClaimResult(false, otherClaim, true);
+                }
             }
         }
 
@@ -919,35 +953,27 @@ public abstract class DataStore
         {
             if (!this.worldGuard.canBuild(newClaim.lesserBoundaryCorner, newClaim.greaterBoundaryCorner, creatingPlayer))
             {
-                result.succeeded = false;
-                result.claim = null;
-                return result;
+                return new CreateClaimResult(false, null);
             }
         }
         if (dryRun)
         {
             // since this is a dry run, just return the unsaved claim as is.
-            result.succeeded = true;
-            result.claim = newClaim;
-            return result;
+            return new CreateClaimResult(true, newClaim);
         }
         assignClaimID(newClaim); // assign a claim ID before calling event, in case a plugin wants to know the ID.
         ClaimCreatedEvent event = new ClaimCreatedEvent(newClaim, creatingPlayer);
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
         {
-            result.succeeded = false;
-            result.claim = null;
-            return result;
+            return new CreateClaimResult(false, null);
 
         }
         //otherwise add this new claim to the data store to make it effective
         this.addClaim(newClaim, true);
 
         //then return success along with reference to new claim
-        result.succeeded = true;
-        result.claim = newClaim;
-        return result;
+        return new CreateClaimResult(true, newClaim);
     }
 
     //saves changes to player data to secondary storage.  MUST be called after you're done making changes, otherwise a reload will lose them
@@ -1287,6 +1313,7 @@ public abstract class DataStore
             // copy the boundary from the claim created in the dry run of createClaim() to our existing claim
             claim.lesserBoundaryCorner = result.claim.lesserBoundaryCorner;
             claim.greaterBoundaryCorner = result.claim.greaterBoundaryCorner;
+            claim.recalculateAntiBullyZone();
             result.claim = claim;
             addToChunkClaimMap(claim); // add the new boundary to the chunk cache
 
@@ -1427,10 +1454,17 @@ public abstract class DataStore
             if (result.claim != null)
             {
                 //inform player
-                GriefPrevention.sendMessage(player, TextMode.Err, Messages.ResizeFailOverlap);
+                if (result.overlappedAntiZone)
+                {
+                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.ResizeFailOverlapAntiBullyZone);
+                }
+                else
+                {
+                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.ResizeFailOverlap);
+                }
 
                 //show the player the conflicting claim
-                Visualization visualization = Visualization.FromClaim(result.claim, player.getEyeLocation().getBlockY(), VisualizationType.ErrorClaim, player.getLocation());
+                Visualization visualization = Visualization.FromClaim(result.claim, player.getEyeLocation().getBlockY(), VisualizationType.ErrorClaim, player.getLocation(), result.overlappedAntiZone);
                 Visualization.Apply(player, visualization);
             }
             else
@@ -1569,6 +1603,7 @@ public abstract class DataStore
         this.addDefault(defaults, Messages.TooFarAway, "That's too far away.", null);
         this.addDefault(defaults, Messages.BlockNotClaimed, "No one has claimed this block.", null);
         this.addDefault(defaults, Messages.BlockClaimed, "That block has been claimed by {0}.", "0: claim owner");
+        this.addDefault(defaults, Messages.BlockAntiBullyZone, "That block is in the anti claim zone of {0}.", "0: claim owner");
         this.addDefault(defaults, Messages.SiegeNoShovel, "You can't use your shovel tool while involved in a siege.", null);
         this.addDefault(defaults, Messages.RestoreNaturePlayerInChunk, "Unable to restore.  {0} is in that chunk.", "0: nearby player");
         this.addDefault(defaults, Messages.NoCreateClaimPermission, "You don't have permission to claim land.", null);
@@ -1576,6 +1611,7 @@ public abstract class DataStore
         this.addDefault(defaults, Messages.ResizeNeedMoreBlocks, "You don't have enough blocks for this size.  You need {0} more.", "0: how many needed");
         this.addDefault(defaults, Messages.ClaimResizeSuccess, "Claim resized.  {0} available claim blocks remaining.", "0: remaining blocks");
         this.addDefault(defaults, Messages.ResizeFailOverlap, "Can't resize here because it would overlap another nearby claim.", null);
+        this.addDefault(defaults, Messages.ResizeFailOverlapAntiBullyZone, "Can't resize here because it would overlap another nearby claim's anti claim zone.", null);
         this.addDefault(defaults, Messages.ResizeStart, "Resizing claim.  Use your shovel again at the new location for this corner.", null);
         this.addDefault(defaults, Messages.ResizeFailOverlapSubdivision, "You can't create a subdivision here because it would overlap another subdivision.  Consider /abandonclaim to delete it, or use your shovel at a corner to resize it.", null);
         this.addDefault(defaults, Messages.SubdivisionStart, "Subdivision corner set!  Use your shovel at the location for the opposite corner of this new subdivision.", null);
@@ -1583,6 +1619,7 @@ public abstract class DataStore
         this.addDefault(defaults, Messages.SubdivisionSuccess, "Subdivision created!  Use /trust to share it with friends.", null);
         this.addDefault(defaults, Messages.CreateClaimFailOverlap, "You can't create a claim here because it would overlap your other claim.  Use /abandonclaim to delete it, or use your shovel at a corner to resize it.", null);
         this.addDefault(defaults, Messages.CreateClaimFailOverlapOtherPlayer, "You can't create a claim here because it would overlap {0}'s claim.", "0: other claim owner");
+        this.addDefault(defaults, Messages.CreateClaimFailOverlapOtherPlayerAntiBullyZone, "You can't create your claim here because it would overlap {0}'s anti claim zone.", "0: other claim owner");
         this.addDefault(defaults, Messages.ClaimsDisabledWorld, "Land claims are disabled in this world.", null);
         this.addDefault(defaults, Messages.ClaimStart, "Claim corner set!  Use the shovel again at the opposite corner to claim a rectangle of land.  To cancel, put your shovel away.", null);
         this.addDefault(defaults, Messages.NewClaimTooNarrow, "This claim would be too small.  Any claim must be at least {0} blocks wide.", "0: minimum claim width");
@@ -1590,6 +1627,7 @@ public abstract class DataStore
         this.addDefault(defaults, Messages.CreateClaimInsufficientBlocks, "You don't have enough blocks to claim that entire area.  You need {0} more blocks.", "0: additional blocks needed");
         this.addDefault(defaults, Messages.AbandonClaimAdvertisement, "To delete another claim and free up some blocks, use /AbandonClaim.", null);
         this.addDefault(defaults, Messages.CreateClaimFailOverlapShort, "Your selected area overlaps an existing claim.", null);
+        this.addDefault(defaults, Messages.CreateClaimFailOverlapAntiBullyZone, "Your selected area overlaps with an existing claim's anti claim zone.", null);
         this.addDefault(defaults, Messages.CreateClaimSuccess, "Claim created!  Use /trust to share it with friends.", null);
         this.addDefault(defaults, Messages.SiegeWinDoorsOpen, "Congratulations!  Buttons and levers are temporarily unlocked.", null);
         this.addDefault(defaults, Messages.RescueAbortedMoved, "You moved!  Rescue cancelled.", null);

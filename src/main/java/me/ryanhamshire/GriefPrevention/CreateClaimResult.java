@@ -23,7 +23,24 @@ public class CreateClaimResult
     //whether or not the creation succeeded (it would fail if the new claim overlapped another existing claim)
     public boolean succeeded;
 
+    //if succeeded is false, check with this variable if the overlapping happened in the antizone.
+    //this will return false if antibullyprevention is disabled.
+    public boolean overlappedAntiZone;
+
     //when succeeded, this is a reference to the new claim
     //when failed, this is a reference to the pre-existing, conflicting claim
     public Claim claim;
+
+    //convenience constructor defaulting overlappedAntiZone to false.
+    public CreateClaimResult(boolean succeeded, Claim claim)
+    {
+        this(succeeded, claim, false);
+    }
+
+    public CreateClaimResult(boolean succeeded, Claim claim, boolean overlappedAntiZone)
+    {
+        this.succeeded = succeeded;
+        this.claim = claim;
+        this.overlappedAntiZone = overlappedAntiZone;
+    }
 }
