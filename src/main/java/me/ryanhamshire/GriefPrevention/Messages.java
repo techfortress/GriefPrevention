@@ -256,5 +256,15 @@ public enum Messages
     StandInSubclaim,
     SubclaimRestricted,
     SubclaimUnrestricted,
-    NetherPortalTrapDetectionMessage
+    NetherPortalTrapDetectionMessage,
+    PlayerNotOnline,
+    NeighbourRequestSent,
+    NeighbourRequestAlreadySent,
+    NeighbourRequestReceived,
+    NoNeighbourRequestReceived,
+    NeighbourAdded,
+    AlreadyNeighbour,
+    NeighbourRemoved,
+    AllNeighboursRemoved,
+    SelfNeighbour
 }

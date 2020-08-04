@@ -2462,18 +2462,23 @@ class PlayerEventHandler implements Listener
                     return;
                 }
 
-                Claim bullyClaim = this.dataStore.getClaimAt(clickedBlock.getLocation(), true /*ignore height*/, playerData.lastClaim, GriefPrevention.instance.config_claims_preventBullyClaims);
+                Claim neighbour = this.dataStore.getClaimAt(clickedBlock.getLocation(), true /*ignore height*/, playerData.lastClaim, GriefPrevention.instance.config_claims_preventBullyClaims);
 
                 //if he set the corner in the anti bully area, display and error and visualize the claim.
-                if (bullyClaim != null && bullyClaim.containsAntiZone(clickedBlock.getLocation())) {
-                    instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapOtherPlayerAntiBullyZone, bullyClaim.getOwnerName());
-                    Visualization visualization = Visualization.FromClaim(bullyClaim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation(), true);
+                if (neighbour != null && neighbour.containsAntiZone(clickedBlock.getLocation()))
+                {
+                    //unless they are neighbours or it is the same person...
+                    if (!playerID.equals(neighbour.ownerID) && !GriefPrevention.instance.dataStore.neighbours.computeIfAbsent(playerID, k -> new HashSet<>()).contains(neighbour.ownerID))
+                    {
+                        instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapOtherPlayerAntiBullyZone, neighbour.getOwnerName());
+                        Visualization visualization = Visualization.FromClaim(neighbour, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation(), true);
 
-                    // alert plugins of a visualization
-                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, bullyClaim));
+                        // alert plugins of a visualization
+                        Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, neighbour));
 
-                    Visualization.Apply(player, visualization);
-                    return;
+                        Visualization.Apply(player, visualization);
+                        return;
+                    }
                 }
 
                 //remember it, and start him on the new claim

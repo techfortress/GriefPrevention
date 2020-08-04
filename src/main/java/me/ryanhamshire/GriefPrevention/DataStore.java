@@ -110,6 +110,10 @@ public abstract class DataStore
     //list of UUIDs which are soft-muted
     ConcurrentHashMap<UUID, Boolean> softMuteMap = new ConcurrentHashMap<UUID, Boolean>();
 
+    //neighbour storage
+    Map<UUID, Set<UUID>> outgoingNeighbourRequests = new ConcurrentHashMap<>();
+    Map<UUID, Set<UUID>> neighbours = new ConcurrentHashMap<>();
+
     //world guard reference, if available
     private WorldGuardWrapper worldGuard = null;
 
@@ -942,8 +946,12 @@ public abstract class DataStore
                 }
                 else if (GriefPrevention.instance.config_claims_preventBullyClaims && otherClaim.overlapsAntiZone(newClaim))
                 {
-                    //result = fail, return conflicting claim, and set overlappedAntiZone flag to true.
-                    return new CreateClaimResult(false, otherClaim, true);
+                    //if player is not a neighbour of the other claim, or they have not the same owner...
+                    if (!ownerID.equals(otherClaim.ownerID) && !neighbours.computeIfAbsent(ownerID, k -> new HashSet<>()).contains(otherClaim.ownerID))
+                    {
+                        //result = fail, return conflicting claim, and set overlappedAntiZone flag to true.
+                        return new CreateClaimResult(false, otherClaim, true);
+                    }
                 }
             }
         }
@@ -1611,7 +1619,7 @@ public abstract class DataStore
         this.addDefault(defaults, Messages.ResizeNeedMoreBlocks, "You don't have enough blocks for this size.  You need {0} more.", "0: how many needed");
         this.addDefault(defaults, Messages.ClaimResizeSuccess, "Claim resized.  {0} available claim blocks remaining.", "0: remaining blocks");
         this.addDefault(defaults, Messages.ResizeFailOverlap, "Can't resize here because it would overlap another nearby claim.", null);
-        this.addDefault(defaults, Messages.ResizeFailOverlapAntiBullyZone, "Can't resize here because it would overlap another nearby claim's anti claim zone.", null);
+        this.addDefault(defaults, Messages.ResizeFailOverlapAntiBullyZone, "Can't resize here because it would overlap another nearby claim's anti claim zone.  Ask the owner to make you a neighbour!", null);
         this.addDefault(defaults, Messages.ResizeStart, "Resizing claim.  Use your shovel again at the new location for this corner.", null);
         this.addDefault(defaults, Messages.ResizeFailOverlapSubdivision, "You can't create a subdivision here because it would overlap another subdivision.  Consider /abandonclaim to delete it, or use your shovel at a corner to resize it.", null);
         this.addDefault(defaults, Messages.SubdivisionStart, "Subdivision corner set!  Use your shovel at the location for the opposite corner of this new subdivision.", null);
@@ -1619,7 +1627,7 @@ public abstract class DataStore
         this.addDefault(defaults, Messages.SubdivisionSuccess, "Subdivision created!  Use /trust to share it with friends.", null);
         this.addDefault(defaults, Messages.CreateClaimFailOverlap, "You can't create a claim here because it would overlap your other claim.  Use /abandonclaim to delete it, or use your shovel at a corner to resize it.", null);
         this.addDefault(defaults, Messages.CreateClaimFailOverlapOtherPlayer, "You can't create a claim here because it would overlap {0}'s claim.", "0: other claim owner");
-        this.addDefault(defaults, Messages.CreateClaimFailOverlapOtherPlayerAntiBullyZone, "You can't create your claim here because it would overlap {0}'s anti claim zone.", "0: other claim owner");
+        this.addDefault(defaults, Messages.CreateClaimFailOverlapOtherPlayerAntiBullyZone, "You can't create your claim here because it would overlap {0}'s anti claim zone.  Ask the owner to make you a neighbour!", "0: other claim owner");
         this.addDefault(defaults, Messages.ClaimsDisabledWorld, "Land claims are disabled in this world.", null);
         this.addDefault(defaults, Messages.ClaimStart, "Claim corner set!  Use the shovel again at the opposite corner to claim a rectangle of land.  To cancel, put your shovel away.", null);
         this.addDefault(defaults, Messages.NewClaimTooNarrow, "This claim would be too small.  Any claim must be at least {0} blocks wide.", "0: minimum claim width");
@@ -1627,7 +1635,7 @@ public abstract class DataStore
         this.addDefault(defaults, Messages.CreateClaimInsufficientBlocks, "You don't have enough blocks to claim that entire area.  You need {0} more blocks.", "0: additional blocks needed");
         this.addDefault(defaults, Messages.AbandonClaimAdvertisement, "To delete another claim and free up some blocks, use /AbandonClaim.", null);
         this.addDefault(defaults, Messages.CreateClaimFailOverlapShort, "Your selected area overlaps an existing claim.", null);
-        this.addDefault(defaults, Messages.CreateClaimFailOverlapAntiBullyZone, "Your selected area overlaps with an existing claim's anti claim zone.", null);
+        this.addDefault(defaults, Messages.CreateClaimFailOverlapAntiBullyZone, "Your selected area overlaps with an existing claim's anti claim zone.  Ask the owner to make you a neighbour!", null);
         this.addDefault(defaults, Messages.CreateClaimSuccess, "Claim created!  Use /trust to share it with friends.", null);
         this.addDefault(defaults, Messages.SiegeWinDoorsOpen, "Congratulations!  Buttons and levers are temporarily unlocked.", null);
         this.addDefault(defaults, Messages.RescueAbortedMoved, "You moved!  Rescue cancelled.", null);
@@ -1739,6 +1747,18 @@ public abstract class DataStore
         this.addDefault(defaults, Messages.SubclaimUnrestricted, "This subclaim's permissions will now inherit from the parent claim", null);
 
         this.addDefault(defaults, Messages.NetherPortalTrapDetectionMessage, "It seems you might be stuck inside a nether portal. We will rescue you in a few seconds if that is the case!", "Sent to player on join, if they left while inside a nether portal.");
+
+        this.addDefault(defaults, Messages.PlayerNotOnline, "{0} must be online!", "0: the player.");
+
+        this.addDefault(defaults, Messages.NeighbourRequestSent, "Neighbour request sent to {0}.", "0: the neighbour.");
+        this.addDefault(defaults, Messages.NeighbourRequestAlreadySent, "You already sent a neighbour request to {0}.", "0: the neighbour.");
+        this.addDefault(defaults, Messages.NeighbourRequestReceived, "You received a neighbour request from {0}.  Type /AcceptNeighbour {0} to accept.", "0: the neighbour.");
+        this.addDefault(defaults, Messages.NoNeighbourRequestReceived, "You didn't receive a neighbour request from {0}.", "0: the neighbour.");
+        this.addDefault(defaults, Messages.NeighbourAdded, "{0} is now your neighbour!", "0: the neighbour.");
+        this.addDefault(defaults, Messages.AlreadyNeighbour, "{0} is already your neighbour!", "0: the neighbour.");
+        this.addDefault(defaults, Messages.NeighbourRemoved, "{0} is no longer your neighbour.", "0: the neighbour.");
+        this.addDefault(defaults, Messages.AllNeighboursRemoved, "You no longer have any neighbours.", null);
+        this.addDefault(defaults, Messages.SelfNeighbour, "You can't be a neighbour with yourself!", null);
 
         //load the config file
         FileConfiguration config = YamlConfiguration.loadConfiguration(new File(messagesFilePath));

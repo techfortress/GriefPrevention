@@ -59,8 +59,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
@@ -2862,6 +2865,140 @@ public class GriefPrevention extends JavaPlugin
 
             GriefPrevention.sendMessage(player, TextMode.Success, Messages.UnSeparateConfirmation);
 
+            return true;
+        }
+
+        //addneighbour
+        else if (cmd.getName().equalsIgnoreCase("addneighbour") && player != null)
+        {
+            //requires a player name
+            if (args.length < 1) return false;
+
+            //validate target players
+            OfflinePlayer targetPlayer = this.resolvePlayerByName(args[0]);
+            if (targetPlayer == null)
+            {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
+                return true;
+            }
+
+            if (targetPlayer.getUniqueId().equals(player.getUniqueId()))
+            {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.SelfNeighbour);
+                return true;
+            }
+
+            if (!targetPlayer.isOnline())
+            {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotOnline, targetPlayer.getName());
+                return true;
+            }
+
+            //retrieve or create the outgoingNeighbour set
+            Set<UUID> outgoingRequests = dataStore.outgoingNeighbourRequests.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>());
+            Set<UUID> neighbours = dataStore.neighbours.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>());
+
+            //if player already send a neighbour request
+            if (outgoingRequests.contains(targetPlayer.getUniqueId()))
+            {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NeighbourRequestAlreadySent, targetPlayer.getName());
+            }
+
+            //if player is already a neighbour
+            else if (neighbours.contains(targetPlayer.getUniqueId()))
+            {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.AlreadyNeighbour, targetPlayer.getName());
+            }
+
+            //else send the request!
+            else
+            {
+                outgoingRequests.add(targetPlayer.getUniqueId());
+                GriefPrevention.sendMessage(targetPlayer.getPlayer(), TextMode.Info, Messages.NeighbourRequestReceived, player.getName());
+                GriefPrevention.sendMessage(player, TextMode.Info, Messages.NeighbourRequestSent, targetPlayer.getName());
+            }
+            return true;
+        }
+
+        //acceptneighbour
+        else if (cmd.getName().equalsIgnoreCase("acceptneighbour") && player != null)
+        {
+            //requires a player name
+            if (args.length < 1) return false;
+
+            //validate target players
+            OfflinePlayer targetPlayer = this.resolvePlayerByName(args[0]);
+            if (targetPlayer == null)
+            {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
+                return true;
+            }
+
+            //retrieve or create the outgoingNeighbour set
+            Set<UUID> outgoingRequests = dataStore.outgoingNeighbourRequests.computeIfAbsent(targetPlayer.getUniqueId(), k -> new HashSet<>());
+
+            //if they didn't receive any request from the specified player...
+            if (!outgoingRequests.remove(player.getUniqueId()))
+            {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoNeighbourRequestReceived, targetPlayer.getName());
+            }
+
+            //if they did, make them neighbours!
+            else
+            {
+                dataStore.neighbours.computeIfAbsent(targetPlayer.getUniqueId(), k -> new HashSet<>()).add(player.getUniqueId());
+                dataStore.neighbours.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>()).add(targetPlayer.getUniqueId());
+                GriefPrevention.sendMessage(player, TextMode.Info, Messages.NeighbourAdded, targetPlayer.getName());
+                if (targetPlayer.isOnline())
+                {
+                    GriefPrevention.sendMessage(targetPlayer.getPlayer(), TextMode.Info, Messages.NeighbourAdded, player.getName());
+                }
+            }
+            return true;
+        }
+
+        //removeneighbour
+        else if (cmd.getName().equalsIgnoreCase("removeneighbour") && player != null)
+        {
+            //requires a player name
+            if (args.length < 1) return false;
+
+            //validate target players
+            OfflinePlayer targetPlayer = this.resolvePlayerByName(args[0]);
+            if (targetPlayer == null)
+            {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.PlayerNotFound2);
+                return true;
+            }
+
+            dataStore.neighbours.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>()).remove(targetPlayer.getUniqueId());
+            dataStore.neighbours.computeIfAbsent(targetPlayer.getUniqueId(), k -> new HashSet<>()).remove(player.getUniqueId());
+            GriefPrevention.sendMessage(player, TextMode.Info, Messages.NeighbourRemoved, targetPlayer.getName());
+            if (targetPlayer.isOnline())
+            {
+                GriefPrevention.sendMessage(targetPlayer.getPlayer(), TextMode.Info, Messages.NeighbourRemoved, player.getName());
+            }
+            return true;
+        }
+
+        //removeallneighbours
+        else if (cmd.getName().equalsIgnoreCase("removeallneighbours") && player != null)
+        {
+            Iterator<UUID> neighbours = dataStore.neighbours.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>()).iterator();
+            while (neighbours.hasNext()) {
+                UUID uuid = neighbours.next();
+                dataStore.neighbours.computeIfAbsent(uuid, k -> new HashSet<>()).remove(player.getUniqueId());
+
+                //if player is online, sent them neighbour removal message
+                Player p = Bukkit.getPlayer(uuid);
+                if (p != null)
+                {
+                    GriefPrevention.sendMessage(p, TextMode.Info, Messages.NeighbourRemoved, player.getName());
+                }
+                neighbours.remove();
+            }
+
+            GriefPrevention.sendMessage(player, TextMode.Info, Messages.AllNeighboursRemoved);
             return true;
         }
         return false;

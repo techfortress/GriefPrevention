@@ -219,6 +219,22 @@ commands:
       description: Gives a player a manual about claiming land.
       usage: /ClaimBook <player>
       permission: griefprevention.claimbook
+    addneighbour:
+      description: Adds a player to your neighbour list.
+      usage: /AddNeighbour <player>
+      permission: griefprevention.neighbour
+    acceptneighbour:
+      description: Accept a player as your neighbour.
+      usage: /AcceptNeighbour <player>
+      permission: griefprevention.neighbour
+    removeneighbour:
+      description: Removes a player from your neighbour list.
+      usage: /RemovesNeighbour <player>
+      permission: griefprevention.neighbour
+    removeallneighbours:
+      description: Removes all your neighbours.
+      usage: /RemoveAllNeighbours
+      permission: griefprevention.neighbour
 permissions:
     griefprevention.createclaims:
         description: Grants permission to create claims.
@@ -370,3 +386,6 @@ permissions:
     griefprevention.siegeteleport:
         description: Players with this permission can teleport into and out of besieged areas.
         default: op
+    griefprevention.neighbour:
+        description: Players with this permission are able to modify their neighbours list.
+        default: true
