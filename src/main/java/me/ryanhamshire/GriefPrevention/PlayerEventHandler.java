@@ -2475,10 +2475,16 @@ class PlayerEventHandler implements Listener
                 //if he set the corner in the anti bully area, display and error and visualize the claim.
                 if (neighbour != null && neighbour.containsAntiZone(clickedBlock.getLocation()))
                 {
-                    //unless they are neighbours or it is the same person...
-                    if (!playerID.equals(neighbour.ownerID) && !GriefPrevention.instance.dataStore.neighbours.computeIfAbsent(playerID, k -> new HashSet<>()).contains(neighbour.ownerID))
+                    //unless it's the same claimowner;
+                    //or they are neighbours;
+                    //or the claimer is ignoring claims.
+                    if (!playerID.equals(neighbour.ownerID) && !GriefPrevention.instance.dataStore.neighbours.computeIfAbsent(playerID, k -> new HashSet<>()).contains(neighbour.ownerID) && !playerData.ignoreClaims)
                     {
-                        instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapOtherPlayerAntiBullyZone, neighbour.getOwnerName());
+                        String message = instance.dataStore.getMessage(Messages.CreateClaimFailOverlapOtherPlayerAntiBullyZone, neighbour.getOwnerName());
+                        if (player.hasPermission("griefprevention.ignoreclaims"))
+                            message += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                        instance.sendMessage(player, TextMode.Err, message);
+
                         Visualization visualization = Visualization.FromClaim(neighbour, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation(), true);
 
                         // alert plugins of a visualization
@@ -2575,6 +2581,15 @@ class PlayerEventHandler implements Listener
                         playerID,
                         null, null,
                         player);
+//
+//                //if result didn't succeed and it overlapped the anticlaimzone,
+//                //try to check if the player has ignoreclaims enabled, and allow the
+//                //change to happen anyway.
+//                if (!result.succeeded && result.overlappedAntiZone && playerData.ignoreClaims)
+//                {
+//                    result.succeeded = true;
+//                    result.claim = result.newClaim;
+//                }
 
                 //if it didn't succeed, tell the player why
                 if (!result.succeeded)
@@ -2583,7 +2598,10 @@ class PlayerEventHandler implements Listener
                     {
                         if (result.overlappedAntiZone)
                         {
-                            instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapAntiBullyZone);
+                            String message = instance.dataStore.getMessage(Messages.CreateClaimFailOverlapAntiBullyZone);
+                            if (player.hasPermission("griefprevention.ignoreclaims"))
+                                message += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                            instance.sendMessage(player, TextMode.Err, message);
                         }
                         else
                         {

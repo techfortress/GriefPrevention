@@ -946,8 +946,13 @@ public abstract class DataStore
                 }
                 else if (GriefPrevention.instance.config_claims_preventBullyClaims && otherClaim.overlapsAntiZone(newClaim))
                 {
-                    //if player is not a neighbour of the other claim, or they have not the same owner...
-                    if (!ownerID.equals(otherClaim.ownerID) && !neighbours.computeIfAbsent(ownerID, k -> new HashSet<>()).contains(otherClaim.ownerID))
+                    UUID creatingUUID = creatingPlayer.getUniqueId();
+                    PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(creatingUUID);
+
+                    //unless it's the same claimowner;
+                    //or they are neighbours;
+                    //or the claimer is ignoring claims.
+                    if (!creatingUUID.equals(otherClaim.ownerID) && !neighbours.computeIfAbsent(creatingUUID, k -> new HashSet<>()).contains(otherClaim.ownerID) && !playerData.ignoreClaims)
                     {
                         //result = fail, return conflicting claim, and set overlappedAntiZone flag to true.
                         return new CreateClaimResult(false, otherClaim, newClaim, true);
@@ -1484,7 +1489,10 @@ public abstract class DataStore
                 //inform player
                 if (result.overlappedAntiZone)
                 {
-                    GriefPrevention.sendMessage(player, TextMode.Err, Messages.ResizeFailOverlapAntiBullyZone);
+                    String message = getMessage(Messages.ResizeFailOverlapAntiBullyZone);
+                    if (player.hasPermission("griefprevention.ignoreclaims"))
+                        message += "  " + getMessage(Messages.IgnoreClaimsAdvertisement);
+                    GriefPrevention.instance.sendMessage(player, TextMode.Err, message);
                 }
                 else
                 {
