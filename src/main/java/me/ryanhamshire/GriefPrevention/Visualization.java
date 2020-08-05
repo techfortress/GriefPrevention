@@ -167,7 +167,8 @@ public class Visualization
         addClaimElements(claim.getLesserBoundaryCorner(), claim.getGreaterBoundaryCorner(), locality, height, cornerBlockData, accentBlockData, 10);
     }
 
-    public void addClaimElements(Location min, Location max, Location locality, int height, BlockData cornerBlockData, BlockData accentBlockData, int STEP) {
+    public void addClaimElements(Location min, Location max, Location locality, int height, BlockData cornerBlockData, BlockData accentBlockData, int STEP)
+    {
         World world = min.getWorld();
         boolean waterIsTransparent = locality.getBlock().getType() == Material.WATER;
 
@@ -253,7 +254,8 @@ public class Visualization
         this.elements.addAll(newElements);
     }
 
-    private boolean containsIncludingIgnoringHeight(BoundingBox box, Vector vector) {
+    private boolean containsIncludingIgnoringHeight(BoundingBox box, Vector vector)
+    {
         return vector.getBlockX() >= box.getMinX()
                 && vector.getBlockX() <= box.getMaxX()
                 && vector.getBlockZ() >= box.getMinZ()
