@@ -178,8 +178,8 @@ public class Visualization
 
         addClaimElements(claim.lesserBoundaryCorner, claim.greaterBoundaryCorner, height, cornerBlockData, accentBlockData, locality, true);
         if (displayAntiZone) {
-            cornerBlockData = Material.SEA_LANTERN.createBlockData();
-            accentBlockData = Material.PRISMARINE.createBlockData();
+            cornerBlockData = GriefPrevention.instance.config_claims_antiBullyZoneCornerBlock.createBlockData();
+            accentBlockData = GriefPrevention.instance.config_claims_antiBullyZoneAccentBlock.createBlockData();
             addClaimElements(claim.lesserAntiClaimZoneCorner, claim.greaterAntiClaimZoneCorner, height, cornerBlockData, accentBlockData, locality, false);
         }
     }

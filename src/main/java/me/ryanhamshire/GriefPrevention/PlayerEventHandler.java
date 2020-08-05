@@ -1960,7 +1960,8 @@ class PlayerEventHandler implements Listener
                     Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claims));
 
                     //visualize boundaries
-                    Visualization visualization = Visualization.fromClaims(claims, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation(), GriefPrevention.instance.config_claims_preventBullyClaims);
+                    boolean displayAntiClaimZone = GriefPrevention.instance.config_claims_preventBullyClaims && GriefPrevention.instance.config_claims_displayAntiBullyZoneWhenShiftInspecting;
+                    Visualization visualization = Visualization.fromClaims(claims, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation(), displayAntiClaimZone);
                     Visualization.Apply(player, visualization);
 
                     instance.sendMessage(player, TextMode.Info, Messages.ShowNearbyClaims, String.valueOf(claims.size()));
@@ -2021,6 +2022,8 @@ class PlayerEventHandler implements Listener
                 {
                     playerData.lastClaim = claim;
 
+                    boolean displayAntiZone = false;
+
                     //if player inspected the actual claim, not the antibullyzone area
                     if (claim.contains(clickedBlock.getLocation(), true, false))
                     {
@@ -2029,11 +2032,12 @@ class PlayerEventHandler implements Listener
                     //else the player clicked in the antibullyzone area
                     else
                     {
+                        displayAntiZone = GriefPrevention.instance.config_claims_preventBullyClaims && GriefPrevention.instance.config_claims_displayAntiBullyZoneWhenInspecting;
                         instance.sendMessage(player, TextMode.Info, Messages.BlockAntiBullyZone, claim.getOwnerName());
                     }
 
                     //visualize boundary
-                    Visualization visualization = Visualization.FromClaim(claim, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation(), GriefPrevention.instance.config_claims_preventBullyClaims);
+                    Visualization visualization = Visualization.FromClaim(claim, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation(), displayAntiZone);
 
                     // alert plugins of a visualization
                     Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claim));
