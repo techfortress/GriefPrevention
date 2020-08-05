@@ -976,11 +976,21 @@ public class Claim
 
     ArrayList<Long> getChunkHashes()
     {
-        ArrayList<Long> hashes = new ArrayList<Long>();
-        int smallX = this.getLesserBoundaryCorner().getBlockX() >> 4;
-        int smallZ = this.getLesserBoundaryCorner().getBlockZ() >> 4;
-        int largeX = this.getGreaterBoundaryCorner().getBlockX() >> 4;
-        int largeZ = this.getGreaterBoundaryCorner().getBlockZ() >> 4;
+        return getChunkHashes(this);
+    }
+
+    public static ArrayList<Long> getChunkHashes(Claim claim)
+    {
+        return getChunkHashes(claim.lesserBoundaryCorner, claim.greaterBoundaryCorner);
+    }
+
+    public static ArrayList<Long> getChunkHashes(Location min, Location max)
+    {
+        ArrayList<Long> hashes = new ArrayList<>();
+        int smallX = min.getBlockX() >> 4;
+        int smallZ = min.getBlockZ() >> 4;
+        int largeX = max.getBlockX() >> 4;
+        int largeZ = max.getBlockZ() >> 4;
 
         for (int x = smallX; x <= largeX; x++)
         {
@@ -991,5 +1001,39 @@ public class Claim
         }
 
         return hashes;
+    }
+
+    //returns a copy of a claim
+    protected Claim clone()
+    {
+        List<String> build = new ArrayList<>();
+        List<String> access = new ArrayList<>();
+        List<String> container = new ArrayList<>();
+        List<String> manager = new ArrayList<>(managers);
+        for (Map.Entry<String, ClaimPermission> entry : playerIDToClaimPermissionMap.entrySet())
+        {
+            String uuid = entry.getKey();
+            switch (entry.getValue())
+            {
+                case Build:
+                    build.add(uuid);
+                    break;
+                case Access:
+                    access.add(uuid);
+                    break;
+                case Inventory:
+                    container.add(uuid);
+                    break;
+            }
+        }
+
+        return new Claim(lesserBoundaryCorner.clone(),
+                greaterBoundaryCorner.clone(),
+                ownerID,
+                build,
+                container,
+                access,
+                manager,
+                id);
     }
 }
