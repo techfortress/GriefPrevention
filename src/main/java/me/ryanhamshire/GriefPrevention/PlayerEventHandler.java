@@ -2371,7 +2371,7 @@ class PlayerEventHandler implements Listener
                                     null, player);
 
                             //if it didn't succeed, tell the player why
-                            if (!result.succeeded)
+                            if (result.value == CreateClaimResult.Value.FAILED)
                             {
                                 instance.sendMessage(player, TextMode.Err, Messages.CreateSubdivisionOverlap);
 
@@ -2385,8 +2385,8 @@ class PlayerEventHandler implements Listener
                                 return;
                             }
 
-                            //otherwise, advise him on the /trust command and show him his new subdivision
-                            else
+                            //if it succeeded, advise him on the /trust command and show him his new subdivision
+                            else if (result.value == CreateClaimResult.Value.SUCCEEDED)
                             {
                                 instance.sendMessage(player, TextMode.Success, Messages.SubdivisionSuccess);
                                 Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.Claim, player.getLocation());
@@ -2540,7 +2540,7 @@ class PlayerEventHandler implements Listener
                         player);
 
                 //if it didn't succeed, tell the player why
-                if (!result.succeeded)
+                if (result.value == CreateClaimResult.Value.FAILED)
                 {
                     if (result.claim != null)
                     {
@@ -2561,8 +2561,8 @@ class PlayerEventHandler implements Listener
                     return;
                 }
 
-                //otherwise, advise him on the /trust command and show him his new claim
-                else
+                //if it succeeded, advise him on the /trust command and show him his new claim
+                else if (result.value == CreateClaimResult.Value.SUCCEEDED)
                 {
                     instance.sendMessage(player, TextMode.Success, Messages.CreateClaimSuccess);
                     Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.Claim, player.getLocation());

@@ -864,7 +864,7 @@ public abstract class DataStore
             Location greater = parent.getGreaterBoundaryCorner();
             if (smallx < lesser.getX() || smallz < lesser.getZ() || bigx > greater.getX() || bigz > greater.getZ())
             {
-                result.succeeded = false;
+                result.value = CreateClaimResult.Value.FAILED;
                 result.claim = parent;
                 return result;
             }
@@ -908,7 +908,7 @@ public abstract class DataStore
             if (otherClaim.id != newClaim.id && otherClaim.inDataStore && otherClaim.overlaps(newClaim))
             {
                 //result = fail, return conflicting claim
-                result.succeeded = false;
+                result.value = CreateClaimResult.Value.FAILED;
                 result.claim = otherClaim;
                 return result;
             }
@@ -919,7 +919,7 @@ public abstract class DataStore
         {
             if (!this.worldGuard.canBuild(newClaim.lesserBoundaryCorner, newClaim.greaterBoundaryCorner, creatingPlayer))
             {
-                result.succeeded = false;
+                result.value = CreateClaimResult.Value.FAILED;
                 result.claim = null;
                 return result;
             }
@@ -927,7 +927,7 @@ public abstract class DataStore
         if (dryRun)
         {
             // since this is a dry run, just return the unsaved claim as is.
-            result.succeeded = true;
+            result.value = CreateClaimResult.Value.SUCCEEDED;
             result.claim = newClaim;
             return result;
         }
@@ -936,7 +936,7 @@ public abstract class DataStore
         Bukkit.getPluginManager().callEvent(event);
         if (event.isCancelled())
         {
-            result.succeeded = false;
+            result.value = CreateClaimResult.Value.FAILED;
             result.claim = null;
             return result;
 
@@ -945,7 +945,7 @@ public abstract class DataStore
         this.addClaim(newClaim, true);
 
         //then return success along with reference to new claim
-        result.succeeded = true;
+        result.value = CreateClaimResult.Value.SUCCEEDED;
         result.claim = newClaim;
         return result;
     }
@@ -1017,20 +1017,48 @@ public abstract class DataStore
 
         if (claim.parent != null) claim = claim.parent;
 
+
+        //keep track of old values in case ClaimModifiedEvent is cancelled.
+        Claim oldClaim = claim.clone();
+
+        //values in this map are double arrays with length 2,
+        //first value the lesserBoundaryY and second value the greaterBoundaryY.
+        Map<Claim, double[]> oldYMap = new HashMap<>();
+        oldYMap.put(claim, new double[]{ claim.lesserBoundaryCorner.getY(), claim.greaterBoundaryCorner.getY()});
+
         //adjust to new depth
         claim.lesserBoundaryCorner.setY(newDepth);
         claim.greaterBoundaryCorner.setY(newDepth);
         for (Claim subdivision : claim.children)
         {
+            oldYMap.put(subdivision, new double[]{ subdivision.lesserBoundaryCorner.getY(), subdivision.greaterBoundaryCorner.getY() });
             subdivision.lesserBoundaryCorner.setY(newDepth);
             subdivision.greaterBoundaryCorner.setY(newDepth);
-            this.saveClaim(subdivision);
         }
 
-        //save changes
-        this.saveClaim(claim);
-        ClaimModifiedEvent event = new ClaimModifiedEvent(claim, null);
+        //call the event
+        ClaimModifiedEvent event = new ClaimModifiedEvent(oldClaim, claim, null);
         Bukkit.getPluginManager().callEvent(event);
+
+        //only save changes if event is not cancelled
+        if (!event.isCancelled())
+        {
+            this.saveClaim(claim);
+
+            for (Claim subdivision : claim.children)
+            {
+                this.saveClaim(subdivision);
+            }
+        }
+        //else revert changes made back to old values
+        else
+        {
+            for (Map.Entry<Claim, double[]> entry : oldYMap.entrySet())
+            {
+                entry.getKey().lesserBoundaryCorner.setY(entry.getValue()[0]);
+                entry.getKey().lesserBoundaryCorner.setY(entry.getValue()[1]);
+            }
+        }
     }
 
     //starts a siege on a claim
@@ -1281,8 +1309,11 @@ public abstract class DataStore
         CreateClaimResult result = this.createClaim(claim.getLesserBoundaryCorner().getWorld(), newx1, newx2, newy1, newy2, newz1, newz2, claim.ownerID, claim.parent, claim.id, resizingPlayer, true);
 
         //if succeeded
-        if (result.succeeded)
+        if (result.value == CreateClaimResult.Value.SUCCEEDED)
         {
+            //keep copy of location for restoring purposes when the ClaimModifiedEvent is cancelled.
+            Claim oldClaim = claim.clone();
+
             removeFromChunkClaimMap(claim); // remove the old boundary from the chunk cache
             // copy the boundary from the claim created in the dry run of createClaim() to our existing claim
             claim.lesserBoundaryCorner = result.claim.lesserBoundaryCorner;
@@ -1290,10 +1321,25 @@ public abstract class DataStore
             result.claim = claim;
             addToChunkClaimMap(claim); // add the new boundary to the chunk cache
 
-            //save those changes
-            this.saveClaim(result.claim);
-            ClaimModifiedEvent event = new ClaimModifiedEvent(result.claim, resizingPlayer);
+            //call event
+            ClaimModifiedEvent event = new ClaimModifiedEvent(oldClaim, result.claim, resizingPlayer);
             Bukkit.getPluginManager().callEvent(event);
+
+            //only save those changes if the event is not cancelled
+            if (!event.isCancelled())
+            {
+                this.saveClaim(result.claim);
+            }
+            //else restore the values again
+            else
+            {
+                removeFromChunkClaimMap(claim);
+                claim.lesserBoundaryCorner = oldClaim.lesserBoundaryCorner;
+                claim.greaterBoundaryCorner = oldClaim.greaterBoundaryCorner;
+                result.claim = oldClaim;
+                result.value = CreateClaimResult.Value.CANCELLED;
+                addToChunkClaimMap(claim);
+            }
         }
 
         return result;
@@ -1365,7 +1411,7 @@ public abstract class DataStore
         //ask the datastore to try and resize the claim, this checks for conflicts with other claims
         CreateClaimResult result = GriefPrevention.instance.dataStore.resizeClaim(playerData.claimResizing, newx1, newx2, newy1, newy2, newz1, newz2, player);
 
-        if (result.succeeded)
+        if (result.value == CreateClaimResult.Value.SUCCEEDED)
         {
             //decide how many claim blocks are available for more resizing
             int claimBlocksRemaining = 0;
@@ -1422,7 +1468,7 @@ public abstract class DataStore
             playerData.claimResizing = null;
             playerData.lastShovelLocation = null;
         }
-        else
+        else if (result.value == CreateClaimResult.Value.FAILED)
         {
             if (result.claim != null)
             {

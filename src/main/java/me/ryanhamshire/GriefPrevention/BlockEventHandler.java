@@ -341,13 +341,13 @@ public class BlockEventHandler implements Listener
                                     null, null,
                                     player);
 
-                            if (result.succeeded) break;
+                            if (result.value == CreateClaimResult.Value.SUCCEEDED) break;
                         }
 
                         radius--;
                     }
 
-                    if (result != null && result.succeeded)
+                    if (result != null && result.value == CreateClaimResult.Value.SUCCEEDED)
                     {
                         //notify and explain to player
                         GriefPrevention.sendMessage(player, TextMode.Success, Messages.AutomaticClaimNotification);
