@@ -820,6 +820,17 @@ public abstract class DataStore
         }
     }
 
+    //updates the anticlaimzones of all claims,
+    //used for reloading with /gpreload and recalculating the new radius
+    //on all claims.
+    public void updateAntiClaimZonesOfAllClaims()
+    {
+        for (Claim claim : this.claims)
+        {
+            claim.recalculateAntiClaimZone();
+        }
+    }
+
     //gets an almost-unique, persistent identifier for a chunk
     static Long getChunkHash(long chunkx, long chunkz)
     {
