@@ -1960,7 +1960,7 @@ class PlayerEventHandler implements Listener
                     Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claims));
 
                     //visualize boundaries
-                    boolean displayAntiClaimZone = GriefPrevention.instance.config_claims_preventBullyClaims && GriefPrevention.instance.config_claims_displayAntiBullyZoneWhenShiftInspecting;
+                    boolean displayAntiClaimZone = GriefPrevention.instance.config_claims_anticlaimzone_enabled && GriefPrevention.instance.config_claims_anticlaimzone_displayWhenShiftInspecting;
                     Visualization visualization = Visualization.fromClaims(claims, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation(), displayAntiClaimZone);
                     Visualization.Apply(player, visualization);
 
@@ -2000,8 +2000,8 @@ class PlayerEventHandler implements Listener
                 //try to fetch a real claim
                 Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false /*ignore height*/, playerData.lastClaim);
 
-                //if claim is null, try to fetch a claim within an AntiBullyArea, if enabled
-                if (claim == null && GriefPrevention.instance.config_claims_preventBullyClaims)
+                //if claim is null, try to fetch a claim within an AntiClaimZone, if enabled
+                if (claim == null && GriefPrevention.instance.config_claims_anticlaimzone_enabled)
                 {
                     claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false /*ignore height*/, playerData.lastClaim, true);
                 }
@@ -2024,16 +2024,16 @@ class PlayerEventHandler implements Listener
 
                     boolean displayAntiZone = false;
 
-                    //if player inspected the actual claim, not the antibullyzone area
+                    //if player inspected the actual claim, not the AntiClaimZone area
                     if (claim.contains(clickedBlock.getLocation(), true, false))
                     {
                         instance.sendMessage(player, TextMode.Info, Messages.BlockClaimed, claim.getOwnerName());
                     }
-                    //else the player clicked in the antibullyzone area
+                    //else the player clicked in the AntiClaimZone area
                     else
                     {
-                        displayAntiZone = GriefPrevention.instance.config_claims_preventBullyClaims && GriefPrevention.instance.config_claims_displayAntiBullyZoneWhenInspecting;
-                        instance.sendMessage(player, TextMode.Info, Messages.BlockAntiBullyZone, claim.getOwnerName());
+                        displayAntiZone = GriefPrevention.instance.config_claims_anticlaimzone_enabled && GriefPrevention.instance.config_claims_anticlaimzone_displayWhenInspecting;
+                        instance.sendMessage(player, TextMode.Info, Messages.BlockAntiClaimZone, claim.getOwnerName());
                     }
 
                     //visualize boundary
@@ -2474,9 +2474,9 @@ class PlayerEventHandler implements Listener
                     return;
                 }
 
-                Claim neighbour = this.dataStore.getClaimAt(clickedBlock.getLocation(), true /*ignore height*/, playerData.lastClaim, GriefPrevention.instance.config_claims_preventBullyClaims);
+                Claim neighbour = this.dataStore.getClaimAt(clickedBlock.getLocation(), true /*ignore height*/, playerData.lastClaim, GriefPrevention.instance.config_claims_anticlaimzone_enabled);
 
-                //if he set the corner in the anti bully area, display and error and visualize the claim.
+                //if he set the corner in the AntiClaimZone, display and error and visualize the claim.
                 if (neighbour != null && neighbour.containsAntiZone(clickedBlock.getLocation()))
                 {
                     //unless it's the same claimowner;
@@ -2484,7 +2484,7 @@ class PlayerEventHandler implements Listener
                     //or the claimer is ignoring claims.
                     if (!playerID.equals(neighbour.ownerID) && !GriefPrevention.instance.dataStore.neighbours.computeIfAbsent(playerID, k -> new HashSet<>()).contains(neighbour.ownerID) && !playerData.ignoreClaims)
                     {
-                        String message = instance.dataStore.getMessage(Messages.CreateClaimFailOverlapOtherPlayerAntiBullyZone, neighbour.getOwnerName());
+                        String message = instance.dataStore.getMessage(Messages.CreateClaimFailOverlapOtherPlayerAntiClaimZone, neighbour.getOwnerName());
                         if (player.hasPermission("griefprevention.ignoreclaims"))
                             message += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
                         instance.sendMessage(player, TextMode.Err, message);
@@ -2602,7 +2602,7 @@ class PlayerEventHandler implements Listener
                     {
                         if (result.overlappedAntiZone)
                         {
-                            String message = instance.dataStore.getMessage(Messages.CreateClaimFailOverlapAntiBullyZone);
+                            String message = instance.dataStore.getMessage(Messages.CreateClaimFailOverlapAntiClaimZone);
                             if (player.hasPermission("griefprevention.ignoreclaims"))
                                 message += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
                             instance.sendMessage(player, TextMode.Err, message);

@@ -220,7 +220,7 @@ public class Claim
         this.greaterBoundaryCorner = greaterBoundaryCorner;
 
         //anticlaimzone corners
-        recalculateAntiBullyZone();
+        recalculateAntiClaimZone();
 
         //owner
         this.ownerID = ownerID;
@@ -257,8 +257,8 @@ public class Claim
         this(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderIDs, containerIDs, accessorIDs, managerIDs, false, id);
     }
 
-    public void recalculateAntiBullyZone() {
-        int radius = GriefPrevention.instance.config_claims_antiBullyZoneRadius;
+    public void recalculateAntiClaimZone() {
+        int radius = GriefPrevention.instance.config_claims_anticlaimzone_radius;
         this.lesserAntiClaimZoneCorner = lesserBoundaryCorner.clone().subtract(radius, 0, radius);
         this.greaterAntiClaimZoneCorner = greaterBoundaryCorner.clone().add(radius, 0, radius);
     }

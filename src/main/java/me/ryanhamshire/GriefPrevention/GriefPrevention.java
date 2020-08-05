@@ -143,12 +143,12 @@ public class GriefPrevention extends JavaPlugin
 
     public boolean config_claims_lecternReadingRequiresAccessTrust;                    //reading lecterns requires access trust
 
-    public boolean config_claims_preventBullyClaims;                        //whether or not to disable claiming in a x block zone if they dont have trust permissions
-    public int config_claims_antiBullyZoneRadius;                           // the radius around the claim which is protected from other claims
-    public boolean config_claims_displayAntiBullyZoneWhenInspecting;        //whether or not to show the "extra" anti bully zone radius around the claims when inspecting claims
-    public boolean config_claims_displayAntiBullyZoneWhenShiftInspecting;   //whether or not to show the "extra" anti bully zone radius around the claims when SHIFT-inspecting claims
-    public Material config_claims_antiBullyZoneCornerBlock;                 //corner block material for antibullyzone
-    public Material config_claims_antiBullyZoneAccentBlock;                 //accent block mayerial for antibullyzone
+    public boolean config_claims_anticlaimzone_enabled;                        //whether or not to disable claiming in a x block zone if they dont have trust permissions
+    public int config_claims_anticlaimzone_radius;                           // the radius around the claim which is protected from other claims
+    public boolean config_claims_anticlaimzone_displayWhenInspecting;        //whether or not to show the "extra" AntiClaimZone radius around the claims when inspecting claims
+    public boolean config_claims_anticlaimzone_displayWhenShiftInspecting;   //whether or not to show the "extra" AntiClaimZone radius around the claims when SHIFT-inspecting claims
+    public Material config_claims_anticlaimzone_cornerBlock;                 //corner block material for AntiClaimZone
+    public Material config_claims_anticlaimzone_accentBlock;                 //accent block mayerial for AntiClaimZone
 
     public ArrayList<World> config_siege_enabledWorlds;                //whether or not /siege is enabled on this server
     public ArrayList<Material> config_siege_blocks;                    //which blocks will be breakable in siege mode
@@ -605,25 +605,25 @@ public class GriefPrevention extends JavaPlugin
         this.config_claims_firedamages = config.getBoolean("GriefPrevention.Claims.FireDamagesInClaims", false);
         this.config_claims_lecternReadingRequiresAccessTrust = config.getBoolean("GriefPrevention.Claims.LecternReadingRequiresAccessTrust", true);
 
-        this.config_claims_preventBullyClaims = config.getBoolean("GriefPrevention.Claims.PreventBullyClaims", false);
-        this.config_claims_antiBullyZoneRadius = config.getInt("GriefPrevention.Claims.AntiBullyZoneRadius", 10);
-        this.config_claims_displayAntiBullyZoneWhenInspecting = config.getBoolean("GriefPrevention.Claims.DisplayAntiBullyZoneWhenInspecting", true);
-        this.config_claims_displayAntiBullyZoneWhenShiftInspecting = config.getBoolean("GriefPrevention.Claims.DisplayAntiBullyZoneWhenShiftInspecting", false);
+        this.config_claims_anticlaimzone_enabled = config.getBoolean("GriefPrevention.Claims.AntiClaimZone.Enabled", false);
+        this.config_claims_anticlaimzone_radius = config.getInt("GriefPrevention.Claims.AntiClaimZone.Radius", 10);
+        this.config_claims_anticlaimzone_displayWhenInspecting = config.getBoolean("GriefPrevention.Claims.AntiClaimZone.DisplayWhenInspecting", true);
+        this.config_claims_anticlaimzone_displayWhenShiftInspecting = config.getBoolean("GriefPrevention.Claims.AntiClaimZone.DisplayWhenShiftInspecting", false);
 
-        String antiBullyZoneCornerBlockMaterialName = config.getString("GriefPrevention.Claims.AntiBullyZoneCornerBlock", "SEA_LANTERN");
-        this.config_claims_antiBullyZoneCornerBlock = Material.getMaterial(antiBullyZoneCornerBlockMaterialName);
-        if (this.config_claims_antiBullyZoneCornerBlock == null)
+        String antiClaimZoneCornerBlockMaterialName = config.getString("GriefPrevention.Claims.AntiClaimZone.CornerBlock", "SEA_LANTERN");
+        this.config_claims_anticlaimzone_cornerBlock = Material.getMaterial(antiClaimZoneCornerBlockMaterialName);
+        if (this.config_claims_anticlaimzone_cornerBlock == null)
         {
-            GriefPrevention.AddLogEntry("ERROR: Material " + antiBullyZoneCornerBlockMaterialName + " not found.  Defaulting to SEA_LANTERN.  Please update your config.yml.");
-            this.config_claims_antiBullyZoneCornerBlock = Material.SEA_LANTERN;
+            GriefPrevention.AddLogEntry("ERROR: Material " + antiClaimZoneCornerBlockMaterialName + " not found.  Defaulting to SEA_LANTERN.  Please update your config.yml.");
+            this.config_claims_anticlaimzone_cornerBlock = Material.SEA_LANTERN;
         }
 
-        String antiBullyZoneAccentBlockMaterialName = config.getString("GriefPrevention.Claims.AntiBullyZoneAccentBlock", "PRISMARINE");
-        this.config_claims_antiBullyZoneAccentBlock = Material.getMaterial(antiBullyZoneAccentBlockMaterialName);
-        if (this.config_claims_antiBullyZoneAccentBlock == null)
+        String antiClaimZoneAccentBlockMaterialName = config.getString("GriefPrevention.Claims.AntiClaimZone.AccentBlock", "PRISMARINE");
+        this.config_claims_anticlaimzone_accentBlock = Material.getMaterial(antiClaimZoneAccentBlockMaterialName);
+        if (this.config_claims_anticlaimzone_accentBlock == null)
         {
-            GriefPrevention.AddLogEntry("ERROR: Material " + antiBullyZoneAccentBlockMaterialName + " not found.  Defaulting to PRISMARINE.  Please update your config.yml.");
-            this.config_claims_antiBullyZoneAccentBlock = Material.PRISMARINE;
+            GriefPrevention.AddLogEntry("ERROR: Material " + antiClaimZoneAccentBlockMaterialName + " not found.  Defaulting to PRISMARINE.  Please update your config.yml.");
+            this.config_claims_anticlaimzone_accentBlock = Material.PRISMARINE;
         }
 
         this.config_spam_enabled = config.getBoolean("GriefPrevention.Spam.Enabled", true);
@@ -886,12 +886,12 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.Claims.FireDamagesInClaims", config_claims_firedamages);
         outConfig.set("GriefPrevention.Claims.LecternReadingRequiresAccessTrust", config_claims_lecternReadingRequiresAccessTrust);
 
-        outConfig.set("GriefPrevention.Claims.PreventBullyClaims", config_claims_preventBullyClaims);
-        outConfig.set("GriefPrevention.Claims.AntiBullyZoneRadius", config_claims_antiBullyZoneRadius);
-        outConfig.set("GriefPrevention.Claims.DisplayAntiBullyZoneWhenInspecting", config_claims_displayAntiBullyZoneWhenInspecting);
-        outConfig.set("GriefPrevention.Claims.DisplayAntiBullyZoneWhenShiftInspecting", config_claims_displayAntiBullyZoneWhenShiftInspecting);
-        outConfig.set("GriefPrevention.Claims.AntiBullyZoneCornerBlock", antiBullyZoneCornerBlockMaterialName);
-        outConfig.set("GriefPrevention.Claims.AntiBullyZoneAccentBlock", antiBullyZoneAccentBlockMaterialName);
+        outConfig.set("GriefPrevention.Claims.AntiClaimZone.Enabled", config_claims_anticlaimzone_enabled);
+        outConfig.set("GriefPrevention.Claims.AntiClaimZone.Radius", config_claims_anticlaimzone_radius);
+        outConfig.set("GriefPrevention.Claims.AntiClaimZone.DisplayWhenInspecting", config_claims_anticlaimzone_displayWhenInspecting);
+        outConfig.set("GriefPrevention.Claims.AntiClaimZone.DisplayWhenShiftInspecting", config_claims_anticlaimzone_displayWhenShiftInspecting);
+        outConfig.set("GriefPrevention.Claims.AntiClaimZone.CornerBlock", antiClaimZoneCornerBlockMaterialName);
+        outConfig.set("GriefPrevention.Claims.AntiClaimZone.AccentBlock", antiClaimZoneAccentBlockMaterialName);
 
         outConfig.set("GriefPrevention.Spam.Enabled", this.config_spam_enabled);
         outConfig.set("GriefPrevention.Spam.LoginCooldownSeconds", this.config_spam_loginCooldownSeconds);
