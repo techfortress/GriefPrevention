@@ -976,31 +976,7 @@ public class Claim
 
     ArrayList<Long> getChunkHashes()
     {
-        return getChunkHashes(this);
-    }
-
-    public static ArrayList<Long> getChunkHashes(Claim claim)
-    {
-        return getChunkHashes(claim.lesserBoundaryCorner, claim.greaterBoundaryCorner);
-    }
-
-    public static ArrayList<Long> getChunkHashes(Location min, Location max)
-    {
-        ArrayList<Long> hashes = new ArrayList<>();
-        int smallX = min.getBlockX() >> 4;
-        int smallZ = min.getBlockZ() >> 4;
-        int largeX = max.getBlockX() >> 4;
-        int largeZ = max.getBlockZ() >> 4;
-
-        for (int x = smallX; x <= largeX; x++)
-        {
-            for (int z = smallZ; z <= largeZ; z++)
-            {
-                hashes.add(DataStore.getChunkHash(x, z));
-            }
-        }
-
-        return hashes;
+        return DataStore.getChunkHashes(this);
     }
 
     //returns a copy of a claim
