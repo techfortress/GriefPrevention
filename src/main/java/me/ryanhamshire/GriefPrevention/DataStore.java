@@ -785,15 +785,37 @@ public abstract class DataStore
     }
 
     //gets an almost-unique, persistent identifier for a chunk
-    static Long getChunkHash(long chunkx, long chunkz)
+    public static Long getChunkHash(long chunkx, long chunkz)
     {
         return (chunkz ^ (chunkx << 32));
     }
 
     //gets an almost-unique, persistent identifier for a chunk
-    static Long getChunkHash(Location location)
+    public static Long getChunkHash(Location location)
     {
         return getChunkHash(location.getBlockX() >> 4, location.getBlockZ() >> 4);
+    }
+
+    public static ArrayList<Long> getChunkHashes(Claim claim) {
+        return getChunkHashes(claim.getLesserBoundaryCorner(), claim.getGreaterBoundaryCorner());
+    }
+
+    public static ArrayList<Long> getChunkHashes(Location min, Location max) {
+        ArrayList<Long> hashes = new ArrayList<>();
+        int smallX = min.getBlockX() >> 4;
+        int smallZ = min.getBlockZ() >> 4;
+        int largeX = max.getBlockX() >> 4;
+        int largeZ = max.getBlockZ() >> 4;
+
+        for (int x = smallX; x <= largeX; x++)
+        {
+            for (int z = smallZ; z <= largeZ; z++)
+            {
+                hashes.add(getChunkHash(x, z));
+            }
+        }
+
+        return hashes;
     }
 
     /*
