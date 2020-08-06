@@ -976,20 +976,6 @@ public class Claim
 
     ArrayList<Long> getChunkHashes()
     {
-        ArrayList<Long> hashes = new ArrayList<Long>();
-        int smallX = this.getLesserBoundaryCorner().getBlockX() >> 4;
-        int smallZ = this.getLesserBoundaryCorner().getBlockZ() >> 4;
-        int largeX = this.getGreaterBoundaryCorner().getBlockX() >> 4;
-        int largeZ = this.getGreaterBoundaryCorner().getBlockZ() >> 4;
-
-        for (int x = smallX; x <= largeX; x++)
-        {
-            for (int z = smallZ; z <= largeZ; z++)
-            {
-                hashes.add(DataStore.getChunkHash(x, z));
-            }
-        }
-
-        return hashes;
+        return DataStore.getChunkHashes(this);
     }
 }
