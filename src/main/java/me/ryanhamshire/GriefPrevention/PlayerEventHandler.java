@@ -1957,7 +1957,7 @@ class PlayerEventHandler implements Listener
                     Set<Claim> claims = this.dataStore.getNearbyClaims(player.getLocation());
 
                     // alert plugins of a visualization
-                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claims));
+                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claims, true));
 
                     //visualize boundaries
                     Visualization visualization = Visualization.fromClaims(claims, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation());
