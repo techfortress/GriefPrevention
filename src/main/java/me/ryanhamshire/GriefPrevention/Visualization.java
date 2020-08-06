@@ -131,7 +131,6 @@ public class Visualization
     //adds a claim's visualization to the current visualization
     //handy for combining several visualizations together, as when visualization a top level claim with several subdivisions inside
     //locality is a performance consideration.  only create visualization blocks for around 100 blocks of the locality
-
     private void addClaimElements(Claim claim, int height, VisualizationType visualizationType, Location locality)
     {
         BlockData cornerBlockData;
