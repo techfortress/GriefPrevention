@@ -626,7 +626,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_limitTreeGrowth = config.getBoolean("GriefPrevention.LimitTreeGrowth", false);
         this.config_pistonMovement = PistonMode.of(config.getString("GriefPrevention.PistonMovement", "CLAIMS_ONLY"));
         if (config.isBoolean("GriefPrevention.LimitPistonsToLandClaims") && !config.isBoolean("GriefPrevention.LimitPistonsToLandClaims"))
-            this.config_pistonMovement = PistonMode.EVERYWHERE_FAST;
+            this.config_pistonMovement = PistonMode.EVERYWHERE_SIMPLE;
         if (config.isBoolean("GriefPrevention.CheckPistonMovement") && !config.getBoolean("GriefPrevention.CheckPistonMovement"))
             this.config_pistonMovement = PistonMode.IGNORED;
 
