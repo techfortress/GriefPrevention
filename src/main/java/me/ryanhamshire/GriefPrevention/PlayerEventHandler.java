@@ -1958,7 +1958,7 @@ class PlayerEventHandler implements Listener
                     Set<Claim> claims = this.dataStore.getNearbyClaims(player.getLocation());
 
                     // alert plugins of a claim inspection, return if cancelled
-                    ClaimInspectionEvent inspectionEvent = new ClaimInspectionEvent(player, claims, true);
+                    ClaimInspectionEvent inspectionEvent = new ClaimInspectionEvent(player, null, claims, true);
                     Bukkit.getPluginManager().callEvent(inspectionEvent);
                     if (inspectionEvent.isCancelled()) return;
 
@@ -2008,7 +2008,7 @@ class PlayerEventHandler implements Listener
                 if (claim == null)
                 {
                     // alert plugins of a claim inspection, return if cancelled
-                    ClaimInspectionEvent inspectionEvent = new ClaimInspectionEvent(player, null);
+                    ClaimInspectionEvent inspectionEvent = new ClaimInspectionEvent(player, clickedBlock, null);
                     Bukkit.getPluginManager().callEvent(inspectionEvent);
                     if (inspectionEvent.isCancelled()) return;
 
@@ -2024,7 +2024,7 @@ class PlayerEventHandler implements Listener
                 else
                 {
                     // alert plugins of a claim inspection, return if cancelled
-                    ClaimInspectionEvent inspectionEvent = new ClaimInspectionEvent(player, claim);
+                    ClaimInspectionEvent inspectionEvent = new ClaimInspectionEvent(player, clickedBlock, claim);
                     Bukkit.getPluginManager().callEvent(inspectionEvent);
                     if (inspectionEvent.isCancelled()) return;
 
