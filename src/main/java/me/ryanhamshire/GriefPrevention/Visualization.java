@@ -27,6 +27,8 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Lightable;
 import org.bukkit.entity.Player;
+import org.bukkit.util.BoundingBox;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayList;
 
@@ -130,22 +132,10 @@ public class Visualization
     //handy for combining several visualizations together, as when visualization a top level claim with several subdivisions inside
     //locality is a performance consideration.  only create visualization blocks for around 100 blocks of the locality
 
-    private void addClaimElements(Claim claim, int height, VisualizationType visualizationType, Location locality)
+    public void addClaimElements(Claim claim, int height, VisualizationType visualizationType, Location locality)
     {
-        Location smallXsmallZ = claim.getLesserBoundaryCorner();
-        Location bigXbigZ = claim.getGreaterBoundaryCorner();
-        World world = smallXsmallZ.getWorld();
-        boolean waterIsTransparent = locality.getBlock().getType() == Material.WATER;
-
-        int smallx = smallXsmallZ.getBlockX();
-        int smallz = smallXsmallZ.getBlockZ();
-        int bigx = bigXbigZ.getBlockX();
-        int bigz = bigXbigZ.getBlockZ();
-
         BlockData cornerBlockData;
         BlockData accentBlockData;
-
-        ArrayList<VisualizationElement> newElements = new ArrayList<VisualizationElement>();
 
         if (visualizationType == VisualizationType.Claim)
         {
@@ -174,6 +164,21 @@ public class Visualization
             accentBlockData = Material.NETHERRACK.createBlockData();
         }
 
+        addClaimElements(claim.getLesserBoundaryCorner(), claim.getGreaterBoundaryCorner(), locality, height, cornerBlockData, accentBlockData, 10);
+    }
+
+    //adds a general claim cuboid (represented by min and max) visualization to the current visualization
+    public void addClaimElements(Location min, Location max, Location locality, int height, BlockData cornerBlockData, BlockData accentBlockData, int STEP) {
+        World world = min.getWorld();
+        boolean waterIsTransparent = locality.getBlock().getType() == Material.WATER;
+
+        int smallx = min.getBlockX();
+        int smallz = min.getBlockZ();
+        int bigx = max.getBlockX();
+        int bigz = max.getBlockZ();
+
+        ArrayList<VisualizationElement> newElements = new ArrayList<>();
+
         //initialize visualization elements without Y values and real data
         //that will be added later for only the visualization elements within visualization range
 
@@ -182,8 +187,6 @@ public class Visualization
         int minz = locality.getBlockZ() - 75;
         int maxx = locality.getBlockX() + 75;
         int maxz = locality.getBlockZ() + 75;
-
-        final int STEP = 10;
 
         //top line
         newElements.add(new VisualizationElement(new Location(world, smallx, 0, bigz), cornerBlockData, Material.AIR.createBlockData()));
@@ -229,10 +232,11 @@ public class Visualization
         this.removeElementsOutOfRange(newElements, minx, minz, maxx, maxz);
 
         //remove any elements outside the claim
+        BoundingBox box = BoundingBox.of(min, max);
         for (int i = 0; i < newElements.size(); i++)
         {
             VisualizationElement element = newElements.get(i);
-            if (!claim.contains(element.location, true, false))
+            if (!containsIncludingIgnoringHeight(box, element.location.toVector()))
             {
                 newElements.remove(i--);
             }
@@ -248,6 +252,13 @@ public class Visualization
         }
 
         this.elements.addAll(newElements);
+    }
+
+    private boolean containsIncludingIgnoringHeight(BoundingBox box, Vector vector) {
+        return vector.getBlockX() >= box.getMinX()
+                && vector.getBlockX() <= box.getMaxX()
+                && vector.getBlockZ() >= box.getMinZ()
+                && vector.getBlockZ() <= box.getMaxZ();
     }
 
     //removes any elements which are out of visualization range
