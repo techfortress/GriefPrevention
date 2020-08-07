@@ -1051,8 +1051,6 @@ public abstract class DataStore
 
         //save changes
         this.saveClaim(claim);
-        ClaimModifiedEvent event = new ClaimModifiedEvent(claim, null);
-        Bukkit.getPluginManager().callEvent(event);
     }
 
     //starts a siege on a claim
@@ -1314,8 +1312,6 @@ public abstract class DataStore
 
             //save those changes
             this.saveClaim(result.claim);
-            ClaimModifiedEvent event = new ClaimModifiedEvent(result.claim, resizingPlayer);
-            Bukkit.getPluginManager().callEvent(event);
         }
 
         return result;
@@ -1362,18 +1358,24 @@ public abstract class DataStore
             }
         }
 
+        Claim oldClaim = playerData.claimResizing;
+        Claim newClaim = new Claim(oldClaim);
+        World world = newClaim.getLesserBoundaryCorner().getWorld();
+        newClaim.lesserBoundaryCorner = new Location(world, newx1, newy1, newz1);
+        newClaim.greaterBoundaryCorner = new Location(world, newx2, newy2, newz2);
+
+        //call event here to check if it has been cancelled
+        ClaimModifiedEvent event = new ClaimModifiedEvent(oldClaim, newClaim, player);
+        Bukkit.getPluginManager().callEvent(event);
+
+        //return here if event is cancelled
+        if (event.isCancelled()) return;
+
         //special rule for making a top-level claim smaller.  to check this, verifying the old claim's corners are inside the new claim's boundaries.
         //rule: in any mode, shrinking a claim removes any surface fluids
-        Claim oldClaim = playerData.claimResizing;
         boolean smaller = false;
         if (oldClaim.parent == null)
         {
-            //temporary claim instance, just for checking contains()
-            Claim newClaim = new Claim(
-                    new Location(oldClaim.getLesserBoundaryCorner().getWorld(), newx1, newy1, newz1),
-                    new Location(oldClaim.getLesserBoundaryCorner().getWorld(), newx2, newy2, newz2),
-                    null, new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), null);
-
             //if the new claim is smaller
             if (!newClaim.contains(oldClaim.getLesserBoundaryCorner(), true, false) || !newClaim.contains(oldClaim.getGreaterBoundaryCorner(), true, false))
             {
