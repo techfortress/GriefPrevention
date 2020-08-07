@@ -18,6 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import me.ryanhamshire.GriefPrevention.events.ClaimInspectionEvent;
 import me.ryanhamshire.GriefPrevention.events.VisualizationEvent;
 import org.bukkit.BanList;
 import org.bukkit.Bukkit;
@@ -1956,6 +1957,11 @@ class PlayerEventHandler implements Listener
                     //find nearby claims
                     Set<Claim> claims = this.dataStore.getNearbyClaims(player.getLocation());
 
+                    // alert plugins of a claim inspection, return if cancelled
+                    ClaimInspectionEvent inspectionEvent = new ClaimInspectionEvent(player, claims, true);
+                    Bukkit.getPluginManager().callEvent(inspectionEvent);
+                    if (inspectionEvent.isCancelled()) return;
+
                     // alert plugins of a visualization
                     Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claims, true));
 
@@ -2000,6 +2006,11 @@ class PlayerEventHandler implements Listener
                 //no claim case
                 if (claim == null)
                 {
+                    // alert plugins of a claim inspection, return if cancelled
+                    ClaimInspectionEvent inspectionEvent = new ClaimInspectionEvent(player, null);
+                    Bukkit.getPluginManager().callEvent(inspectionEvent);
+                    if (inspectionEvent.isCancelled()) return;
+
                     instance.sendMessage(player, TextMode.Info, Messages.BlockNotClaimed);
 
                     // alert plugins of a visualization
@@ -2011,6 +2022,11 @@ class PlayerEventHandler implements Listener
                 //claim case
                 else
                 {
+                    // alert plugins of a claim inspection, return if cancelled
+                    ClaimInspectionEvent inspectionEvent = new ClaimInspectionEvent(player, claim);
+                    Bukkit.getPluginManager().callEvent(inspectionEvent);
+                    if (inspectionEvent.isCancelled()) return;
+
                     playerData.lastClaim = claim;
                     instance.sendMessage(player, TextMode.Info, Messages.BlockClaimed, claim.getOwnerName());
 
