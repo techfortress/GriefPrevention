@@ -21,6 +21,7 @@ package me.ryanhamshire.GriefPrevention;
 import com.google.common.io.Files;
 import me.ryanhamshire.GriefPrevention.events.ClaimCreatedEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimDeletedEvent;
+import me.ryanhamshire.GriefPrevention.events.ClaimExtendEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimModifiedEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -1038,6 +1039,11 @@ public abstract class DataStore
             newDepth = GriefPrevention.instance.config_claims_maxDepth;
 
         if (claim.parent != null) claim = claim.parent;
+
+        //call event and return if event got cancelled
+        ClaimExtendEvent event = new ClaimExtendEvent(claim, newDepth);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return;
 
         //adjust to new depth
         claim.lesserBoundaryCorner.setY(newDepth);
