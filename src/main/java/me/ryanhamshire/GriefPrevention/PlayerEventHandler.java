@@ -1956,11 +1956,12 @@ class PlayerEventHandler implements Listener
                     //find nearby claims
                     Set<Claim> claims = this.dataStore.getNearbyClaims(player.getLocation());
 
-                    // alert plugins of a visualization
-                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claims, true));
-
                     //visualize boundaries
                     Visualization visualization = Visualization.fromClaims(claims, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation());
+
+                    // alert plugins of a visualization
+                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, visualization, claims, true));
+
                     Visualization.Apply(player, visualization);
 
                     instance.sendMessage(player, TextMode.Info, Messages.ShowNearbyClaims, String.valueOf(claims.size()));
@@ -1988,7 +1989,7 @@ class PlayerEventHandler implements Listener
                     instance.sendMessage(player, TextMode.Err, Messages.TooFarAway);
 
                     // alert plugins of a visualization
-                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, Collections.<Claim>emptySet()));
+                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, null, Collections.<Claim>emptySet()));
 
                     Visualization.Revert(player);
                     return;
@@ -2003,7 +2004,7 @@ class PlayerEventHandler implements Listener
                     instance.sendMessage(player, TextMode.Info, Messages.BlockNotClaimed);
 
                     // alert plugins of a visualization
-                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, Collections.<Claim>emptySet()));
+                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, null, Collections.<Claim>emptySet()));
 
                     Visualization.Revert(player);
                 }
@@ -2018,7 +2019,7 @@ class PlayerEventHandler implements Listener
                     Visualization visualization = Visualization.FromClaim(claim, player.getEyeLocation().getBlockY(), VisualizationType.Claim, player.getLocation());
 
                     // alert plugins of a visualization
-                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claim));
+                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, visualization, claim));
 
                     Visualization.Apply(player, visualization);
 
@@ -2097,7 +2098,7 @@ class PlayerEventHandler implements Listener
                     Visualization visualization = Visualization.FromClaim(claim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation());
 
                     // alert plugins of a visualization
-                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claim));
+                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, visualization, claim));
 
                     Visualization.Apply(player, visualization);
 
@@ -2378,7 +2379,7 @@ class PlayerEventHandler implements Listener
                                 Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation());
 
                                 // alert plugins of a visualization
-                                Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, result.claim));
+                                Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, visualization, result.claim));
 
                                 Visualization.Apply(player, visualization);
 
@@ -2392,7 +2393,7 @@ class PlayerEventHandler implements Listener
                                 Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.Claim, player.getLocation());
 
                                 // alert plugins of a visualization
-                                Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, result.claim));
+                                Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, visualization, result.claim));
 
                                 Visualization.Apply(player, visualization);
                                 playerData.lastShovelLocation = null;
@@ -2409,7 +2410,7 @@ class PlayerEventHandler implements Listener
                         Visualization visualization = Visualization.FromClaim(claim, clickedBlock.getY(), VisualizationType.Claim, player.getLocation());
 
                         // alert plugins of a visualization
-                        Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claim));
+                        Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, visualization, claim));
 
                         Visualization.Apply(player, visualization);
                     }
@@ -2422,7 +2423,7 @@ class PlayerEventHandler implements Listener
                     Visualization visualization = Visualization.FromClaim(claim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation());
 
                     // alert plugins of a visualization
-                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, claim));
+                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, visualization, claim));
 
                     Visualization.Apply(player, visualization);
                 }
@@ -2461,7 +2462,7 @@ class PlayerEventHandler implements Listener
                 Visualization visualization = Visualization.FromClaim(newClaim, clickedBlock.getY(), VisualizationType.RestoreNature, player.getLocation());
 
                 // alert plugins of a visualization
-                Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, newClaim));
+                Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, visualization, newClaim));
 
                 Visualization.Apply(player, visualization);
             }
@@ -2549,7 +2550,7 @@ class PlayerEventHandler implements Listener
                         Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation());
 
                         // alert plugins of a visualization
-                        Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, result.claim));
+                        Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, visualization, result.claim));
 
                         Visualization.Apply(player, visualization);
                     }
@@ -2568,7 +2569,7 @@ class PlayerEventHandler implements Listener
                     Visualization visualization = Visualization.FromClaim(result.claim, clickedBlock.getY(), VisualizationType.Claim, player.getLocation());
 
                     // alert plugins of a visualization
-                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, result.claim));
+                    Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, visualization, result.claim));
 
                     Visualization.Apply(player, visualization);
                     playerData.lastShovelLocation = null;
