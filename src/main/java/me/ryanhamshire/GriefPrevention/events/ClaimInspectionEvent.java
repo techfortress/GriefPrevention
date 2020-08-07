@@ -34,13 +34,17 @@ public class ClaimInspectionEvent extends PlayerEvent implements Cancellable
      * @param inspectedBlock The inspected block
      * @param claim The claim involved
      */
-    public ClaimInspectionEvent(Player player, Block inspectedBlock, Claim claim) {
+    public ClaimInspectionEvent(Player player, Block inspectedBlock, Claim claim)
+    {
         super(player);
 
         this.inspectedBlock = inspectedBlock;
-        if (claim != null) {
+        if (claim != null)
+        {
             this.claims = Collections.singleton(claim);
-        } else {
+        }
+        else
+        {
             this.claims = null;
         }
         this.inspectingNearbyClaims = false;
@@ -53,7 +57,8 @@ public class ClaimInspectionEvent extends PlayerEvent implements Cancellable
      * @param claims The list of claims involved
      * @param inspectingNearbyClaims Whether or not the user is inspecting nearby claims ("shift-clicking")
      */
-    public ClaimInspectionEvent(Player player, Block inspectedBlock, Collection<Claim> claims, boolean inspectingNearbyClaims) {
+    public ClaimInspectionEvent(Player player, Block inspectedBlock, Collection<Claim> claims, boolean inspectingNearbyClaims)
+    {
         super(player);
         this.inspectedBlock = inspectedBlock;
         this.claims = claims;
