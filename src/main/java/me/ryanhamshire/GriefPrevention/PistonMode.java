@@ -3,7 +3,7 @@ package me.ryanhamshire.GriefPrevention;
 public enum PistonMode {
 
     EVERYWHERE,
-    EVERYWHERE_FAST,
+    EVERYWHERE_SIMPLE,
     CLAIMS_ONLY,
     IGNORED;
 
