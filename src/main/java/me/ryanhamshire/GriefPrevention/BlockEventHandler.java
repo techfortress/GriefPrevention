@@ -115,15 +115,25 @@ public class BlockEventHandler implements Listener
         }
     }
 
-    //when a player places a sign...
+    //when a player changes the text of a sign...
     @EventHandler(ignoreCancelled = true)
     public void onSignChanged(SignChangeEvent event)
     {
+        Player player = event.getPlayer();
+        Block sign = event.getBlock();
+
+        if (player == null || sign == null) return;
+
+        String noBuildReason = GriefPrevention.instance.allowBuild(player, sign.getLocation(), sign.getType());
+        if (noBuildReason != null)
+        {
+            GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
+            event.setCancelled(true);
+            return;
+        }
+
         //send sign content to online administrators
         if (!GriefPrevention.instance.config_signNotifications) return;
-
-        Player player = event.getPlayer();
-        if (player == null) return;
 
         StringBuilder lines = new StringBuilder(" placed a sign @ " + GriefPrevention.getfriendlyLocationString(event.getBlock().getLocation()));
         boolean notEmpty = false;
