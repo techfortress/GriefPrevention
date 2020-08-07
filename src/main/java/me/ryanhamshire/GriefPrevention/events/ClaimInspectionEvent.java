@@ -32,7 +32,14 @@ public class ClaimInspectionEvent extends PlayerEvent implements Cancellable
      * @param claim The claim involved
      */
     public ClaimInspectionEvent(Player player, Claim claim) {
-        this(player, Collections.singleton(claim), false);
+        super(player);
+
+        if (claim != null) {
+            this.claims = Collections.singleton(claim);
+        } else {
+            this.claims = null;
+        }
+        this.inspectingNearbyClaims = false;
     }
 
     /**
