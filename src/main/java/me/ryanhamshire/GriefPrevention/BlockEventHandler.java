@@ -560,7 +560,7 @@ public class BlockEventHandler implements Listener
         if (minX == maxX && minZ == maxZ && direction == (event instanceof BlockPistonExtendEvent ? BlockFace.DOWN : BlockFace.UP)) return;
 
         // Fast mode: Use the intersection of a cuboid containing all blocks instead of individual locations.
-        if (pistonMode == PistonMode.EVERYWHERE_FAST)
+        if (pistonMode == PistonMode.EVERYWHERE_SIMPLE)
         {
             ArrayList<Claim> intersectable = new ArrayList<>();
             int chunkXMax = maxX >> 4;
