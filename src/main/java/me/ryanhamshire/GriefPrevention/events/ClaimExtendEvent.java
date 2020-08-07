@@ -6,7 +6,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 /**
- * A cancellable event which is called when a claim is extended in the Y direction.
+ * A cancellable event which is called when a claim's depth (lower y bound) is about to be extended.
  * @author FrankHeijden
  */
 public class ClaimExtendEvent extends Event implements Cancellable
