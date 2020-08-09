@@ -18,6 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -27,6 +28,9 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+
+import me.ryanhamshire.GriefPrevention.events.AllowPlayerClaimPermissionEvent;
+import me.ryanhamshire.GriefPrevention.events.AllowPlayerClaimPermissionEvent.AllowedPermissionType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -307,51 +311,89 @@ public class Claim
 
         return claim.contains(location, false, true);
     }
-
+    
     //permissions.  note administrative "public" claims have different rules than other claims
     //all of these return NULL when a player has permission, or a String error message when the player doesn't have permission
     public String allowEdit(Player player)
     {
+        return this.allowEdit(player, true);
+    }
+
+    //permissions.  note administrative "public" claims have different rules than other claims
+    //all of these return NULL when a player has permission, or a String error message when the player doesn't have permission
+    public String allowEdit(Player player, boolean fireEvent)
+    {
         //if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
         if (player == null) return "";
 
-        //special cases...
-
-        //admin claims need adminclaims permission only.
-        if (this.isAdminClaim())
-        {
-            if (player.hasPermission("griefprevention.adminclaims")) return null;
-        }
-
-        //anyone with deleteclaims permission can modify non-admin claims at any time
-        else
-        {
-            if (player.hasPermission("griefprevention.deleteclaims")) return null;
-        }
-
-        //no resizing, deleting, and so forth while under siege
-        if (player.getUniqueId().equals(this.ownerID))
-        {
-            if (this.siegeData != null)
+        String message;
+        // default system before event firing
+        test: {
+            //special cases...
+            //admin claims need adminclaims permission only.
+            if (this.isAdminClaim())
             {
-                return GriefPrevention.instance.dataStore.getMessage(Messages.NoModifyDuringSiege);
+                if (player.hasPermission("griefprevention.adminclaims"))
+                {
+                    message = null;
+                    break test;
+                }
             }
 
-            //otherwise, owners can do whatever
-            return null;
-        }
+            //anyone with deleteclaims permission can modify non-admin claims at any time
+            else
+            {
+                if (player.hasPermission("griefprevention.deleteclaims"))
+                {
+                    message = null;
+                    break test;
+                }
+            }
 
-        //permission inheritance for subdivisions
-        if (this.parent != null)
+            //no resizing, deleting, and so forth while under siege
+            if (player.getUniqueId().equals(this.ownerID))
+            {
+                if (this.siegeData != null)
+                {
+                    message = GriefPrevention.instance.dataStore.getMessage(Messages.NoModifyDuringSiege);
+                    break test;
+                }
+
+                //otherwise, owners can do whatever
+                message = null;
+                break test;
+            }
+
+            //permission inheritance for subdivisions
+            if (this.parent != null)
+            {
+                if (player.getUniqueId().equals(this.parent.ownerID))
+                {
+                    message = null;
+                    break test;
+                }
+                if (!inheritNothing)
+                {
+                    message = this.parent.allowEdit(player, false);
+                    break test;
+                }
+            }
+            
+            //error message if all else fails
+            message = GriefPrevention.instance.dataStore.getMessage(Messages.OnlyOwnersModifyClaims, this.getOwnerName());
+        }
+        
+        if(fireEvent)
         {
-            if (player.getUniqueId().equals(this.parent.ownerID))
-                return null;
-            if (!inheritNothing)
-                return this.parent.allowEdit(player);
+	        // fire event
+	        AllowPlayerClaimPermissionEvent event = new AllowPlayerClaimPermissionEvent(player, this, AllowedPermissionType.EDIT, message);
+	        Bukkit.getPluginManager().callEvent(event);
+	        return event.getDenialMessage();
         }
-
-        //error message if all else fails
-        return GriefPrevention.instance.dataStore.getMessage(Messages.OnlyOwnersModifyClaims, this.getOwnerName());
+        else
+        {
+            return message;
+        }
     }
 
     private List<Material> placeableFarmingBlocksList = Arrays.asList(
@@ -367,9 +409,15 @@ public class Claim
     {
         return this.placeableFarmingBlocksList.contains(material);
     }
+    
+  //build permission check
+    public String allowBuild(Player player, Material material)
+    {
+        return this.allowBuild(player, material, true);
+    }
 
     //build permission check
-    public String allowBuild(Player player, Material material)
+    public String allowBuild(Player player, Material material, boolean fireEvent)
     {
         //if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
         if (player == null) return "";
@@ -377,60 +425,98 @@ public class Claim
         //when a player tries to build in a claim, if he's under siege, the siege may extend to include the new claim
         GriefPrevention.instance.dataStore.tryExtendSiege(player, this);
 
-        //admin claims can always be modified by admins, no exceptions
-        if (this.isAdminClaim())
-        {
-            if (player.hasPermission("griefprevention.adminclaims")) return null;
-        }
-
-        //no building while under siege
-        if (this.siegeData != null)
-        {
-            return GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildUnderSiege, this.siegeData.attacker.getName());
-        }
-
-        //no building while in pvp combat
-        PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
-        if (playerData.inPvpCombat())
-        {
-            return GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildPvP);
-        }
-
-        //owners can make changes, or admins with ignore claims mode enabled
-        if (player.getUniqueId().equals(this.ownerID) || GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims)
-            return null;
-
-        //anyone with explicit build permission can make changes
-        if (this.hasExplicitPermission(player, ClaimPermission.Build)) return null;
-
-        //also everyone is a member of the "public", so check for public permission
-        if (ClaimPermission.Build.isGrantedBy(this.playerIDToClaimPermissionMap.get("public"))) return null;
-
-        //allow for farming with /containertrust permission
-        if (this.allowContainers(player) == null)
-        {
-            //do allow for farming, if player has /containertrust permission
-            if (this.placeableForFarming(material))
+        String message;
+        // default system before event firing
+        test: {
+            //admin claims can always be modified by admins, no exceptions
+            if (this.isAdminClaim())
             {
-                return null;
+                if (player.hasPermission("griefprevention.adminclaims"))
+                {
+                    message = null;
+                    break test;
+                }
             }
+
+            //no building while under siege
+            if (this.siegeData != null)
+            {
+                message = GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildUnderSiege, this.siegeData.attacker.getName());
+                break test;
+            }
+
+            //no building while in pvp combat
+            PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
+            if (playerData.inPvpCombat())
+            {
+                message = GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildPvP);
+                break test;
+            }
+
+            //owners can make changes, or admins with ignore claims mode enabled
+            if (player.getUniqueId().equals(this.ownerID) || GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims)
+            {
+                message = null;
+                break test;
+            }
+
+            //anyone with explicit build permission can make changes
+            if (this.hasExplicitPermission(player, ClaimPermission.Build))
+            {
+                message = null;
+                break test;
+            }
+
+            //also everyone is a member of the "public", so check for public permission
+            if (ClaimPermission.Build.isGrantedBy(this.playerIDToClaimPermissionMap.get("public")))
+            {
+                message = null;
+                break test;
+            }
+
+            //allow for farming with /containertrust permission
+            if (this.allowContainers(player) == null)
+            {
+                //do allow for farming, if player has /containertrust permission
+                if (this.placeableForFarming(material))
+                {
+                    message = null;
+                    break test;
+                }
+            }
+
+            //subdivision permission inheritance
+            if (this.parent != null)
+            {
+                if (player.getUniqueId().equals(this.parent.ownerID))
+                {
+                    message = null;
+                    break test;
+                }
+                if (!inheritNothing)
+                {
+                    message = this.parent.allowBuild(player, material, false);
+                    break test;
+                }
+            }
+
+            //failure message for all other cases
+            message = GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildPermission, this.getOwnerName());
+            if (player.hasPermission("griefprevention.ignoreclaims"))
+                message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
         }
 
-        //subdivision permission inheritance
-        if (this.parent != null)
+        if(fireEvent) 
         {
-            if (player.getUniqueId().equals(this.parent.ownerID))
-                return null;
-            if (!inheritNothing)
-                return this.parent.allowBuild(player, material);
+	        // fire event
+	        AllowPlayerClaimPermissionEvent event = new AllowPlayerClaimPermissionEvent(player, this, AllowedPermissionType.BUILD, message);
+	        Bukkit.getPluginManager().callEvent(event);
+	        return event.getDenialMessage();
         }
-
-        //failure message for all other cases
-        String reason = GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildPermission, this.getOwnerName());
-        if (player.hasPermission("griefprevention.ignoreclaims"))
-            reason += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-
-        return reason;
+        else
+        {
+            return message;
+        }
     }
 
     public boolean hasExplicitPermission(UUID uuid, ClaimPermission level)
@@ -505,43 +591,98 @@ public class Claim
     //access permission check
     public String allowAccess(Player player)
     {
-        //following a siege where the defender lost, the claim will allow everyone access for a time
-        if (this.doorsOpen) return null;
+        return this.allowAccess(player, true);
+    }
+    
+    //access permission check
+    public String allowAccess(Player player, boolean fireEvent)
+    {
+        //if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
+        if (player == null) return "";
+        
+        String message;
+        // default system before event firing
+        test: {
+            //following a siege where the defender lost, the claim will allow everyone access for a time
+            if (this.doorsOpen)
+            {
+                message = null;
+                break test;
+            }
 
-        //admin claims need adminclaims permission only.
-        if (this.isAdminClaim())
-        {
-            if (player.hasPermission("griefprevention.adminclaims")) return null;
+            //admin claims need adminclaims permission only.
+            if (this.isAdminClaim())
+            {
+                if (player.hasPermission("griefprevention.adminclaims"))
+                {
+                    message = null;
+                    break test;
+                }
+            }
+
+            //claim owner and admins in ignoreclaims mode have access
+            if (player.getUniqueId().equals(this.ownerID) || GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims)
+            {
+                message = null;
+                break test;
+            }
+
+            //look for explicit individual access, inventory, or build permission
+            if (this.hasExplicitPermission(player, ClaimPermission.Access))
+            {
+                message = null;
+                break test;
+            }
+
+            //also check for public permission
+            if (ClaimPermission.Access.isGrantedBy(this.playerIDToClaimPermissionMap.get("public")))
+            {
+                message = null;
+                break test;
+            }
+
+            //permission inheritance for subdivisions
+            if (this.parent != null)
+            {
+                if (player.getUniqueId().equals(this.parent.ownerID))
+                {
+                    message = null;
+                    break test;
+                }
+                if (!inheritNothing)
+                {
+                    message = this.parent.allowAccess(player, false);
+                    break test;
+                }
+            }
+
+            //catch-all error message for all other cases
+            message = GriefPrevention.instance.dataStore.getMessage(Messages.NoAccessPermission, this.getOwnerName());
+            if (player.hasPermission("griefprevention.ignoreclaims"))
+                message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
         }
-
-        //claim owner and admins in ignoreclaims mode have access
-        if (player.getUniqueId().equals(this.ownerID) || GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims)
-            return null;
-
-        //look for explicit individual access, inventory, or build permission
-        if (this.hasExplicitPermission(player, ClaimPermission.Access)) return null;
-
-        //also check for public permission
-        if (ClaimPermission.Access.isGrantedBy(this.playerIDToClaimPermissionMap.get("public"))) return null;
-
-        //permission inheritance for subdivisions
-        if (this.parent != null)
+        
+        if(fireEvent) 
         {
-            if (player.getUniqueId().equals(this.parent.ownerID))
-                return null;
-            if (!inheritNothing)
-                return this.parent.allowAccess(player);
+	        // fire event
+	        AllowPlayerClaimPermissionEvent event = new AllowPlayerClaimPermissionEvent(player, this, AllowedPermissionType.ACCESS, message);
+	        Bukkit.getPluginManager().callEvent(event);
+	        return event.getDenialMessage();
         }
-
-        //catch-all error message for all other cases
-        String reason = GriefPrevention.instance.dataStore.getMessage(Messages.NoAccessPermission, this.getOwnerName());
-        if (player.hasPermission("griefprevention.ignoreclaims"))
-            reason += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-        return reason;
+        else 
+        {
+            return message;
+        }
     }
 
     //inventory permission check
     public String allowContainers(Player player)
+    {
+        return this.allowContainers(player, true);
+    }
+    
+    //inventory permission check
+    public String allowContainers(Player player, boolean fireEvent)
     {
         //if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
         if (player == null) return "";
@@ -549,81 +690,154 @@ public class Claim
         //trying to access inventory in a claim may extend an existing siege to include this claim
         GriefPrevention.instance.dataStore.tryExtendSiege(player, this);
 
-        //if under siege, nobody accesses containers
-        if (this.siegeData != null)
-        {
-            return GriefPrevention.instance.dataStore.getMessage(Messages.NoContainersSiege, siegeData.attacker.getName());
+        String message;
+        // default system before event firing
+        test: {
+            //if under siege, nobody accesses containers
+            if (this.siegeData != null)
+            {
+                message = GriefPrevention.instance.dataStore.getMessage(Messages.NoContainersSiege, siegeData.attacker.getName());
+                break test;
+            }
+
+            //owner and administrators in ignoreclaims mode have access
+            if (player.getUniqueId().equals(this.ownerID) || GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims)
+            {
+                message = null;
+                break test;
+            }
+
+            //admin claims need adminclaims permission only.
+            if (this.isAdminClaim())
+            {
+                if (player.hasPermission("griefprevention.adminclaims"))
+                {
+                    message = null;
+                    break test;
+                }
+            }
+
+            //check for explicit individual container or build permission
+            if (this.hasExplicitPermission(player, ClaimPermission.Inventory))
+            {
+                message = null;
+                break test;
+            }
+
+            //check for public container or build permission
+            if (ClaimPermission.Inventory.isGrantedBy(this.playerIDToClaimPermissionMap.get("public")))
+            {
+                message = null;
+                break test;
+            }
+
+            //permission inheritance for subdivisions
+            if (this.parent != null)
+            {
+                if (player.getUniqueId().equals(this.parent.ownerID))
+                {
+                    message = null;
+                    break test;
+                }
+                if (!inheritNothing)
+                {
+                    message = this.parent.allowContainers(player, false);
+                    break test;
+                }
+            }
+
+            //error message for all other cases
+            message = GriefPrevention.instance.dataStore.getMessage(Messages.NoContainersPermission, this.getOwnerName());
+            if (player.hasPermission("griefprevention.ignoreclaims"))
+                message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
         }
-
-        //owner and administrators in ignoreclaims mode have access
-        if (player.getUniqueId().equals(this.ownerID) || GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId()).ignoreClaims)
-            return null;
-
-        //admin claims need adminclaims permission only.
-        if (this.isAdminClaim())
+        
+        if(fireEvent) 
         {
-            if (player.hasPermission("griefprevention.adminclaims")) return null;
+	        // fire event
+	        AllowPlayerClaimPermissionEvent event = new AllowPlayerClaimPermissionEvent(player, this, AllowedPermissionType.CONTAINERS, message);
+	        Bukkit.getPluginManager().callEvent(event);
+	        return event.getDenialMessage();
         }
-
-        //check for explicit individual container or build permission
-        if (this.hasExplicitPermission(player, ClaimPermission.Inventory)) return null;
-
-        //check for public container or build permission
-        if (ClaimPermission.Inventory.isGrantedBy(this.playerIDToClaimPermissionMap.get("public"))) return null;
-
-        //permission inheritance for subdivisions
-        if (this.parent != null)
+        else
         {
-            if (player.getUniqueId().equals(this.parent.ownerID))
-                return null;
-            if (!inheritNothing)
-                return this.parent.allowContainers(player);
+            return message;
         }
-
-        //error message for all other cases
-        String reason = GriefPrevention.instance.dataStore.getMessage(Messages.NoContainersPermission, this.getOwnerName());
-        if (player.hasPermission("griefprevention.ignoreclaims"))
-            reason += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-        return reason;
+    }
+    
+    //grant permission check, relatively simple
+    public String allowGrantPermission(Player player)
+    {
+        return this.allowGrantPermission(player, true);
     }
 
     //grant permission check, relatively simple
-    public String allowGrantPermission(Player player)
+    public String allowGrantPermission(Player player, boolean fireEvent)
     {
         //if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
         if (player == null) return "";
 
-        //anyone who can modify the claim can do this
+        //anyone who can modify the claim can do this (it is not in the event test to avoid loop)
         if (this.allowEdit(player) == null) return null;
 
-        //anyone who's in the managers (/PermissionTrust) list can do this
-        for (int i = 0; i < this.managers.size(); i++)
-        {
-            String managerID = this.managers.get(i);
-            if (player.getUniqueId().toString().equals(managerID)) return null;
-
-            else if (managerID.startsWith("[") && managerID.endsWith("]"))
+        String message;
+        // default system before event firing
+        test: {
+            //anyone who's in the managers (/PermissionTrust) list can do this
+            for (int i = 0; i < this.managers.size(); i++)
             {
-                managerID = managerID.substring(1, managerID.length() - 1);
-                if (managerID == null || managerID.isEmpty()) continue;
-                if (player.hasPermission(managerID)) return null;
+                String managerID = this.managers.get(i);
+                if (player.getUniqueId().toString().equals(managerID))
+                {
+                    message = null;
+                    break test;
+                }
+
+                else if (managerID.startsWith("[") && managerID.endsWith("]"))
+                {
+                    managerID = managerID.substring(1, managerID.length() - 1);
+                    if (managerID == null || managerID.isEmpty()) continue;
+                    if (player.hasPermission(managerID))
+                    {
+                        message = null;
+                        break test;
+                    }
+                }
             }
-        }
 
-        //permission inheritance for subdivisions
-        if (this.parent != null)
+            //permission inheritance for subdivisions
+            if (this.parent != null)
+            {
+                if (player.getUniqueId().equals(this.parent.ownerID))
+                {
+                    message = null;
+                    break test;
+                }
+                if (!inheritNothing)
+                {
+                    message = this.parent.allowGrantPermission(player, false);
+                    break test;
+                }
+            }
+
+            //generic error message
+            message = GriefPrevention.instance.dataStore.getMessage(Messages.NoPermissionTrust, this.getOwnerName());
+            if (player.hasPermission("griefprevention.ignoreclaims"))
+                message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+        }
+        
+        if(fireEvent) 
         {
-            if (player.getUniqueId().equals(this.parent.ownerID))
-                return null;
-            if (!inheritNothing)
-                return this.parent.allowGrantPermission(player);
+	        // fire event
+	        AllowPlayerClaimPermissionEvent event = new AllowPlayerClaimPermissionEvent(player, this, AllowedPermissionType.GRANT_PERMISSION,
+	        		message);
+	        Bukkit.getPluginManager().callEvent(event);
+	        return event.getDenialMessage();
         }
-
-        //generic error message
-        String reason = GriefPrevention.instance.dataStore.getMessage(Messages.NoPermissionTrust, this.getOwnerName());
-        if (player.hasPermission("griefprevention.ignoreclaims"))
-            reason += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-        return reason;
+        else 
+        {
+            return message;
+        }
     }
 
     public ClaimPermission getPermission(String playerID)

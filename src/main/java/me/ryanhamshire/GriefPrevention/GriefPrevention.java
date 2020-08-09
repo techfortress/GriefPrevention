@@ -19,6 +19,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import me.ryanhamshire.GriefPrevention.DataStore.NoTransferException;
+import me.ryanhamshire.GriefPrevention.events.PlayerAbandonClaimEvent;
 import me.ryanhamshire.GriefPrevention.events.PreventBlockBreakEvent;
 import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
 import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
@@ -2923,6 +2924,12 @@ public class GriefPrevention extends JavaPlugin
         }
         else
         {
+            // fire event
+            PlayerAbandonClaimEvent event = new PlayerAbandonClaimEvent(player, claim);
+            Bukkit.getPluginManager().callEvent(event);
+            if(event.isCancelled())
+                return true;
+            
             //delete it
             claim.removeSurfaceFluids(null);
             this.dataStore.deleteClaim(claim, true, false);
