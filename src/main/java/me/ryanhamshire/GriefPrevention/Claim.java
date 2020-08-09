@@ -777,12 +777,12 @@ public class Claim
         //if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
         if (player == null) return "";
 
-        //anyone who can modify the claim can do this (it is not in the event test to avoid loop)
-        if (this.allowEdit(player) == null) return null;
-
         String message;
         // default system before event firing
         test: {
+            //anyone who can modify the claim can do this
+            if (this.allowEdit(player, false) == null) return null;
+            
             //anyone who's in the managers (/PermissionTrust) list can do this
             for (int i = 0; i < this.managers.size(); i++)
             {
