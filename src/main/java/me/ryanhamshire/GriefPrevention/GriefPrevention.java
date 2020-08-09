@@ -22,7 +22,6 @@ import me.ryanhamshire.GriefPrevention.DataStore.NoTransferException;
 import me.ryanhamshire.GriefPrevention.events.PlayerAbandonClaimEvent;
 import me.ryanhamshire.GriefPrevention.events.PreventBlockBreakEvent;
 import me.ryanhamshire.GriefPrevention.events.SaveTrappedPlayerEvent;
-import me.ryanhamshire.GriefPrevention.events.SiegeStartEvent;
 import me.ryanhamshire.GriefPrevention.events.TrustChangedEvent;
 import me.ryanhamshire.GriefPrevention.metrics.MetricsHandler;
 import net.milkbowl.vault.economy.Economy;
@@ -2518,12 +2517,6 @@ public class GriefPrevention extends JavaPlugin {
 				return true;
 			}
 
-			// fire event
-			SiegeStartEvent event = new SiegeStartEvent(attacker, defender, defenderClaim);
-			Bukkit.getPluginManager().callEvent(event);
-			if(event.isCancelled())
-				return true;
-			
 			// start the siege
 			dataStore.startSiege(attacker, defender, defenderClaim);
 
