@@ -55,6 +55,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.InventoryHolder;
@@ -1018,5 +1019,19 @@ public class BlockEventHandler implements Listener
                 }
             }
         }
+    }
+    
+    @EventHandler(ignoreCancelled = true)
+    public void onItemFrameBrokenByBoat(final HangingBreakEvent event)
+    {
+        // Checks if the event is caused by Physic damage - 90% of cases caused by a boat (other 10% would be block, 
+        // however since it's in a claim, unless you use a TNT block we can not worry about it).
+        if (event.getCause() != HangingBreakEvent.RemoveCause.PHYSICS) 
+        {
+            return;
+        }
+        
+        // Cancels the event in any case, as we can not efficiently retrieve the person/entity who broke the Item Frame/Hangable Item.
+        event.setCancelled(true);
     }
 }
