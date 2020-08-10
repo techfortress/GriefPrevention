@@ -18,12 +18,46 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import me.ryanhamshire.GriefPrevention.events.AllowPlayerClaimPermissionEvent.ClaimPermissionType;
+
 //basic enum stuff
 public enum ClaimPermission
 {
-    Build,
-    Inventory,
-    Access;
+    Build(true, Messages.NoBuildUnderSiege, Messages.NoBuildPermission, ClaimPermissionType.BUILD),
+    Inventory(true, Messages.NoContainersSiege, Messages.NoContainersPermission, ClaimPermissionType.CONTAINERS),
+    Access(false, null, Messages.NoAccessPermission, ClaimPermissionType.ACCESS),
+    Edit(false, Messages.NoModifyDuringSiege, Messages.OnlyOwnersModifyClaims, ClaimPermissionType.EDIT);
+
+    private boolean canExtendClaimInSiege;
+    private Messages siegeMessage;
+    private Messages denialMessage;
+    private ClaimPermissionType pair;
+    ClaimPermission(boolean canExtendClaimInSiege, Messages siegeMessage, Messages denialMessage, ClaimPermissionType pair)
+    {
+        this.canExtendClaimInSiege = canExtendClaimInSiege;
+        this.siegeMessage = siegeMessage;
+        this.denialMessage = denialMessage;
+        this.pair = pair;
+	}
+
+    public boolean canExtendClaimInSiege()
+    {
+        return canExtendClaimInSiege;
+    }
+
+    public Messages getSiegeMessage()
+    {
+        return siegeMessage;
+    }
+
+    public Messages getDenialMessage() 
+    {
+        return denialMessage;
+    }
+
+    public ClaimPermissionType getPair() {
+		return pair;
+	}
 
     /**
      * Check if a ClaimPermission is granted by another ClaimPermission.
@@ -36,5 +70,4 @@ public enum ClaimPermission
         // As this uses declaration order to compare, if trust levels are reordered this method must be rewritten.
         return other != null && other.ordinal() <= this.ordinal();
     }
-
 }

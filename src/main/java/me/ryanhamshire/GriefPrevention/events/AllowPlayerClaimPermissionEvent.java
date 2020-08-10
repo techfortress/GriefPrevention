@@ -27,17 +27,17 @@ public class AllowPlayerClaimPermissionEvent extends Event
 
     private final Player player;
     private final Claim claim;
-    private final AllowedPermissionType permissionType;
+    private final ClaimPermissionType permissionType;
     private String message;
     @Nullable
     private final Material material;
 
-    public AllowPlayerClaimPermissionEvent(Player player, Claim claim, AllowedPermissionType permissionType, String message)
+    public AllowPlayerClaimPermissionEvent(Player player, Claim claim, ClaimPermissionType permissionType, String message)
     {
         this(player, claim, permissionType, message, null);
     }
 
-    public AllowPlayerClaimPermissionEvent(Player player, Claim claim, AllowedPermissionType permissionType, String message,
+    public AllowPlayerClaimPermissionEvent(Player player, Claim claim, ClaimPermissionType permissionType, String message,
             @Nullable Material material)
     {
         this.player = player;
@@ -72,7 +72,7 @@ public class AllowPlayerClaimPermissionEvent extends Event
     /**
      * @return the permission type of the event
      */
-    public AllowedPermissionType getPermissionType()
+    public ClaimPermissionType getPermissionType()
     {
         return permissionType;
     }
@@ -102,7 +102,7 @@ public class AllowPlayerClaimPermissionEvent extends Event
         return material;
     }
 
-    public static enum AllowedPermissionType
+    public static enum ClaimPermissionType
     {
         EDIT, BUILD, ACCESS, CONTAINERS, GRANT_PERMISSION;
     }
