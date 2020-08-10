@@ -32,12 +32,14 @@ public class AllowPlayerClaimPermissionEvent extends Event
     @Nullable
     private final Material material;
 
-    public AllowPlayerClaimPermissionEvent(Player player, Claim claim, AllowedPermissionType permissionType, String message) {
+    public AllowPlayerClaimPermissionEvent(Player player, Claim claim, AllowedPermissionType permissionType, String message)
+    {
         this(player, claim, permissionType, message, null);
     }
 
     public AllowPlayerClaimPermissionEvent(Player player, Claim claim, AllowedPermissionType permissionType, String message,
-            @Nullable Material material) {
+            @Nullable Material material)
+    {
         this.player = player;
         this.claim = claim;
         this.permissionType = permissionType;
@@ -46,42 +48,48 @@ public class AllowPlayerClaimPermissionEvent extends Event
 	}
 
     @Override
-    public HandlerList getHandlers() {
+    public HandlerList getHandlers()
+    {
         return handlers;
     }
 
     /**
      * @return the player for whom we want to know if he has the permission
      */
-    public Player getPlayer() {
+    public Player getPlayer()
+    {
         return player;
     }
 
     /**
      * @return the involved claim.
      */
-    public Claim getClaim() {
+    public Claim getClaim()
+    {
         return claim;
     }
 
     /**
      * @return the permission type of the event
      */
-    public AllowedPermissionType getPermissionType() {
+    public AllowedPermissionType getPermissionType()
+    {
         return permissionType;
     }
 
     /**
      * @return the error message of the permission of this player in this claim for this permission type
      */
-    public String getDenialMessage() {
+    public String getDenialMessage()
+    {
         return message;
     }
 
     /**
      * @param error message of the permission of this player in this claim for this permission type
      */
-    public void setMessage(String message) {
+    public void setMessage(String message)
+    {
         this.message = message;
     }
 
@@ -89,11 +97,13 @@ public class AllowPlayerClaimPermissionEvent extends Event
      * @return the material for permission type build.
      */
     @Nullable
-    public Material getMaterial() {
+    public Material getMaterial()
+    {
         return material;
     }
 
-    public static enum AllowedPermissionType {
+    public static enum AllowedPermissionType
+    {
         EDIT, BUILD, ACCESS, CONTAINERS, GRANT_PERMISSION;
     }
 

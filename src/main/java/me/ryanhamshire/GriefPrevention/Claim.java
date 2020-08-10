@@ -311,7 +311,7 @@ public class Claim
 
         return claim.contains(location, false, true);
     }
-    
+
     //permissions.  note administrative "public" claims have different rules than other claims
     //all of these return NULL when a player has permission, or a String error message when the player doesn't have permission
     public String allowEdit(Player player)
@@ -382,8 +382,8 @@ public class Claim
             //error message if all else fails
             message = GriefPrevention.instance.dataStore.getMessage(Messages.OnlyOwnersModifyClaims, this.getOwnerName());
         }
-        
-        if(fireEvent)
+
+        if (fireEvent)
         {
 	        // fire event
 	        AllowPlayerClaimPermissionEvent event = new AllowPlayerClaimPermissionEvent(player, this, AllowedPermissionType.EDIT, message);
@@ -506,7 +506,7 @@ public class Claim
                 message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
         }
 
-        if(fireEvent) 
+        if (fireEvent) 
         {
 	        // fire event
 	        AllowPlayerClaimPermissionEvent event = new AllowPlayerClaimPermissionEvent(player, this, AllowedPermissionType.BUILD, message);
@@ -662,7 +662,7 @@ public class Claim
                 message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
         }
         
-        if(fireEvent) 
+        if (fireEvent) 
         {
 	        // fire event
 	        AllowPlayerClaimPermissionEvent event = new AllowPlayerClaimPermissionEvent(player, this, AllowedPermissionType.ACCESS, message);
@@ -752,7 +752,7 @@ public class Claim
                 message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
         }
         
-        if(fireEvent) 
+        if (fireEvent) 
         {
 	        // fire event
 	        AllowPlayerClaimPermissionEvent event = new AllowPlayerClaimPermissionEvent(player, this, AllowedPermissionType.CONTAINERS, message);
@@ -764,7 +764,7 @@ public class Claim
             return message;
         }
     }
-    
+
     //grant permission check, relatively simple
     public String allowGrantPermission(Player player)
     {
@@ -826,7 +826,7 @@ public class Claim
                 message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
         }
         
-        if(fireEvent) 
+        if (fireEvent) 
         {
 	        // fire event
 	        AllowPlayerClaimPermissionEvent event = new AllowPlayerClaimPermissionEvent(player, this, AllowedPermissionType.GRANT_PERMISSION,
