@@ -250,6 +250,24 @@ public class Claim
         this(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderIDs, containerIDs, accessorIDs, managerIDs, false, id);
     }
 
+    //produces a copy of a claim.
+    public Claim(Claim claim) {
+        this.modifiedDate = claim.modifiedDate;
+        this.lesserBoundaryCorner = claim.greaterBoundaryCorner.clone();
+        this.greaterBoundaryCorner = claim.greaterBoundaryCorner.clone();
+        this.id = claim.id;
+        this.ownerID = claim.ownerID;
+        this.managers = new ArrayList<>(claim.managers);
+        this.playerIDToClaimPermissionMap = new HashMap<>(claim.playerIDToClaimPermissionMap);
+        this.inDataStore = false; //since it's a copy of a claim, not in datastore!
+        this.areExplosivesAllowed = claim.areExplosivesAllowed;
+        this.parent = claim.parent;
+        this.inheritNothing = claim.inheritNothing;
+        this.children = new ArrayList<>(claim.children);
+        this.siegeData = claim.siegeData;
+        this.doorsOpen = claim.doorsOpen;
+    }
+
     //measurements.  all measurements are in blocks
     public int getArea()
     {
@@ -943,20 +961,6 @@ public class Claim
 
     ArrayList<Long> getChunkHashes()
     {
-        ArrayList<Long> hashes = new ArrayList<Long>();
-        int smallX = this.getLesserBoundaryCorner().getBlockX() >> 4;
-        int smallZ = this.getLesserBoundaryCorner().getBlockZ() >> 4;
-        int largeX = this.getGreaterBoundaryCorner().getBlockX() >> 4;
-        int largeZ = this.getGreaterBoundaryCorner().getBlockZ() >> 4;
-
-        for (int x = smallX; x <= largeX; x++)
-        {
-            for (int z = smallZ; z <= largeZ; z++)
-            {
-                hashes.add(DataStore.getChunkHash(x, z));
-            }
-        }
-
-        return hashes;
+        return DataStore.getChunkHashes(this);
     }
 }
