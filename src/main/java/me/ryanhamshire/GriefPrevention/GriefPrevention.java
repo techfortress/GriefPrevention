@@ -207,6 +207,7 @@ public class GriefPrevention extends JavaPlugin
     public boolean config_limitTreeGrowth;                          //whether trees should be prevented from growing into a claim from outside
     public boolean config_checkPistonMovement;                      //whether to check piston movement
     public boolean config_pistonsInClaimsOnly;                      //whether pistons are limited to only move blocks located within the piston's land claim
+    public boolean config_pistonExplosionSound;                     //whether pistons make an explosion sound when they get removed
 
     public boolean config_advanced_fixNegativeClaimblockAmounts;    //whether to attempt to fix negative claim block amounts (some addons cause/assume players can go into negative amounts)
     public int config_advanced_claim_expiration_check_rate;            //How often GP should check for expired claims, amount in seconds
@@ -627,6 +628,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_limitTreeGrowth = config.getBoolean("GriefPrevention.LimitTreeGrowth", false);
         this.config_checkPistonMovement = config.getBoolean("GriefPrevention.CheckPistonMovement", true);
         this.config_pistonsInClaimsOnly = config.getBoolean("GriefPrevention.LimitPistonsToLandClaims", true);
+        this.config_pistonExplosionSound = config.getBoolean("GriefPrevention.PistonExplosionSound", true);
         if (!this.config_checkPistonMovement && this.config_pistonsInClaimsOnly) {
             AddLogEntry("Error: You have enabled LimitPistonsToLandClaims, but CheckPistonMovement is off!");
             this.config_pistonsInClaimsOnly = false;
@@ -899,6 +901,7 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.LimitTreeGrowth", this.config_limitTreeGrowth);
         outConfig.set("GriefPrevention.CheckPistonMovement", this.config_checkPistonMovement);
         outConfig.set("GriefPrevention.LimitPistonsToLandClaims", this.config_pistonsInClaimsOnly);
+        outConfig.set("GriefPrevention.PistonExplosionSound", this.config_pistonExplosionSound);
 
         outConfig.set("GriefPrevention.FireSpreads", this.config_fireSpreads);
         outConfig.set("GriefPrevention.FireDestroys", this.config_fireDestroys);

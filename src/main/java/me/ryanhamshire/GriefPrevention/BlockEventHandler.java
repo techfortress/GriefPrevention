@@ -548,7 +548,10 @@ public class BlockEventHandler implements Listener
                     if (!claim.getOwnerName().equals(pistonClaimOwnerName))
                     {
                         event.setCancelled(true);
-                        pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
+                        if (GriefPrevention.instance.config_pistonExplosionSound)
+                        {
+                            pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
+                        }
                         pistonBlock.getWorld().dropItem(pistonBlock.getLocation(), new ItemStack(pistonBlock.getType()));
                         pistonBlock.setType(Material.AIR);
                         return;
@@ -579,7 +582,10 @@ public class BlockEventHandler implements Listener
                 if (!newOwnerName.equals(originalOwnerName) && !newOwnerName.isEmpty())
                 {
                     event.setCancelled(true);
-                    pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
+                    if (GriefPrevention.instance.config_pistonExplosionSound)
+                    {
+                        pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
+                    }
                     pistonBlock.getWorld().dropItem(pistonBlock.getLocation(), new ItemStack(pistonBlock.getType()));
                     pistonBlock.setType(Material.AIR);
                     return;
@@ -647,7 +653,10 @@ public class BlockEventHandler implements Listener
                     if (!pistonOwnerName.equals(movingBlockOwnerName))
                     {
                         event.setCancelled(true);
-                        block.getWorld().createExplosion(block.getLocation(), 0);
+                        if (GriefPrevention.instance.config_pistonExplosionSound)
+                        {
+                            block.getWorld().createExplosion(block.getLocation(), 0);
+                        }
                         block.getWorld().dropItem(block.getLocation(), new ItemStack(Material.STICKY_PISTON));
                         block.setType(Material.AIR);
                         return;
