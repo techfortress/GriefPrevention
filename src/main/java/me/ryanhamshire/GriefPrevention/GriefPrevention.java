@@ -1318,7 +1318,13 @@ public class GriefPrevention extends JavaPlugin
         //abandonallclaims
         else if (cmd.getName().equalsIgnoreCase("abandonallclaims") && player != null)
         {
-            if (args.length != 0) return false;
+            if (args.length != 1) return false;
+
+            if (!"confirm".equalsIgnoreCase(args[0]))
+            {
+                GriefPrevention.sendMessage(player, TextMode.Err, Messages.ConfirmAbandonAllClaims);
+                return true;
+            }
 
             //count claims
             PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());

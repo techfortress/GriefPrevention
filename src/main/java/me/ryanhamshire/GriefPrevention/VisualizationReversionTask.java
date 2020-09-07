@@ -45,7 +45,7 @@ class VisualizationReversionTask implements Runnable
         if (playerData.currentVisualization != visualization) return;
 
         // alert plugins of a visualization
-        Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, Collections.<Claim>emptySet()));
+        Bukkit.getPluginManager().callEvent(new VisualizationEvent(player, null, Collections.<Claim>emptySet()));
 
         Visualization.Revert(player);
     }
