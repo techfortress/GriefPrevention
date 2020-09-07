@@ -21,6 +21,7 @@ package me.ryanhamshire.GriefPrevention;
 import com.google.common.io.Files;
 import me.ryanhamshire.GriefPrevention.events.ClaimCreatedEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimDeletedEvent;
+import me.ryanhamshire.GriefPrevention.events.ClaimExtendEvent;
 import me.ryanhamshire.GriefPrevention.events.ClaimModifiedEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -1039,6 +1040,11 @@ public abstract class DataStore
 
         if (claim.parent != null) claim = claim.parent;
 
+        //call event and return if event got cancelled
+        ClaimExtendEvent event = new ClaimExtendEvent(claim, newDepth);
+        Bukkit.getPluginManager().callEvent(event);
+        if (event.isCancelled()) return;
+
         //adjust to new depth
         claim.lesserBoundaryCorner.setY(newDepth);
         claim.greaterBoundaryCorner.setY(newDepth);
@@ -1550,6 +1556,7 @@ public abstract class DataStore
         this.addDefault(defaults, Messages.NotYourClaim, "This isn't your claim.", null);
         this.addDefault(defaults, Messages.DeleteTopLevelClaim, "To delete a subdivision, stand inside it.  Otherwise, use /AbandonTopLevelClaim to delete this claim and all subdivisions.", null);
         this.addDefault(defaults, Messages.AbandonSuccess, "Claim abandoned.  You now have {0} available claim blocks.", "0: remaining claim blocks");
+        this.addDefault(defaults, Messages.ConfirmAbandonAllClaims, "Are you sure you want to abandon ALL of your claims?  Please confirm with /AbandonAllClaims confirm", null);
         this.addDefault(defaults, Messages.CantGrantThatPermission, "You can't grant a permission you don't have yourself.", null);
         this.addDefault(defaults, Messages.GrantPermissionNoClaim, "Stand inside the claim where you want to grant permission.", null);
         this.addDefault(defaults, Messages.GrantPermissionConfirmation, "Granted {0} permission to {1} {2}.", "0: target player; 1: permission description; 2: scope (changed claims)");
