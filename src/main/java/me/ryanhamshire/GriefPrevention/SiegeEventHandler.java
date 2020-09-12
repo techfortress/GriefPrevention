@@ -1,11 +1,14 @@
 package me.ryanhamshire.GriefPrevention;
 
 import me.ryanhamshire.GriefPrevention.events.ClaimPermissionCheckEvent;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 
 public class SiegeEventHandler implements Listener
 {
@@ -58,13 +61,27 @@ public class SiegeEventHandler implements Listener
             return;
 
         // If under siege, some blocks will be breakable.
-        if (event.getTriggeringEvent() instanceof BlockBreakEvent
-                || event.getTriggeringEvent() instanceof Claim.CompatBuildBreakEvent && ((Claim.CompatBuildBreakEvent) event.getTriggeringEvent()).isBreak())
+        Material broken = null;
+        if (event.getTriggeringEvent() instanceof BlockBreakEvent)
+            broken = ((BlockBreakEvent) event.getTriggeringEvent()).getBlock().getType();
+        else if (event.getTriggeringEvent() instanceof Claim.CompatBuildBreakEvent)
         {
-            boolean breakable = GriefPrevention.instance.config_siege_blocks.contains(((BlockBreakEvent) event.getTriggeringEvent()).getBlock().getType());
+            Claim.CompatBuildBreakEvent triggeringEvent = (Claim.CompatBuildBreakEvent) event.getTriggeringEvent();
+            if (triggeringEvent.isBreak())
+                broken = triggeringEvent.getMaterial();
+        }
+        else if (event.getTriggeringEvent() instanceof PlayerInteractEvent)
+        {
+            PlayerInteractEvent triggeringEvent = (PlayerInteractEvent) event.getTriggeringEvent();
+            if (triggeringEvent.getAction() == Action.PHYSICAL && triggeringEvent.getClickedBlock() != null
+                    && triggeringEvent.getClickedBlock().getType() == Material.TURTLE_EGG)
+                broken = Material.TURTLE_EGG;
+        }
 
+        if (broken != null)
+        {
             // Error messages for siege mode.
-            if (!breakable)
+            if (!GriefPrevention.instance.config_siege_blocks.contains(broken))
                 event.setDenialMessage(GriefPrevention.instance.dataStore.getMessage(Messages.NonSiegeMaterial));
             else if (player.getUniqueId().equals(claim.ownerID))
                 event.setDenialMessage(GriefPrevention.instance.dataStore.getMessage(Messages.NoOwnerBuildUnderSiege));
