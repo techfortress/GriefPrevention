@@ -51,7 +51,7 @@ public class ClaimPermissionCheckEvent extends PlayerEvent
 
     public void setDenialMessage(String denial)
     {
-        this.denial = denial; // TODO should this be included in debug logging to track down problematic addons?
+        this.denial = denial;
     }
 
     @Override

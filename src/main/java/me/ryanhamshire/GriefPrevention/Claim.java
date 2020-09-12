@@ -31,6 +31,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -320,10 +323,6 @@ public class Claim
     @Deprecated
     public String allowEdit(Player player)
     {
-        // TODO migrate siege
-        //no resizing, deleting, and so forth while under siege
-        if (this.siegeData != null) return GriefPrevention.instance.dataStore.getMessage(Messages.NoModifyDuringSiege);
-
         return checkPermission(player, ClaimPermission.Edit, null);
     }
 
@@ -350,46 +349,18 @@ public class Claim
     //build permission check
     public String allowBuild(Player player, Material material)
     {
-        // TODO migrate siege
-        //when a player tries to build in a claim, if he's under siege, the siege may extend to include the new claim
-        GriefPrevention.instance.dataStore.tryExtendSiege(player, this);
-
-        //no building while under siege
-        if (this.siegeData != null)
-        {
-            return GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildUnderSiege, this.siegeData.attacker.getName());
-        }
-
-        // TODO migrate PVP rules
-        //no building while in pvp combat
-        PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
-        if (playerData.inPvpCombat())
-        {
-            return GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildPvP);
-        }
-
-        // TODO migrate special rules?
-        //allow for farming with /containertrust permission
-        if (this.checkPermission(player, ClaimPermission.Inventory) == null)
-        {
-            //do allow for farming, if player has /containertrust permission
-            if (this.placeableForFarming(material))
-            {
-                return null;
-            }
-        }
-
-        // TODO wrapper event for material
-        return checkPermission(player, ClaimPermission.Build, new CompatibilityAllowBuildEvent(material));
+        return checkPermission(player, ClaimPermission.Build, new CompatBuildBreakEvent(material, false));
     }
 
-    public static class CompatibilityAllowBuildEvent extends Event
+    public static class CompatBuildBreakEvent extends Event
     {
-        private Material material;
+        private final Material material;
+        private final boolean isBreak;
 
-        private CompatibilityAllowBuildEvent(Material material)
+        private CompatBuildBreakEvent(Material material, boolean isBreak)
         {
             this.material = material;
+            this.isBreak = isBreak;
         }
 
         public Material getMaterial()
@@ -397,11 +368,17 @@ public class Claim
             return material;
         }
 
+        public boolean isBreak()
+        {
+            return isBreak;
+        }
+
         @Override
         public HandlerList getHandlers()
         {
             return new HandlerList();
         }
+
     }
 
     public boolean hasExplicitPermission(UUID uuid, ClaimPermission level)
@@ -459,14 +436,14 @@ public class Claim
         ClaimPermissionCheckEvent permissionEvent = new ClaimPermissionCheckEvent(player, this, permission, event);
 
         // Set denial message (if any) using default behavior, then allow addons to modify.
-        permissionEvent.setDenialMessage(checkPermission(player, permission));
+        permissionEvent.setDenialMessage(getPermissionMessage(player, permission, event));
 
         Bukkit.getPluginManager().callEvent(permissionEvent);
 
         return permissionEvent.getDenialMessage();
     }
 
-    private String checkPermission(Player player, ClaimPermission permission) {
+    private String getPermissionMessage(Player player, ClaimPermission permission, Event event) {
         // If we don't know who's asking, always say no.
         if (player == null) return "";
 
@@ -490,13 +467,33 @@ public class Claim
         // Check for public permission.
         if (permission.isGrantedBy(this.playerIDToClaimPermissionMap.get("public"))) return null;
 
+        // Special building-only rules.
+        if (permission == ClaimPermission.Build)
+        {
+            // No building while in PVP.
+            PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
+            if (playerData.inPvpCombat())
+            {
+                return GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildPvP);
+            }
+
+            // Allow farming crops with container trust.
+            Material material = null;
+            if (event instanceof BlockBreakEvent || event instanceof BlockPlaceEvent)
+                material = ((BlockEvent) event).getBlock().getType();
+
+            if (material != null && this.placeableForFarming(material)
+                    && this.getPermissionMessage(player, ClaimPermission.Inventory, event) == null)
+                return null;
+        }
+
         // Permission inheritance for subdivisions.
         if (this.parent != null)
         {
             if (player.getUniqueId().equals(this.parent.ownerID))
                 return null;
             if (!inheritNothing)
-                return this.parent.checkPermission(player, permission);
+                return this.parent.getPermissionMessage(player, permission, event);
         }
 
         // Catch-all error message for all other cases.
@@ -514,40 +511,7 @@ public class Claim
     @Deprecated
     public String allowBreak(Player player, Material material)
     {
-        // TODO migrate siege
-        //if under siege, some blocks will be breakable
-        if (this.siegeData != null || this.doorsOpen)
-        {
-            boolean breakable = false;
-
-            //search for block type in list of breakable blocks
-            for (int i = 0; i < GriefPrevention.instance.config_siege_blocks.size(); i++)
-            {
-                Material breakableMaterial = GriefPrevention.instance.config_siege_blocks.get(i);
-                if (breakableMaterial == material)
-                {
-                    breakable = true;
-                    break;
-                }
-            }
-
-            //custom error messages for siege mode
-            if (!breakable)
-            {
-                return GriefPrevention.instance.dataStore.getMessage(Messages.NonSiegeMaterial);
-            }
-            else if (player.getUniqueId().equals(this.ownerID))
-            {
-                return GriefPrevention.instance.dataStore.getMessage(Messages.NoOwnerBuildUnderSiege);
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        //if not under siege, build rules apply
-        return this.allowBuild(player, material);
+        return checkPermission(player, ClaimPermission.Build, new CompatBuildBreakEvent(material, true));
     }
 
     /**
@@ -558,10 +522,6 @@ public class Claim
     @Deprecated
     public String allowAccess(Player player)
     {
-        // TODO migrate siege
-        //following a siege where the defender lost, the claim will allow everyone access for a time
-        if (this.doorsOpen) return null;
-
         return checkPermission(player, ClaimPermission.Access, null);
     }
 
@@ -573,16 +533,6 @@ public class Claim
     @Deprecated
     public String allowContainers(Player player)
     {
-        // TODO migrate siege
-        //trying to access inventory in a claim may extend an existing siege to include this claim
-        GriefPrevention.instance.dataStore.tryExtendSiege(player, this);
-
-        //if under siege, nobody accesses containers
-        if (this.siegeData != null)
-        {
-            return GriefPrevention.instance.dataStore.getMessage(Messages.NoContainersSiege, siegeData.attacker.getName());
-        }
-
         return checkPermission(player, ClaimPermission.Inventory, null);
     }
 

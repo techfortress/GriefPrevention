@@ -359,6 +359,10 @@ public class GriefPrevention extends JavaPlugin
         EntityEventHandler entityEventHandler = new EntityEventHandler(this.dataStore, this);
         pluginManager.registerEvents(entityEventHandler, this);
 
+        //siege events
+        SiegeEventHandler siegeEventHandler = new SiegeEventHandler();
+        pluginManager.registerEvents(siegeEventHandler, this);
+
         //if economy is enabled
         if (this.config_economy_claimBlocksPurchaseCost > 0 || this.config_economy_claimBlocksSellValue > 0)
         {
