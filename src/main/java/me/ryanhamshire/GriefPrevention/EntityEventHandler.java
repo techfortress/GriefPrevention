@@ -1149,7 +1149,7 @@ public class EntityEventHandler implements Listener
                     //otherwise the player damaging the entity must have permission, unless it's a dog in a pvp world
                     else if (!(event.getEntity().getWorld().getPVP() && event.getEntity().getType() == EntityType.WOLF))
                     {
-                        String noContainersReason = claim.allowContainers(attacker);
+                        String noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event);
                         if (noContainersReason != null)
                         {
                             event.setCancelled(true);
@@ -1338,7 +1338,7 @@ public class EntityEventHandler implements Listener
             //otherwise the player damaging the entity must have permission
             else
             {
-                String noContainersReason = claim.allowContainers(attacker);
+                String noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event);
                 if (noContainersReason != null)
                 {
                     event.setCancelled(true);
@@ -1388,7 +1388,7 @@ public class EntityEventHandler implements Listener
                         if (claim != null)
                         {
                             cachedClaim = claim;
-                            if (thrower == null || claim.allowContainers(thrower) != null)
+                            if (thrower == null || claim.checkPermission(thrower, ClaimPermission.Inventory, event) != null)
                             {
                                 event.setIntensity(effected, 0);
                                 instance.sendMessage(thrower, TextMode.Err, Messages.NoDamageClaimedEntity, claim.getOwnerName());

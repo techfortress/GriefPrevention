@@ -527,7 +527,7 @@ class PlayerEventHandler implements Listener
             if (claim != null)
             {
                 playerData.lastClaim = claim;
-                String reason = claim.allowAccess(player);
+                String reason = claim.checkPermission(player, ClaimPermission.Access, event);
                 if (reason != null)
                 {
                     instance.sendMessage(player, TextMode.Err, reason);
@@ -1088,7 +1088,7 @@ class PlayerEventHandler implements Listener
             if (toClaim != null)
             {
                 playerData.lastClaim = toClaim;
-                String noAccessReason = toClaim.allowAccess(player);
+                String noAccessReason = toClaim.checkPermission(player, ClaimPermission.Access, event);
                 if (noAccessReason != null)
                 {
                     instance.sendMessage(player, TextMode.Err, noAccessReason);
@@ -1139,12 +1139,12 @@ class PlayerEventHandler implements Listener
         Player player = event.getPlayer();
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
 
-        Claim toClaim = this.dataStore.getClaimAt(player.getLocation(), false, playerData.lastClaim);
-        if (toClaim == null)
+        Claim claim = this.dataStore.getClaimAt(player.getLocation(), false, playerData.lastClaim);
+        if (claim == null)
             return;
 
-        playerData.lastClaim = toClaim;
-        if (toClaim.allowBuild(player, Material.AIR) == null)
+        playerData.lastClaim = claim;
+        if (claim.checkPermission(player, ClaimPermission.Build, event) == null)
             return;
 
         event.setCancelled(true);
@@ -1288,7 +1288,7 @@ class PlayerEventHandler implements Listener
                 //for storage entities, apply container rules (this is a potential theft)
                 if (entity instanceof InventoryHolder)
                 {
-                    String noContainersReason = claim.allowContainers(player);
+                    String noContainersReason = claim.checkPermission(player, ClaimPermission.Inventory, event);
                     if (noContainersReason != null)
                     {
                         instance.sendMessage(player, TextMode.Err, noContainersReason);
@@ -1306,7 +1306,7 @@ class PlayerEventHandler implements Listener
             Claim claim = this.dataStore.getClaimAt(entity.getLocation(), false, null);
             if (claim != null)
             {
-                if (claim.allowContainers(player) != null)
+                if (claim.checkPermission(player, ClaimPermission.Inventory, event) != null)
                 {
                     String message = instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
                     if (player.hasPermission("griefprevention.ignoreclaims"))
@@ -1324,7 +1324,7 @@ class PlayerEventHandler implements Listener
             Claim claim = this.dataStore.getClaimAt(entity.getLocation(), false, playerData.lastClaim);
             if (claim != null)
             {
-                String failureReason = claim.allowContainers(player);
+                String failureReason = claim.checkPermission(player, ClaimPermission.Inventory, event);
                 if (failureReason != null)
                 {
                     event.setCancelled(true);
@@ -1351,7 +1351,7 @@ class PlayerEventHandler implements Listener
             if (claim != null)
             {
                 //if no permission, cancel
-                String errorMessage = claim.allowContainers(player);
+                String errorMessage = claim.checkPermission(player, ClaimPermission.Inventory, event);
                 if (errorMessage != null)
                 {
                     event.setCancelled(true);
@@ -1617,7 +1617,7 @@ class PlayerEventHandler implements Listener
             {
                 playerData.lastClaim = claim;
 
-                String noAccessReason = claim.allowBreak(player, clickedBlockType);
+                String noAccessReason = claim.checkPermission(player, ClaimPermission.Build, event);
                 if (noAccessReason != null)
                 {
                     event.setCancelled(true);
@@ -1642,7 +1642,7 @@ class PlayerEventHandler implements Listener
                     {
                         playerData.lastClaim = claim;
 
-                        String noBuildReason = claim.allowBuild(player, Material.AIR);
+                        String noBuildReason = claim.checkPermission(player, ClaimPermission.Build, event);
                         if (noBuildReason != null)
                         {
                             event.setCancelled(true);
@@ -1707,7 +1707,7 @@ class PlayerEventHandler implements Listener
             {
                 playerData.lastClaim = claim;
 
-                String noContainersReason = claim.allowContainers(player);
+                String noContainersReason = claim.checkPermission(player, ClaimPermission.Inventory, event);
                 if (noContainersReason != null)
                 {
                     event.setCancelled(true);
@@ -1744,7 +1744,7 @@ class PlayerEventHandler implements Listener
             {
                 playerData.lastClaim = claim;
 
-                String noAccessReason = claim.allowAccess(player);
+                String noAccessReason = claim.checkPermission(player, ClaimPermission.Access, event);
                 if (noAccessReason != null)
                 {
                     event.setCancelled(true);
@@ -1763,7 +1763,7 @@ class PlayerEventHandler implements Listener
             {
                 playerData.lastClaim = claim;
 
-                String noAccessReason = claim.allowAccess(player);
+                String noAccessReason = claim.checkPermission(player, ClaimPermission.Access, event);
                 if (noAccessReason != null)
                 {
                     event.setCancelled(true);
@@ -1782,7 +1782,7 @@ class PlayerEventHandler implements Listener
             {
                 playerData.lastClaim = claim;
 
-                String noContainerReason = claim.allowAccess(player);
+                String noContainerReason = claim.checkPermission(player, ClaimPermission.Access, event);
                 if (noContainerReason != null)
                 {
                     event.setCancelled(true);
@@ -1808,7 +1808,7 @@ class PlayerEventHandler implements Listener
             Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
             if (claim != null)
             {
-                String noBuildReason = claim.allowBuild(player, clickedBlockType);
+                String noBuildReason = claim.checkPermission(player, ClaimPermission.Build, event);
                 if (noBuildReason != null)
                 {
                     event.setCancelled(true);
@@ -1868,7 +1868,7 @@ class PlayerEventHandler implements Listener
                 Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
                 if (claim != null)
                 {
-                    String noBuildReason = claim.allowBuild(player, Material.OAK_BOAT); // Though only checks OAK_BOAT, permission should be same for all boats. Plus it being a boat doesn't seem to make a difference currently.
+                    String noBuildReason = claim.checkPermission(player, ClaimPermission.Build, event);
                     if (noBuildReason != null)
                     {
                         instance.sendMessage(player, TextMode.Err, noBuildReason);
@@ -1892,7 +1892,7 @@ class PlayerEventHandler implements Listener
                 Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
                 if (claim != null)
                 {
-                    String reason = claim.allowContainers(player);
+                    String reason = claim.checkPermission(player, ClaimPermission.Inventory, event);
                     if (reason != null)
                     {
                         instance.sendMessage(player, TextMode.Err, reason);
@@ -2613,7 +2613,7 @@ class PlayerEventHandler implements Listener
         if (claim != null)
         {
             playerData.lastClaim = claim;
-            String noContainerReason = claim.allowContainers(player);
+            String noContainerReason = claim.checkPermission(player, ClaimPermission.Inventory, event);
             if (noContainerReason != null)
             {
                 event.setCancelled(true);

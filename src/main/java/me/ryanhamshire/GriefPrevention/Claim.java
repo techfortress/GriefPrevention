@@ -429,7 +429,7 @@ public class Claim
      *
      * @param player the Player performing the action
      * @param permission the ClaimPermission required to perform the action
-     * @param event the Event fired by the action
+     * @param event the Event resulting in the permission check or null if no event was fired
      * @return the denial message, or null if the action is allowed
      */
     public String checkPermission(Player player, ClaimPermission permission, Event event) {
