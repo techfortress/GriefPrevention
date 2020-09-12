@@ -47,7 +47,7 @@ class SecureClaimTask implements Runnable
             Collection<Player> onlinePlayers = (Collection<Player>) GriefPrevention.instance.getServer().getOnlinePlayers();
             for (Player player : onlinePlayers)
             {
-                if (claim.contains(player.getLocation(), false, false) && claim.allowAccess(player) != null)
+                if (claim.contains(player.getLocation(), false, false) && claim.checkPermission(player, ClaimPermission.Access, null) != null)
                 {
                     GriefPrevention.sendMessage(player, TextMode.Err, Messages.SiegeDoorsLockedEjection);
                     GriefPrevention.instance.ejectPlayer(player);

@@ -2592,7 +2592,7 @@ public class GriefPrevention extends JavaPlugin
             Claim defenderClaim = this.dataStore.getClaimAt(defender.getLocation(), false, null);
 
             //defender must have some level of permission there to be protected
-            if (defenderClaim == null || defenderClaim.allowAccess(defender) != null)
+            if (defenderClaim == null || defenderClaim.checkPermission(defender, ClaimPermission.Access, null) != null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotSiegableThere);
                 return true;

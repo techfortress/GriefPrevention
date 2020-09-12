@@ -16,30 +16,34 @@ public class SiegeEventHandler implements Listener
         if (event.getRequiredPermission() == ClaimPermission.Manage) return;
 
         Claim claim = event.getClaim();
-        Player player = event.getPlayer();
 
+        // Admin claims cannot be sieged.
+        if (claim.isAdminClaim()) return;
+
+        // Claim modification during siege is not allowed.
         if (event.getRequiredPermission() == ClaimPermission.Edit)
         {
-            // Admin claims are always editable.
-            if (!claim.isAdminClaim())
+            if (claim.siegeData != null)
                 event.setDenialMessage(GriefPrevention.instance.dataStore.getMessage(Messages.NoModifyDuringSiege));
             return;
         }
 
+        // Following a siege where the defender lost, the claim will allow everyone access for a time.
         if (event.getRequiredPermission() == ClaimPermission.Access)
         {
-            // Following a siege where the defender lost, the claim will allow everyone access for a time.
             if (claim.doorsOpen)
                 event.setDenialMessage(null);
             return;
         }
 
+        Player player = event.getPlayer();
+
+        // If under siege, nobody accesses containers.
         if (event.getRequiredPermission() == ClaimPermission.Inventory)
         {
             // Trying to access inventory in a claim may extend an existing siege to include this claim.
             GriefPrevention.instance.dataStore.tryExtendSiege(player, claim);
 
-            // If under siege, nobody accesses containers.
             if (claim.siegeData != null)
                 event.setDenialMessage(GriefPrevention.instance.dataStore.getMessage(Messages.NoContainersSiege, claim.siegeData.attacker.getName()));
 
