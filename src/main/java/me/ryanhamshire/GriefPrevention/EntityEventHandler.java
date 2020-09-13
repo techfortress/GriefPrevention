@@ -1012,7 +1012,7 @@ public class EntityEventHandler implements Listener
                     }
 
                     //otherwise player must have container trust in the claim
-                    String failureReason = claim.allowBuild(attacker, Material.AIR);
+                    String failureReason = claim.checkPermission(attacker, ClaimPermission.Build, event);
                     if (failureReason != null)
                     {
                         event.setCancelled(true);

@@ -707,7 +707,7 @@ public class BlockEventHandler implements Listener
                 ProjectileSource shooter = ((Projectile) igniteEvent.getIgnitingEntity()).getShooter();
 
                 // Allow ignition if arrow was shot by a player with build permission.
-                if (shooter instanceof Player && claim.allowBuild((Player) shooter, Material.TNT) == null) return;
+                if (shooter instanceof Player && claim.checkPermission((Player) shooter, ClaimPermission.Build, igniteEvent) == null) return;
 
                 // Allow ignition if arrow was shot by a dispenser in the same claim.
                 if (shooter instanceof BlockProjectileSource &&

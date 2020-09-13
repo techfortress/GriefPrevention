@@ -2334,7 +2334,7 @@ class PlayerEventHandler implements Listener
             if (claim != null)
             {
                 //if the player has permission to edit the claim or subdivision
-                String noEditReason = claim.allowEdit(player);
+                String noEditReason = claim.checkPermission(player, ClaimPermission.Edit, null);
                 if (noEditReason == null)
                 {
                     //if he clicked on a corner, start resizing it
