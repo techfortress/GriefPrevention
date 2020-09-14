@@ -561,7 +561,7 @@ public class Claim
 
         if (playerID == null || playerID.isEmpty()) return;
 
-        if (permissionLevel == ClaimPermission.Manage) // TODO should this log a warning for bad behavior?
+        if (permissionLevel == ClaimPermission.Manage)
             this.managers.add(playerID.toLowerCase());
         else
             this.playerIDToClaimPermissionMap.put(playerID.toLowerCase(), permissionLevel);
