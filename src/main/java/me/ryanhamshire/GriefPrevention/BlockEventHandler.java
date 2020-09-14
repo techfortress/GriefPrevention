@@ -34,6 +34,7 @@ import org.bukkit.block.Hopper;
 import org.bukkit.block.PistonMoveReaction;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Dispenser;
+import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -61,6 +62,8 @@ import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
+import org.bukkit.projectiles.BlockProjectileSource;
+import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -658,6 +661,51 @@ public class BlockEventHandler implements Listener
 //        	if(igniteEvent.getIgnitingEntity().hasMetadata("GP_TRIDENT")){ //BlockIgniteEvent is called before LightningStrikeEvent. See #532
             igniteEvent.setCancelled(true);
 //			}
+        }
+
+        // If a fire is started by a fireball from a dispenser, allow it if the dispenser is in the same claim.
+        if (igniteEvent.getCause() == IgniteCause.FIREBALL && igniteEvent.getIgnitingEntity() instanceof Fireball)
+        {
+            ProjectileSource shooter = ((Fireball) igniteEvent.getIgnitingEntity()).getShooter();
+            if (shooter instanceof BlockProjectileSource)
+            {
+                Claim claim = GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getBlock().getLocation(), false, null);
+                if (claim != null && GriefPrevention.instance.dataStore.getClaimAt(((BlockProjectileSource) shooter).getBlock().getLocation(), false, claim) == claim)
+                {
+                    return;
+                }
+            }
+        }
+
+        // Handle arrows igniting TNT.
+        if (igniteEvent.getCause() == IgniteCause.ARROW)
+        {
+            Claim claim = GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getBlock().getLocation(), false, null);
+
+            if (claim == null)
+            {
+                // Only TNT can be ignited by arrows, so the targeted block will be destroyed by completion.
+                if (!GriefPrevention.instance.config_fireDestroys || !GriefPrevention.instance.config_fireSpreads)
+                    igniteEvent.setCancelled(true);
+                return;
+            }
+
+            if (igniteEvent.getIgnitingEntity() instanceof Projectile)
+            {
+                ProjectileSource shooter = ((Projectile) igniteEvent.getIgnitingEntity()).getShooter();
+
+                // Allow ignition if arrow was shot by a player with build permission.
+                if (shooter instanceof Player && claim.allowBuild((Player) shooter, Material.TNT) == null) return;
+
+                // Allow ignition if arrow was shot by a dispenser in the same claim.
+                if (shooter instanceof BlockProjectileSource &&
+                        GriefPrevention.instance.dataStore.getClaimAt(((BlockProjectileSource) shooter).getBlock().getLocation(), false, claim) == claim)
+                    return;
+            }
+
+            // Block all other ignition by arrows in claims.
+            igniteEvent.setCancelled(true);
+            return;
         }
 
         if (!GriefPrevention.instance.config_fireSpreads && igniteEvent.getCause() != IgniteCause.FLINT_AND_STEEL && igniteEvent.getCause() != IgniteCause.LIGHTNING)

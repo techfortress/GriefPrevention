@@ -250,6 +250,24 @@ public class Claim
         this(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderIDs, containerIDs, accessorIDs, managerIDs, false, id);
     }
 
+    //produces a copy of a claim.
+    public Claim(Claim claim) {
+        this.modifiedDate = claim.modifiedDate;
+        this.lesserBoundaryCorner = claim.greaterBoundaryCorner.clone();
+        this.greaterBoundaryCorner = claim.greaterBoundaryCorner.clone();
+        this.id = claim.id;
+        this.ownerID = claim.ownerID;
+        this.managers = new ArrayList<>(claim.managers);
+        this.playerIDToClaimPermissionMap = new HashMap<>(claim.playerIDToClaimPermissionMap);
+        this.inDataStore = false; //since it's a copy of a claim, not in datastore!
+        this.areExplosivesAllowed = claim.areExplosivesAllowed;
+        this.parent = claim.parent;
+        this.inheritNothing = claim.inheritNothing;
+        this.children = new ArrayList<>(claim.children);
+        this.siegeData = claim.siegeData;
+        this.doorsOpen = claim.doorsOpen;
+    }
+
     //measurements.  all measurements are in blocks
     public int getArea()
     {
@@ -761,48 +779,15 @@ public class Claim
     //used internally to prevent overlaps when creating claims
     boolean overlaps(Claim otherClaim)
     {
-        //NOTE:  if trying to understand this makes your head hurt, don't feel bad - it hurts mine too.
-        //try drawing pictures to visualize test cases.
+        // For help visualizing test cases, try https://silentmatt.com/rectangle-intersection/
 
         if (!this.lesserBoundaryCorner.getWorld().equals(otherClaim.getLesserBoundaryCorner().getWorld())) return false;
 
-        //first, check the corners of this claim aren't inside any existing claims
-        if (otherClaim.contains(this.lesserBoundaryCorner, true, false)) return true;
-        if (otherClaim.contains(this.greaterBoundaryCorner, true, false)) return true;
-        if (otherClaim.contains(new Location(this.lesserBoundaryCorner.getWorld(), this.lesserBoundaryCorner.getBlockX(), 0, this.greaterBoundaryCorner.getBlockZ()), true, false))
-            return true;
-        if (otherClaim.contains(new Location(this.lesserBoundaryCorner.getWorld(), this.greaterBoundaryCorner.getBlockX(), 0, this.lesserBoundaryCorner.getBlockZ()), true, false))
-            return true;
+        return !(this.getGreaterBoundaryCorner().getX() < otherClaim.getLesserBoundaryCorner().getX() ||
+                this.getLesserBoundaryCorner().getX() > otherClaim.getGreaterBoundaryCorner().getX() ||
+                this.getGreaterBoundaryCorner().getZ() < otherClaim.getLesserBoundaryCorner().getZ() ||
+                this.getLesserBoundaryCorner().getZ() > otherClaim.getGreaterBoundaryCorner().getZ());
 
-        //verify that no claim's lesser boundary point is inside this new claim, to cover the "existing claim is entirely inside new claim" case
-        if (this.contains(otherClaim.getLesserBoundaryCorner(), true, false)) return true;
-
-        //verify this claim doesn't band across an existing claim, either horizontally or vertically
-        if (this.getLesserBoundaryCorner().getBlockZ() <= otherClaim.getGreaterBoundaryCorner().getBlockZ() &&
-                this.getLesserBoundaryCorner().getBlockZ() >= otherClaim.getLesserBoundaryCorner().getBlockZ() &&
-                this.getLesserBoundaryCorner().getBlockX() < otherClaim.getLesserBoundaryCorner().getBlockX() &&
-                this.getGreaterBoundaryCorner().getBlockX() > otherClaim.getGreaterBoundaryCorner().getBlockX())
-            return true;
-
-        if (this.getGreaterBoundaryCorner().getBlockZ() <= otherClaim.getGreaterBoundaryCorner().getBlockZ() &&
-                this.getGreaterBoundaryCorner().getBlockZ() >= otherClaim.getLesserBoundaryCorner().getBlockZ() &&
-                this.getLesserBoundaryCorner().getBlockX() < otherClaim.getLesserBoundaryCorner().getBlockX() &&
-                this.getGreaterBoundaryCorner().getBlockX() > otherClaim.getGreaterBoundaryCorner().getBlockX())
-            return true;
-
-        if (this.getLesserBoundaryCorner().getBlockX() <= otherClaim.getGreaterBoundaryCorner().getBlockX() &&
-                this.getLesserBoundaryCorner().getBlockX() >= otherClaim.getLesserBoundaryCorner().getBlockX() &&
-                this.getLesserBoundaryCorner().getBlockZ() < otherClaim.getLesserBoundaryCorner().getBlockZ() &&
-                this.getGreaterBoundaryCorner().getBlockZ() > otherClaim.getGreaterBoundaryCorner().getBlockZ())
-            return true;
-
-        if (this.getGreaterBoundaryCorner().getBlockX() <= otherClaim.getGreaterBoundaryCorner().getBlockX() &&
-                this.getGreaterBoundaryCorner().getBlockX() >= otherClaim.getLesserBoundaryCorner().getBlockX() &&
-                this.getLesserBoundaryCorner().getBlockZ() < otherClaim.getLesserBoundaryCorner().getBlockZ() &&
-                this.getGreaterBoundaryCorner().getBlockZ() > otherClaim.getGreaterBoundaryCorner().getBlockZ())
-            return true;
-
-        return false;
     }
 
     //whether more entities may be added to a claim
@@ -976,20 +961,6 @@ public class Claim
 
     ArrayList<Long> getChunkHashes()
     {
-        ArrayList<Long> hashes = new ArrayList<Long>();
-        int smallX = this.getLesserBoundaryCorner().getBlockX() >> 4;
-        int smallZ = this.getLesserBoundaryCorner().getBlockZ() >> 4;
-        int largeX = this.getGreaterBoundaryCorner().getBlockX() >> 4;
-        int largeZ = this.getGreaterBoundaryCorner().getBlockZ() >> 4;
-
-        for (int x = smallX; x <= largeX; x++)
-        {
-            for (int z = smallZ; z <= largeZ; z++)
-            {
-                hashes.add(DataStore.getChunkHash(x, z));
-            }
-        }
-
-        return hashes;
+        return DataStore.getChunkHashes(this);
     }
 }

@@ -95,6 +95,8 @@ class CleanupUnusedClaimTask implements Runnable
                 //delete them
                 GriefPrevention.instance.dataStore.deleteClaimsForPlayer(claim.ownerID, true);
                 GriefPrevention.AddLogEntry(" All of " + claim.getOwnerName() + "'s claims have expired.", CustomLogEntryTypes.AdminActivity);
+                GriefPrevention.AddLogEntry("earliestPermissibleLastLogin#getTime: " + earliestPermissibleLastLogin.getTime(), CustomLogEntryTypes.Debug, true);
+                GriefPrevention.AddLogEntry("ownerInfo#getLastPlayed: " + ownerInfo.getLastPlayed(), CustomLogEntryTypes.Debug, true);
 
                 for (int i = 0; i < claims.size(); i++)
                 {
