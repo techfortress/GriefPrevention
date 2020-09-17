@@ -47,12 +47,12 @@ class UUIDFetcher
     {
         if (lookupCache == null)
         {
-            lookupCache = new HashMap<String, UUID>();
+            lookupCache = new HashMap<>();
         }
 
         if (correctedNames == null)
         {
-            correctedNames = new HashMap<String, String>();
+            correctedNames = new HashMap<>();
         }
 
         GriefPrevention.AddLogEntry("UUID conversion process started.  Please be patient - this may take a while.");

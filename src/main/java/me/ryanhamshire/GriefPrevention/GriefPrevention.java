@@ -80,7 +80,7 @@ public class GriefPrevention extends JavaPlugin
     public DataStore dataStore;
 
     //this tracks item stacks expected to drop which will need protection
-    ArrayList<PendingItemProtection> pendingItemWatchList = new ArrayList<PendingItemProtection>();
+    ArrayList<PendingItemProtection> pendingItemWatchList = new ArrayList<>();
 
     //log entry manager for GP's custom log files
     CustomLogger customLogger;
@@ -461,7 +461,7 @@ public class GriefPrevention extends JavaPlugin
         config_pvp_allowLavaNearPlayers = config.getBoolean("GriefPrevention.PvP.AllowLavaDumpingNearOtherPlayers", false);
 
         //decide claim mode for each world
-        this.config_claims_worldModes = new ConcurrentHashMap<World, ClaimsMode>();
+        this.config_claims_worldModes = new ConcurrentHashMap<>();
         this.config_creativeWorldsExist = false;
         for (World world : worlds)
         {
@@ -532,7 +532,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //pvp worlds list
-        this.config_pvp_specifiedWorlds = new HashMap<World, Boolean>();
+        this.config_pvp_specifiedWorlds = new HashMap<>();
         for (World world : worlds)
         {
             boolean pvpWorld = config.getBoolean("GriefPrevention.PvP.RulesEnabledInWorld." + world.getName(), world.getPVP());
@@ -540,7 +540,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //sea level
-        this.config_seaLevelOverride = new HashMap<String, Integer>();
+        this.config_seaLevelOverride = new HashMap<>();
         for (int i = 0; i < worlds.size(); i++)
         {
             int seaLevelOverride = config.getInt("GriefPrevention.SeaLevelOverrides." + worlds.get(i).getName(), -1);
@@ -679,7 +679,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //default for siege worlds list
-        ArrayList<String> defaultSiegeWorldNames = new ArrayList<String>();
+        ArrayList<String> defaultSiegeWorldNames = new ArrayList<>();
 
         //get siege world names from the config file
         List<String> siegeEnabledWorldNames = config.getStringList("GriefPrevention.Siege.Worlds");
@@ -689,7 +689,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //validate that list
-        this.config_siege_enabledWorlds = new ArrayList<World>();
+        this.config_siege_enabledWorlds = new ArrayList<>();
         for (int i = 0; i < siegeEnabledWorldNames.size(); i++)
         {
             String worldName = siegeEnabledWorldNames.get(i);
@@ -705,7 +705,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //default siege blocks
-        this.config_siege_blocks = new ArrayList<Material>();
+        this.config_siege_blocks = new ArrayList<>();
         this.config_siege_blocks.add(Material.DIRT);
         this.config_siege_blocks.add(Material.GRASS_BLOCK);
         this.config_siege_blocks.add(Material.GRASS);
@@ -741,7 +741,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_siege_blocks.add(Material.SNOW);
 
         //build a default config entry
-        ArrayList<String> defaultBreakableBlocksList = new ArrayList<String>();
+        ArrayList<String> defaultBreakableBlocksList = new ArrayList<>();
         for (int i = 0; i < this.config_siege_blocks.size(); i++)
         {
             defaultBreakableBlocksList.add(this.config_siege_blocks.get(i).name());
@@ -757,7 +757,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //parse the list of siege-breakable blocks
-        this.config_siege_blocks = new ArrayList<Material>();
+        this.config_siege_blocks = new ArrayList<>();
         for (int i = 0; i < breakableBlocksList.size(); i++)
         {
             String blockName = breakableBlocksList.get(i);
@@ -948,7 +948,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //try to parse the list of commands requiring access trust in land claims
-        this.config_claims_commandsRequiringAccessTrust = new ArrayList<String>();
+        this.config_claims_commandsRequiringAccessTrust = new ArrayList<>();
         String[] commands = accessTrustSlashCommands.split(";");
         for (int i = 0; i < commands.length; i++)
         {
@@ -959,7 +959,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //try to parse the list of commands which should be monitored for spam
-        this.config_spam_monitorSlashCommands = new ArrayList<String>();
+        this.config_spam_monitorSlashCommands = new ArrayList<>();
         commands = slashCommandsToMonitor.split(";");
         for (int i = 0; i < commands.length; i++)
         {
@@ -967,7 +967,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //try to parse the list of commands which should be included in eavesdropping
-        this.config_eavesdrop_whisperCommands = new ArrayList<String>();
+        this.config_eavesdrop_whisperCommands = new ArrayList<>();
         commands = whisperCommandsToMonitor.split(";");
         for (int i = 0; i < commands.length; i++)
         {
@@ -975,7 +975,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //try to parse the list of commands which should be banned during pvp combat
-        this.config_pvp_blockedCommands = new ArrayList<String>();
+        this.config_pvp_blockedCommands = new ArrayList<>();
         commands = bannedPvPCommandsList.split(";");
         for (int i = 0; i < commands.length; i++)
         {
@@ -1488,10 +1488,10 @@ public class GriefPrevention extends JavaPlugin
 
             //otherwise build a list of explicit permissions by permission level
             //and send that to the player
-            ArrayList<String> builders = new ArrayList<String>();
-            ArrayList<String> containers = new ArrayList<String>();
-            ArrayList<String> accessors = new ArrayList<String>();
-            ArrayList<String> managers = new ArrayList<String>();
+            ArrayList<String> builders = new ArrayList<>();
+            ArrayList<String> containers = new ArrayList<>();
+            ArrayList<String> accessors = new ArrayList<>();
+            ArrayList<String> managers = new ArrayList<>();
             claim.getPermissions(builders, containers, accessors, managers);
 
             GriefPrevention.sendMessage(player, TextMode.Info, Messages.TrustListHeader);
@@ -2241,7 +2241,7 @@ public class GriefPrevention extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("adminclaimslist"))
         {
             //find admin claims
-            Vector<Claim> claims = new Vector<Claim>();
+            Vector<Claim> claims = new Vector<>();
             for (Claim claim : this.dataStore.claims)
             {
                 if (claim.ownerID == null)  //admin claim
@@ -3004,7 +3004,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //determine which claims should be modified
-        ArrayList<Claim> targetClaims = new ArrayList<Claim>();
+        ArrayList<Claim> targetClaims = new ArrayList<>();
         if (claim == null)
         {
             PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
@@ -3140,7 +3140,7 @@ public class GriefPrevention extends JavaPlugin
     }
 
     //helper method to resolve a player by name
-    ConcurrentHashMap<String, UUID> playerNameToIDMap = new ConcurrentHashMap<String, UUID>();
+    ConcurrentHashMap<String, UUID> playerNameToIDMap = new ConcurrentHashMap<>();
 
     //thread to build the above cache
     private class CacheOfflinePlayerNamesThread extends Thread
@@ -3664,7 +3664,7 @@ public class GriefPrevention extends JavaPlugin
         Location lesserCorner = newClaim.getLesserBoundaryCorner();
         Location greaterCorner = newClaim.getGreaterBoundaryCorner();
         World world = lesserCorner.getWorld();
-        ArrayList<ChunkSnapshot> snapshots = new ArrayList<ChunkSnapshot>();
+        ArrayList<ChunkSnapshot> snapshots = new ArrayList<>();
         for (int chunkx = lesserCorner.getBlockX() / 16; chunkx <= greaterCorner.getBlockX() / 16; chunkx++)
         {
             for (int chunkz = lesserCorner.getBlockZ() / 16; chunkz <= greaterCorner.getBlockZ() / 16; chunkz++)
@@ -3794,7 +3794,7 @@ public class GriefPrevention extends JavaPlugin
 	*/
 
     //Track scheduled "rescues" so we can cancel them if the player happens to teleport elsewhere so we can cancel it.
-    ConcurrentHashMap<UUID, BukkitTask> portalReturnTaskMap = new ConcurrentHashMap<UUID, BukkitTask>();
+    ConcurrentHashMap<UUID, BukkitTask> portalReturnTaskMap = new ConcurrentHashMap<>();
 
     public void startRescueTask(Player player, Location location)
     {

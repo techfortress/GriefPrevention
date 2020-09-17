@@ -149,7 +149,7 @@ public class FlatFileDataStore extends DataStore
         if (this.getSchemaVersion() == 0)
         {
             files = playerDataFolder.listFiles();
-            ArrayList<String> namesToConvert = new ArrayList<String>();
+            ArrayList<String> namesToConvert = new ArrayList<>();
             for (File playerFile : files)
             {
                 namesToConvert.add(playerFile.getName());
@@ -394,7 +394,7 @@ public class FlatFileDataStore extends DataStore
 
     void loadClaimData(File[] files) throws Exception
     {
-        ConcurrentHashMap<Claim, Long> orphans = new ConcurrentHashMap<Claim, Long>();
+        ConcurrentHashMap<Claim, Long> orphans = new ConcurrentHashMap<>();
         for (int i = 0; i < files.length; i++)
         {
             if (files[i].isFile())  //avoids folders
@@ -430,7 +430,7 @@ public class FlatFileDataStore extends DataStore
 
                 try
                 {
-                    ArrayList<Long> out_parentID = new ArrayList<Long>();  //hacky output parameter
+                    ArrayList<Long> out_parentID = new ArrayList<>();  //hacky output parameter
                     Claim claim = this.loadClaim(files[i], out_parentID, claimID);
                     if (out_parentID.size() == 0 || out_parentID.get(0) == -1)
                     {
@@ -542,10 +542,10 @@ public class FlatFileDataStore extends DataStore
         if (claim.ownerID != null) ownerID = claim.ownerID.toString();
         yaml.set("Owner", ownerID);
 
-        ArrayList<String> builders = new ArrayList<String>();
-        ArrayList<String> containers = new ArrayList<String>();
-        ArrayList<String> accessors = new ArrayList<String>();
-        ArrayList<String> managers = new ArrayList<String>();
+        ArrayList<String> builders = new ArrayList<>();
+        ArrayList<String> containers = new ArrayList<>();
+        ArrayList<String> accessors = new ArrayList<>();
+        ArrayList<String> managers = new ArrayList<>();
         claim.getPermissions(builders, containers, accessors, managers);
 
         yaml.set("Builders", builders);

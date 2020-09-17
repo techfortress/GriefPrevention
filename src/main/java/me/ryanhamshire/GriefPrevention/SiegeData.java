@@ -34,7 +34,7 @@ public class SiegeData
     {
         this.defender = defender;
         this.attacker = attacker;
-        this.claims = new ArrayList<Claim>();
+        this.claims = new ArrayList<>();
         this.claims.add(claim);
     }
 }

@@ -86,7 +86,7 @@ class CleanupUnusedClaimTask implements Runnable
                 if (expireEventCanceled())
                     return;
                 //make a copy of this player's claim list
-                Vector<Claim> claims = new Vector<Claim>();
+                Vector<Claim> claims = new Vector<>();
                 for (int i = 0; i < ownerData.getClaims().size(); i++)
                 {
                     claims.add(ownerData.getClaims().get(i));
