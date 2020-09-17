@@ -349,15 +349,16 @@ public abstract class DataStore
     synchronized public int getGroupBonusBlocks(UUID playerID)
     {
         int bonusBlocks = 0;
-        Set<String> keys = permissionToBonusBlocksMap.keySet();
-        Iterator<String> iterator = keys.iterator();
-        while (iterator.hasNext())
+
+        Player player = GriefPrevention.instance.getServer().getPlayer(playerID);
+
+        if (player == null) return bonusBlocks;
+
+        for (Map.Entry<String, Integer> groupEntry : this.permissionToBonusBlocksMap.entrySet())
         {
-            String groupName = iterator.next();
-            Player player = GriefPrevention.instance.getServer().getPlayer(playerID);
-            if (player != null && player.hasPermission(groupName))
+            if (player.hasPermission(groupEntry.getKey()))
             {
-                bonusBlocks += this.permissionToBonusBlocksMap.get(groupName);
+                bonusBlocks += groupEntry.getValue();
             }
         }
 
