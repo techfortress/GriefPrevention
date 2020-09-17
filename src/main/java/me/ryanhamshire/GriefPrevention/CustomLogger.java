@@ -131,9 +131,8 @@ class CustomLogger
             int daysToKeepLogs = GriefPrevention.instance.config_logs_daysToKeep;
             Calendar expirationBoundary = Calendar.getInstance();
             expirationBoundary.add(Calendar.DATE, -daysToKeepLogs);
-            for (int i = 0; i < files.length; i++)
+            for (File file : files)
             {
-                File file = files[i];
                 if (file.isDirectory()) continue;  //skip any folders
 
                 String filename = file.getName().replace(".log", "");

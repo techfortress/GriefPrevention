@@ -233,10 +233,8 @@ public class BlockEventHandler implements Listener
         if (block.getType() == Material.FIRE && !doesAllowFireProximityInWorld(block.getWorld()))
         {
             List<Player> players = block.getWorld().getPlayers();
-            for (int i = 0; i < players.size(); i++)
+            for (Player otherPlayer : players)
             {
-                Player otherPlayer = players.get(i);
-
                 // Ignore players in creative or spectator mode to avoid users from checking if someone is spectating near them
                 if (otherPlayer.getGameMode() == GameMode.CREATIVE || otherPlayer.getGameMode() == GameMode.SPECTATOR)
                 {
@@ -784,9 +782,8 @@ public class BlockEventHandler implements Listener
                     };
 
             //pro-actively put out any fires adjacent the burning block, to reduce future processing here
-            for (int i = 0; i < adjacentBlocks.length; i++)
+            for (Block adjacentBlock : adjacentBlocks)
             {
-                Block adjacentBlock = adjacentBlocks[i];
                 if (adjacentBlock.getType() == Material.FIRE && adjacentBlock.getRelative(BlockFace.DOWN).getType() != Material.NETHERRACK)
                 {
                     adjacentBlock.setType(Material.AIR);

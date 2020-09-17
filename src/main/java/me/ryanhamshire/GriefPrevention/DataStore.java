@@ -923,10 +923,8 @@ public abstract class DataStore
             claimsToCheck = this.claims;
         }
 
-        for (int i = 0; i < claimsToCheck.size(); i++)
+        for (Claim otherClaim : claimsToCheck)
         {
-            Claim otherClaim = claimsToCheck.get(i);
-
             //if we find an existing claim which will be overlapped
             if (otherClaim.id != newClaim.id && otherClaim.inDataStore && otherClaim.overlaps(newClaim))
             {
@@ -1187,10 +1185,9 @@ public abstract class DataStore
                     //drop any remainder on the ground at his feet
                     Object[] keys = wontFitItems.keySet().toArray();
                     Location winnerLocation = winner.getLocation();
-                    for (int i = 0; i < keys.length; i++)
+                    for (Map.Entry<Integer, ItemStack> wontFitItem : wontFitItems.entrySet())
                     {
-                        Integer key = (Integer) keys[i];
-                        winnerLocation.getWorld().dropItemNaturally(winnerLocation, wontFitItems.get(key));
+                        winner.getWorld().dropItemNaturally(winnerLocation, wontFitItem.getValue());
                     }
                 }
 
@@ -1276,17 +1273,15 @@ public abstract class DataStore
     {
         //make a list of the player's claims
         ArrayList<Claim> claimsToDelete = new ArrayList<>();
-        for (int i = 0; i < this.claims.size(); i++)
+        for (Claim claim : this.claims)
         {
-            Claim claim = this.claims.get(i);
             if ((playerID == claim.ownerID || (playerID != null && playerID.equals(claim.ownerID))))
                 claimsToDelete.add(claim);
         }
 
         //delete them one by one
-        for (int i = 0; i < claimsToDelete.size(); i++)
+        for (Claim claim : claimsToDelete)
         {
-            Claim claim = claimsToDelete.get(i);
             claim.removeSurfaceFluids(null);
 
             this.deleteClaim(claim, releasePets);
@@ -1737,10 +1732,9 @@ public abstract class DataStore
         FileConfiguration config = YamlConfiguration.loadConfiguration(new File(messagesFilePath));
 
         //for each message ID
-        for (int i = 0; i < messageIDs.length; i++)
+        for (Messages messageID : messageIDs)
         {
             //get default for this message
-            Messages messageID = messageIDs[i];
             CustomizableMessage messageData = defaults.get(messageID.name());
 
             //if default is missing, log an error and use some fake data for now so that the plugin can run

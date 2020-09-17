@@ -28,6 +28,7 @@ import org.bukkit.block.data.type.Leaves;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 //non-main-thread task which processes world data to repair the unnatural
 //after processing is complete, creates a main thread task to make the necessary changes to the world
@@ -390,8 +391,7 @@ class RestoreNatureProcessingTask implements Runnable
                         Material.LILY_PAD
                 };
 
-        ArrayList<Material> excludedBlocks = new ArrayList<>();
-        for (int i = 0; i < excludedBlocksArray.length; i++) excludedBlocks.add(excludedBlocksArray[i]);
+        ArrayList<Material> excludedBlocks = new ArrayList<>(Arrays.asList(excludedBlocksArray));
 
         excludedBlocks.addAll(Tag.SAPLINGS.getValues());
         excludedBlocks.addAll(Tag.LEAVES.getValues());

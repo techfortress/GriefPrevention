@@ -1498,9 +1498,8 @@ class PlayerEventHandler implements Listener
             if (bucketEvent.getBucket() == Material.LAVA_BUCKET)
             {
                 List<Player> players = block.getWorld().getPlayers();
-                for (int i = 0; i < players.size(); i++)
+                for (Player otherPlayer : players)
                 {
-                    Player otherPlayer = players.get(i);
                     Location location = otherPlayer.getLocation();
                     if (!otherPlayer.equals(player) && otherPlayer.getGameMode() == GameMode.SURVIVAL && player.canSee(otherPlayer) && block.getY() >= location.getBlockY() - 1 && location.distanceSquared(block.getLocation()) < minLavaDistance * minLavaDistance)
                     {

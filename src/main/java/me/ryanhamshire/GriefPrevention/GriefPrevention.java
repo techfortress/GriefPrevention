@@ -541,11 +541,11 @@ public class GriefPrevention extends JavaPlugin
 
         //sea level
         this.config_seaLevelOverride = new HashMap<>();
-        for (int i = 0; i < worlds.size(); i++)
+        for (World world : worlds)
         {
-            int seaLevelOverride = config.getInt("GriefPrevention.SeaLevelOverrides." + worlds.get(i).getName(), -1);
-            outConfig.set("GriefPrevention.SeaLevelOverrides." + worlds.get(i).getName(), seaLevelOverride);
-            this.config_seaLevelOverride.put(worlds.get(i).getName(), seaLevelOverride);
+            int seaLevelOverride = config.getInt("GriefPrevention.SeaLevelOverrides." + world.getName(), -1);
+            outConfig.set("GriefPrevention.SeaLevelOverrides." + world.getName(), seaLevelOverride);
+            this.config_seaLevelOverride.put(world.getName(), seaLevelOverride);
         }
 
         this.config_claims_preventGlobalMonsterEggs = config.getBoolean("GriefPrevention.Claims.PreventGlobalMonsterEggs", true);
@@ -690,9 +690,8 @@ public class GriefPrevention extends JavaPlugin
 
         //validate that list
         this.config_siege_enabledWorlds = new ArrayList<>();
-        for (int i = 0; i < siegeEnabledWorldNames.size(); i++)
+        for (String worldName : siegeEnabledWorldNames)
         {
-            String worldName = siegeEnabledWorldNames.get(i);
             World world = this.getServer().getWorld(worldName);
             if (world == null)
             {
@@ -742,9 +741,9 @@ public class GriefPrevention extends JavaPlugin
 
         //build a default config entry
         ArrayList<String> defaultBreakableBlocksList = new ArrayList<>();
-        for (int i = 0; i < this.config_siege_blocks.size(); i++)
+        for (Material siegeBlock : this.config_siege_blocks)
         {
-            defaultBreakableBlocksList.add(this.config_siege_blocks.get(i).name());
+            defaultBreakableBlocksList.add(siegeBlock.name());
         }
 
         //try to load the list from the config file
@@ -758,9 +757,8 @@ public class GriefPrevention extends JavaPlugin
 
         //parse the list of siege-breakable blocks
         this.config_siege_blocks = new ArrayList<>();
-        for (int i = 0; i < breakableBlocksList.size(); i++)
+        for (String blockName : breakableBlocksList)
         {
-            String blockName = breakableBlocksList.get(i);
             Material material = Material.getMaterial(blockName);
             if (material == null)
             {
@@ -950,36 +948,36 @@ public class GriefPrevention extends JavaPlugin
         //try to parse the list of commands requiring access trust in land claims
         this.config_claims_commandsRequiringAccessTrust = new ArrayList<>();
         String[] commands = accessTrustSlashCommands.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            if (!commands[i].isEmpty())
+            if (!command.isEmpty())
             {
-                this.config_claims_commandsRequiringAccessTrust.add(commands[i].trim().toLowerCase());
+                this.config_claims_commandsRequiringAccessTrust.add(command.trim().toLowerCase());
             }
         }
 
         //try to parse the list of commands which should be monitored for spam
         this.config_spam_monitorSlashCommands = new ArrayList<>();
         commands = slashCommandsToMonitor.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            this.config_spam_monitorSlashCommands.add(commands[i].trim().toLowerCase());
+            this.config_spam_monitorSlashCommands.add(command.trim().toLowerCase());
         }
 
         //try to parse the list of commands which should be included in eavesdropping
         this.config_eavesdrop_whisperCommands = new ArrayList<>();
         commands = whisperCommandsToMonitor.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            this.config_eavesdrop_whisperCommands.add(commands[i].trim().toLowerCase());
+            this.config_eavesdrop_whisperCommands.add(command.trim().toLowerCase());
         }
 
         //try to parse the list of commands which should be banned during pvp combat
         this.config_pvp_blockedCommands = new ArrayList<>();
         commands = bannedPvPCommandsList.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            this.config_pvp_blockedCommands.add(commands[i].trim().toLowerCase());
+            this.config_pvp_blockedCommands.add(command.trim().toLowerCase());
         }
     }
 
@@ -1501,8 +1499,8 @@ public class GriefPrevention extends JavaPlugin
 
             if (managers.size() > 0)
             {
-                for (int i = 0; i < managers.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(managers.get(i)) + " ");
+                for (String manager : managers)
+                    permissions.append(this.trustEntryToPlayerName(manager) + " ");
             }
 
             player.sendMessage(permissions.toString());
@@ -1511,8 +1509,8 @@ public class GriefPrevention extends JavaPlugin
 
             if (builders.size() > 0)
             {
-                for (int i = 0; i < builders.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(builders.get(i)) + " ");
+                for (String builder : builders)
+                    permissions.append(this.trustEntryToPlayerName(builder) + " ");
             }
 
             player.sendMessage(permissions.toString());
@@ -1521,8 +1519,8 @@ public class GriefPrevention extends JavaPlugin
 
             if (containers.size() > 0)
             {
-                for (int i = 0; i < containers.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(containers.get(i)) + " ");
+                for (String container : containers)
+                    permissions.append(this.trustEntryToPlayerName(container) + " ");
             }
 
             player.sendMessage(permissions.toString());
@@ -1531,8 +1529,8 @@ public class GriefPrevention extends JavaPlugin
 
             if (accessors.size() > 0)
             {
-                for (int i = 0; i < accessors.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(accessors.get(i)) + " ");
+                for (String accessor : accessors)
+                    permissions.append(this.trustEntryToPlayerName(accessor) + " ");
             }
 
             player.sendMessage(permissions.toString());
@@ -2252,9 +2250,8 @@ public class GriefPrevention extends JavaPlugin
             if (claims.size() > 0)
             {
                 GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ClaimsListHeader);
-                for (int i = 0; i < claims.size(); i++)
+                for (Claim claim : claims)
                 {
-                    Claim claim = claims.get(i);
                     GriefPrevention.sendMessage(player, TextMode.Instr, getfriendlyLocationString(claim.getLesserBoundaryCorner()));
                 }
             }
@@ -3008,10 +3005,7 @@ public class GriefPrevention extends JavaPlugin
         if (claim == null)
         {
             PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-            for (int i = 0; i < playerData.getClaims().size(); i++)
-            {
-                targetClaims.add(playerData.getClaims().get(i));
-            }
+            targetClaims.addAll(playerData.getClaims());
         }
         else
         {
@@ -3088,10 +3082,8 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //apply changes
-        for (int i = 0; i < targetClaims.size(); i++)
+        for (Claim currentClaim : targetClaims)
         {
-            Claim currentClaim = targetClaims.get(i);
-
             if (permissionLevel == null)
             {
                 if (!currentClaim.managers.contains(identifierToAdd))
@@ -3310,16 +3302,16 @@ public class GriefPrevention extends JavaPlugin
         ItemStack[] armorStacks = inventory.getArmorContents();
 
         //check armor slots, stop if any items are found
-        for (int i = 0; i < armorStacks.length; i++)
+        for (ItemStack armorStack : armorStacks)
         {
-            if (!(armorStacks[i] == null || armorStacks[i].getType() == Material.AIR)) return false;
+            if (!(armorStack == null || armorStack.getType() == Material.AIR)) return false;
         }
 
         //check other slots, stop if any items are found
         ItemStack[] generalStacks = inventory.getContents();
-        for (int i = 0; i < generalStacks.length; i++)
+        for (ItemStack generalStack : generalStacks)
         {
-            if (!(generalStacks[i] == null || generalStacks[i].getType() == Material.AIR)) return false;
+            if (!(generalStack == null || generalStack.getType() == Material.AIR)) return false;
         }
 
         return true;

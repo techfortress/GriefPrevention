@@ -344,10 +344,8 @@ public class EntityEventHandler implements Listener
         //make a list of blocks which were allowed to explode
         List<Block> explodedBlocks = new ArrayList<>();
         Claim cachedClaim = null;
-        for (int i = 0; i < blocks.size(); i++)
+        for (Block block : blocks)
         {
-            Block block = blocks.get(i);
-
             //always ignore air blocks
             if (block.getType() == Material.AIR) continue;
 

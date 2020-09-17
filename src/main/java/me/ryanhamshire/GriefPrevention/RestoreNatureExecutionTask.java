@@ -97,9 +97,8 @@ class RestoreNatureExecutionTask implements Runnable
         //clean up any entities in the chunk, ensure no players are suffocated
         Chunk chunk = this.lesserCorner.getChunk();
         Entity[] entities = chunk.getEntities();
-        for (int i = 0; i < entities.length; i++)
+        for (Entity entity : entities)
         {
-            Entity entity = entities[i];
             if (!(entity instanceof Player || entity instanceof Animals))
             {
                 //hanging entities (paintings, item frames) are protected when they're in land claims
