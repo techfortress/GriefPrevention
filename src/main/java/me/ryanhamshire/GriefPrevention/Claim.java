@@ -29,9 +29,9 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -354,7 +354,7 @@ public class Claim
         return GriefPrevention.instance.dataStore.getMessage(Messages.OnlyOwnersModifyClaims, this.getOwnerName());
     }
 
-    private List<Material> placeableFarmingBlocksList = Arrays.asList(
+    private static final EnumSet<Material> PLACEABLE_FARMING_BLOCKS = EnumSet.of(
             Material.PUMPKIN_STEM,
             Material.WHEAT,
             Material.MELON_STEM,
@@ -363,9 +363,9 @@ public class Claim
             Material.NETHER_WART,
             Material.BEETROOTS);
 
-    private boolean placeableForFarming(Material material)
+    private static boolean placeableForFarming(Material material)
     {
-        return this.placeableFarmingBlocksList.contains(material);
+        return PLACEABLE_FARMING_BLOCKS.contains(material);
     }
 
     //build permission check
@@ -410,7 +410,7 @@ public class Claim
         if (this.allowContainers(player) == null)
         {
             //do allow for farming, if player has /containertrust permission
-            if (this.placeableForFarming(material))
+            if (placeableForFarming(material))
             {
                 return null;
             }
