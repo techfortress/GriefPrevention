@@ -1391,7 +1391,7 @@ public class EntityEventHandler implements Listener
                             if (thrower == null || claim.allowContainers(thrower) != null)
                             {
                                 event.setIntensity(effected, 0);
-                                instance.sendMessage(thrower, TextMode.Err, Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                                GriefPrevention.sendMessage(thrower, TextMode.Err, Messages.NoDamageClaimedEntity, claim.getOwnerName());
                                 return;
                             }
                         }
