@@ -348,11 +348,11 @@ public abstract class DataStore
     //this will return 0 when he's offline, and the correct number when online.
     synchronized public int getGroupBonusBlocks(UUID playerID)
     {
-        int bonusBlocks = 0;
-
         Player player = GriefPrevention.instance.getServer().getPlayer(playerID);
 
-        if (player == null) return bonusBlocks;
+        if (player == null) return 0;
+
+        int bonusBlocks = 0;
 
         for (Map.Entry<String, Integer> groupEntry : this.permissionToBonusBlocksMap.entrySet())
         {
