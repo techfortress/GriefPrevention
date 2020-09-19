@@ -602,9 +602,10 @@ public class Claim
             if (managerID == null) continue;
             if (player.getUniqueId().toString().equals(managerID)) return null;
 
-            else if (managerID.length() >= 3 && managerID.charAt(0) == '[' && managerID.charAt(managerID.length() - 1) == ']')
+            else if (managerID.startsWith("[") && managerID.endsWith("]"))
             {
                 managerID = managerID.substring(1, managerID.length() - 1);
+                if (managerID.isEmpty()) continue;
                 if (player.hasPermission(managerID)) return null;
             }
         }
