@@ -3137,8 +3137,8 @@ public class GriefPrevention extends JavaPlugin
     //thread to build the above cache
     private class CacheOfflinePlayerNamesThread extends Thread
     {
-        private OfflinePlayer[] offlinePlayers;
-        private ConcurrentHashMap<String, UUID> playerNameToIDMap;
+        private final OfflinePlayer[] offlinePlayers;
+        private final ConcurrentHashMap<String, UUID> playerNameToIDMap;
 
         CacheOfflinePlayerNamesThread(OfflinePlayer[] offlinePlayers, ConcurrentHashMap<String, UUID> playerNameToIDMap)
         {

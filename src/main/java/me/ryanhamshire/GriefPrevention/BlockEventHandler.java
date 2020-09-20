@@ -76,9 +76,9 @@ import java.util.UUID;
 public class BlockEventHandler implements Listener
 {
     //convenience reference to singleton datastore
-    private DataStore dataStore;
+    private final DataStore dataStore;
 
-    private ArrayList<Material> trashBlocks;
+    private final ArrayList<Material> trashBlocks;
 
     //constructor
     public BlockEventHandler(DataStore dataStore)

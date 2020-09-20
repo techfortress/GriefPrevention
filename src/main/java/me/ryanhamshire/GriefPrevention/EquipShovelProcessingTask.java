@@ -27,7 +27,7 @@ import org.bukkit.inventory.EquipmentSlot;
 class EquipShovelProcessingTask implements Runnable
 {
     //player data
-    private Player player;
+    private final Player player;
 
     public EquipShovelProcessingTask(Player player)
     {

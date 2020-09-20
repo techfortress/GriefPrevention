@@ -11,9 +11,9 @@ import java.util.ArrayList;
 //automatically extends a claim downward based on block types detected
 class AutoExtendClaimTask implements Runnable
 {
-    private Claim claim;
-    private ArrayList<ChunkSnapshot> chunks;
-    private Environment worldType;
+    private final Claim claim;
+    private final ArrayList<ChunkSnapshot> chunks;
+    private final Environment worldType;
 
     public AutoExtendClaimTask(Claim claim, ArrayList<ChunkSnapshot> chunks, Environment worldType)
     {
@@ -113,8 +113,8 @@ class AutoExtendClaimTask implements Runnable
     //runs in the main execution thread, where it can safely change claims and save those changes
     private class ExecuteExtendClaimTask implements Runnable
     {
-        private Claim claim;
-        private int newY;
+        private final Claim claim;
+        private final int newY;
 
         public ExecuteExtendClaimTask(Claim claim, int newY)
         {

@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
  */
 public class MetricsHandler
 {
-    private Metrics metrics;
+    private final Metrics metrics;
 
     public MetricsHandler(GriefPrevention plugin, String dataMode)
     {

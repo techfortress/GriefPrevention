@@ -25,7 +25,7 @@ import java.util.Collection;
 //secures a claim after a siege looting window has closed
 class SecureClaimTask implements Runnable
 {
-    private SiegeData siegeData;
+    private final SiegeData siegeData;
 
     public SecureClaimTask(SiegeData siegeData)
     {

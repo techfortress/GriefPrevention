@@ -37,7 +37,7 @@ class CustomLogger
     private final int secondsBetweenWrites = 300;
 
     //stringbuilder is not thread safe, stringbuffer is
-    private StringBuffer queuedEntries = new StringBuffer();
+    private final StringBuffer queuedEntries = new StringBuffer();
 
     CustomLogger()
     {
