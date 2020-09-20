@@ -147,7 +147,7 @@ public class BlockEventHandler implements Listener
             if (!withoutSpaces.isEmpty())
             {
                 notEmpty = true;
-                lines.append("\n  " + event.getLine(i));
+                lines.append("\n  ").append(event.getLine(i));
             }
         }
 

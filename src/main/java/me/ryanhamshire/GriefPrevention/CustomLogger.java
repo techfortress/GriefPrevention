@@ -75,7 +75,7 @@ class CustomLogger
         Matcher matcher = inlineFormatterPattern.matcher(entry);
         entry = matcher.replaceAll("");
         String timestamp = this.timestampFormat.format(new Date());
-        this.queuedEntries.append(timestamp + " " + entry + "\n");
+        this.queuedEntries.append(timestamp).append(' ').append(entry).append('\n');
     }
 
     private boolean isEnabledType(CustomLogEntryTypes entryType)

@@ -1495,42 +1495,42 @@ public class GriefPrevention extends JavaPlugin
             GriefPrevention.sendMessage(player, TextMode.Info, Messages.TrustListHeader);
 
             StringBuilder permissions = new StringBuilder();
-            permissions.append(ChatColor.GOLD + ">");
+            permissions.append(ChatColor.GOLD).append('>');
 
             if (managers.size() > 0)
             {
                 for (String manager : managers)
-                    permissions.append(this.trustEntryToPlayerName(manager) + " ");
+                    permissions.append(this.trustEntryToPlayerName(manager)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
             permissions = new StringBuilder();
-            permissions.append(ChatColor.YELLOW + ">");
+            permissions.append(ChatColor.YELLOW).append('>');
 
             if (builders.size() > 0)
             {
                 for (String builder : builders)
-                    permissions.append(this.trustEntryToPlayerName(builder) + " ");
+                    permissions.append(this.trustEntryToPlayerName(builder)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
             permissions = new StringBuilder();
-            permissions.append(ChatColor.GREEN + ">");
+            permissions.append(ChatColor.GREEN).append('>');
 
             if (containers.size() > 0)
             {
                 for (String container : containers)
-                    permissions.append(this.trustEntryToPlayerName(container) + " ");
+                    permissions.append(this.trustEntryToPlayerName(container)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
             permissions = new StringBuilder();
-            permissions.append(ChatColor.BLUE + ">");
+            permissions.append(ChatColor.BLUE).append('>');
 
             if (accessors.size() > 0)
             {
                 for (String accessor : accessors)
-                    permissions.append(this.trustEntryToPlayerName(accessor) + " ");
+                    permissions.append(this.trustEntryToPlayerName(accessor)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
@@ -2399,7 +2399,7 @@ public class GriefPrevention extends JavaPlugin
                 PlayerData playerData = this.dataStore.getPlayerData(playerID);
                 playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() + adjustment);
                 this.dataStore.savePlayerData(playerID, playerData);
-                builder.append(onlinePlayer.getName() + " ");
+                builder.append(onlinePlayer.getName()).append(' ');
             }
 
             GriefPrevention.sendMessage(player, TextMode.Success, Messages.AdjustBlocksAllSuccess, String.valueOf(adjustment));
