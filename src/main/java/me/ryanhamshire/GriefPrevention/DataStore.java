@@ -512,7 +512,7 @@ public abstract class DataStore
     }
 
     //turns a location into a string, useful in data storage
-    private String locationStringDelimiter = ";";
+    private final String locationStringDelimiter = ";";
 
     String locationToString(Location location)
     {
@@ -1198,7 +1198,7 @@ public abstract class DataStore
     }
 
     //timestamp for each siege cooldown to end
-    private HashMap<String, Long> siegeCooldownRemaining = new HashMap<>();
+    private final HashMap<String, Long> siegeCooldownRemaining = new HashMap<>();
 
     //whether or not a sieger can siege a particular victim or claim, considering only cooldowns
     synchronized public boolean onCooldown(Player attacker, Player defender, Claim defenderClaim)
@@ -1838,8 +1838,8 @@ public abstract class DataStore
 
     private class SavePlayerDataThread extends Thread
     {
-        private UUID playerID;
-        private PlayerData playerData;
+        private final UUID playerID;
+        private final PlayerData playerData;
 
         SavePlayerDataThread(UUID playerID, PlayerData playerData)
         {

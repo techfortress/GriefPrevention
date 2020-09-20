@@ -106,8 +106,8 @@ import java.util.UUID;
 public class EntityEventHandler implements Listener
 {
     //convenience reference for the singleton datastore
-    private DataStore dataStore;
-    GriefPrevention instance;
+    private final DataStore dataStore;
+    private final GriefPrevention instance;
     private final NamespacedKey luredByPlayer;
 
     public EntityEventHandler(DataStore dataStore, GriefPrevention plugin)

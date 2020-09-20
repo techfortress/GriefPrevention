@@ -107,23 +107,23 @@ import java.util.regex.Pattern;
 
 class PlayerEventHandler implements Listener
 {
-    private DataStore dataStore;
-    private GriefPrevention instance;
+    private final DataStore dataStore;
+    private final GriefPrevention instance;
 
     //list of temporarily banned ip's
-    private ArrayList<IpBanInfo> tempBannedIps = new ArrayList<>();
+    private final ArrayList<IpBanInfo> tempBannedIps = new ArrayList<>();
 
     //number of milliseconds in a day
     private final long MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24;
 
     //timestamps of login and logout notifications in the last minute
-    private ArrayList<Long> recentLoginLogoutNotifications = new ArrayList<>();
+    private final ArrayList<Long> recentLoginLogoutNotifications = new ArrayList<>();
 
     //regex pattern for the "how do i claim land?" scanner
     private Pattern howToClaimPattern = null;
 
     //matcher for banned words
-    private WordFinder bannedWordFinder;
+    private final WordFinder bannedWordFinder;
 
     //spam tracker
     SpamDetector spamDetector = new SpamDetector();
@@ -537,7 +537,7 @@ class PlayerEventHandler implements Listener
         }
     }
 
-    private ConcurrentHashMap<String, CommandCategory> commandCategoryMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, CommandCategory> commandCategoryMap = new ConcurrentHashMap<>();
 
     private CommandCategory getCommandCategory(String commandName)
     {
@@ -618,7 +618,7 @@ class PlayerEventHandler implements Listener
         GriefPrevention.AddLogEntry(entryBuilder.toString(), CustomLogEntryTypes.SocialActivity, true);
     }
 
-    private ConcurrentHashMap<UUID, Date> lastLoginThisServerSessionMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<UUID, Date> lastLoginThisServerSessionMap = new ConcurrentHashMap<>();
 
     //when a player attempts to join the server...
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -875,7 +875,7 @@ class PlayerEventHandler implements Listener
     }
 
     //when a player dies...
-    private HashMap<UUID, Long> deathTimestamps = new HashMap<>();
+    private final HashMap<UUID, Long> deathTimestamps = new HashMap<>();
 
     @EventHandler(priority = EventPriority.HIGHEST)
     void onPlayerDeath(PlayerDeathEvent event)
@@ -908,7 +908,7 @@ class PlayerEventHandler implements Listener
     }
 
     //when a player quits...
-    private HashMap<UUID, Integer> heldLogoutMessages = new HashMap<>();
+    private final HashMap<UUID, Integer> heldLogoutMessages = new HashMap<>();
 
     @EventHandler(priority = EventPriority.HIGHEST)
     void onPlayerQuit(PlayerQuitEvent event)
@@ -1449,8 +1449,8 @@ class PlayerEventHandler implements Listener
     }
 
     //block use of buckets within other players' claims
-    private HashSet<Material> commonAdjacentBlocks_water = new HashSet<>(Arrays.asList(Material.WATER, Material.FARMLAND, Material.DIRT, Material.STONE));
-    private HashSet<Material> commonAdjacentBlocks_lava = new HashSet<>(Arrays.asList(Material.LAVA, Material.DIRT, Material.STONE));
+    private final HashSet<Material> commonAdjacentBlocks_water = new HashSet<>(Arrays.asList(Material.WATER, Material.FARMLAND, Material.DIRT, Material.STONE));
+    private final HashSet<Material> commonAdjacentBlocks_lava = new HashSet<>(Arrays.asList(Material.LAVA, Material.DIRT, Material.STONE));
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerBucketEmpty(PlayerBucketEmptyEvent bucketEvent)
@@ -2623,7 +2623,7 @@ class PlayerEventHandler implements Listener
     }
 
     //determines whether a block type is an inventory holder.  uses a caching strategy to save cpu time
-    private ConcurrentHashMap<Material, Boolean> inventoryHolderCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Material, Boolean> inventoryHolderCache = new ConcurrentHashMap<>();
 
     private boolean isInventoryHolder(Block clickedBlock)
     {

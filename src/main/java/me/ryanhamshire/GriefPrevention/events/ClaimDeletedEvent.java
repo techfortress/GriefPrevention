@@ -21,7 +21,7 @@ public class ClaimDeletedEvent extends Event
         return handlers;
     }
 
-    private Claim claim;
+    private final Claim claim;
 
     public ClaimDeletedEvent(Claim claim)
     {

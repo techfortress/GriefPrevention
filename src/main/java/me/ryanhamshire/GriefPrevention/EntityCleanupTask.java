@@ -35,7 +35,7 @@ import java.util.List;
 class EntityCleanupTask implements Runnable
 {
     //where to start cleaning in the list of entities
-    private double percentageStart;
+    private final double percentageStart;
 
     public EntityCleanupTask(double percentageStart)
     {

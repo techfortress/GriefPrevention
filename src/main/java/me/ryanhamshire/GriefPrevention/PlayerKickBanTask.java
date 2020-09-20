@@ -28,16 +28,16 @@ import org.bukkit.entity.Player;
 class PlayerKickBanTask implements Runnable
 {
     //player to kick or ban
-    private Player player;
+    private final Player player;
 
     //message to send player.
-    private String reason;
+    private final String reason;
 
     //source of ban
-    private String source;
+    private final String source;
 
     //whether to ban
-    private boolean ban;
+    private final boolean ban;
 
     public PlayerKickBanTask(Player player, String reason, String source, boolean ban)
     {

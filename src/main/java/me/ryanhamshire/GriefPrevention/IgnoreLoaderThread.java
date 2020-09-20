@@ -11,8 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 //loads ignore data from file into a hash map
 class IgnoreLoaderThread extends Thread
 {
-    private UUID playerToLoad;
-    private ConcurrentHashMap<UUID, Boolean> destinationMap;
+    private final UUID playerToLoad;
+    private final ConcurrentHashMap<UUID, Boolean> destinationMap;
 
     IgnoreLoaderThread(UUID playerToLoad, ConcurrentHashMap<UUID, Boolean> destinationMap)
     {

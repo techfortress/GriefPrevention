@@ -36,15 +36,15 @@ class RestoreNatureExecutionTask implements Runnable
 {
     //results from processing thread
     //will be applied to the world
-    private BlockSnapshot[][][] snapshots;
+    private final BlockSnapshot[][][] snapshots;
 
     //boundaries for changes
-    private int miny;
-    private Location lesserCorner;
-    private Location greaterCorner;
+    private final int miny;
+    private final Location lesserCorner;
+    private final Location greaterCorner;
 
     //player who should be notified about the result (will see a visualization when the restoration is complete)
-    private Player player;
+    private final Player player;
 
     public RestoreNatureExecutionTask(BlockSnapshot[][][] snapshots, int miny, Location lesserCorner, Location greaterCorner, Player player)
     {

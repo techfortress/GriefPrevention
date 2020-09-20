@@ -30,10 +30,10 @@ class CheckForPortalTrapTask extends BukkitRunnable
 {
     GriefPrevention instance;
     //player who recently teleported via nether portal
-    private Player player;
+    private final Player player;
 
     //where to send the player back to if he hasn't left the portal frame
-    private Location returnLocation;
+    private final Location returnLocation;
 
     public CheckForPortalTrapTask(Player player, GriefPrevention plugin, Location locationToReturn)
     {

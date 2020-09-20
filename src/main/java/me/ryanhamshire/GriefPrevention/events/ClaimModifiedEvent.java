@@ -24,7 +24,7 @@ public class ClaimModifiedEvent extends Event implements Cancellable
 
     private final Claim from;
     private final Claim to;
-    private CommandSender modifier;
+    private final CommandSender modifier;
     private boolean cancelled;
 
     public ClaimModifiedEvent(Claim from, Claim to, CommandSender modifier)
