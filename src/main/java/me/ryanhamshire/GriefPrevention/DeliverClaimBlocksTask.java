@@ -20,6 +20,8 @@ package me.ryanhamshire.GriefPrevention;
 
 import me.ryanhamshire.GriefPrevention.events.AccrueClaimBlocksEvent;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 
@@ -32,7 +34,7 @@ class DeliverClaimBlocksTask implements Runnable
     private final GriefPrevention instance;
     private final int idleThresholdSquared;
 
-    public DeliverClaimBlocksTask(Player player, GriefPrevention instance)
+    public DeliverClaimBlocksTask(@Nullable Player player, @NotNull GriefPrevention instance)
     {
         this.player = player;
         this.instance = instance;

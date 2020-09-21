@@ -29,8 +29,10 @@ import org.bukkit.block.data.Lightable;
 import org.bukkit.entity.Player;
 import org.bukkit.util.BoundingBox;
 import org.bukkit.util.Vector;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 //represents a visualization sent to a player
 //FEATURE: to show players visually where claim boundaries are, we send them fake block change packets
@@ -40,7 +42,7 @@ public class Visualization
     public ArrayList<VisualizationElement> elements = new ArrayList<>();
 
     //sends a visualization to a player
-    public static void Apply(Player player, Visualization visualization)
+    public static void Apply(@NotNull Player player, @NotNull Visualization visualization)
     {
         PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
 
@@ -51,7 +53,7 @@ public class Visualization
         }
 
         //if he's online, create a task to send him the visualization
-        if (player.isOnline() && visualization.elements.size() > 0 && visualization.elements.get(0).location.getWorld().equals(player.getWorld()))
+        if (player.isOnline() && visualization.elements.size() > 0 && player.getWorld().equals(visualization.elements.get(0).location.getWorld()))
         {
             GriefPrevention.instance.getServer().getScheduler().scheduleSyncDelayedTask(GriefPrevention.instance, new VisualizationApplicationTask(player, playerData, visualization), 1L);
         }
@@ -59,7 +61,7 @@ public class Visualization
 
     //reverts a visualization by sending another block change list, this time with the real world block values
 
-    public static void Revert(Player player)
+    public static void Revert(@NotNull Player player)
     {
         if (!player.isOnline()) return;
 
@@ -98,7 +100,7 @@ public class Visualization
 
     //convenience method to build a visualization from a claim
     //visualizationType determines the style (gold blocks, silver, red, diamond, etc)
-    public static Visualization FromClaim(Claim claim, int height, VisualizationType visualizationType, Location locality)
+    public static @NotNull Visualization FromClaim(@NotNull Claim claim, int height, @NotNull VisualizationType visualizationType, @NotNull Location locality)
     {
         //visualize only top level claims
         if (claim.parent != null)
@@ -132,7 +134,7 @@ public class Visualization
     //handy for combining several visualizations together, as when visualization a top level claim with several subdivisions inside
     //locality is a performance consideration.  only create visualization blocks for around 100 blocks of the locality
 
-    public void addClaimElements(Claim claim, int height, VisualizationType visualizationType, Location locality)
+    public void addClaimElements(@NotNull Claim claim, int height, @NotNull VisualizationType visualizationType, @NotNull Location locality)
     {
         BlockData cornerBlockData;
         BlockData accentBlockData;
@@ -168,7 +170,8 @@ public class Visualization
     }
 
     //adds a general claim cuboid (represented by min and max) visualization to the current visualization
-    public void addClaimElements(Location min, Location max, Location locality, int height, BlockData cornerBlockData, BlockData accentBlockData, int STEP) {
+    public void addClaimElements(@NotNull Location min, @NotNull Location max, @NotNull Location locality, int height,
+                                 @NotNull BlockData cornerBlockData, @NotNull BlockData accentBlockData, int STEP) {
         World world = min.getWorld();
         boolean waterIsTransparent = locality.getBlock().getType() == Material.WATER;
 
@@ -246,7 +249,7 @@ public class Visualization
         for (VisualizationElement element : newElements)
         {
             Location tempLocation = element.location;
-            element.location = getVisibleLocation(tempLocation.getWorld(), tempLocation.getBlockX(), height, tempLocation.getBlockZ(), waterIsTransparent);
+            element.location = getVisibleLocation(Objects.requireNonNull(tempLocation.getWorld()), tempLocation.getBlockX(), height, tempLocation.getBlockZ(), waterIsTransparent);
             height = element.location.getBlockY();
             element.realBlock = element.location.getBlock().getBlockData();
         }
@@ -254,7 +257,7 @@ public class Visualization
         this.elements.addAll(newElements);
     }
 
-    private boolean containsIncludingIgnoringHeight(BoundingBox box, Vector vector) {
+    private boolean containsIncludingIgnoringHeight(@NotNull BoundingBox box, @NotNull Vector vector) {
         return vector.getBlockX() >= box.getMinX()
                 && vector.getBlockX() <= box.getMaxX()
                 && vector.getBlockZ() >= box.getMinZ()
@@ -262,7 +265,7 @@ public class Visualization
     }
 
     //removes any elements which are out of visualization range
-    private void removeElementsOutOfRange(ArrayList<VisualizationElement> elements, int minx, int minz, int maxx, int maxz)
+    private void removeElementsOutOfRange(@NotNull ArrayList<VisualizationElement> elements, int minx, int minz, int maxx, int maxz)
     {
         for (int i = 0; i < elements.size(); i++)
         {
@@ -275,7 +278,7 @@ public class Visualization
     }
 
     //finds a block the player can probably see.  this is how visualizations "cling" to the ground or ceiling
-    private static Location getVisibleLocation(World world, int x, int y, int z, boolean waterIsTransparent)
+    private static @NotNull Location getVisibleLocation(@NotNull World world, int x, int y, int z, boolean waterIsTransparent)
     {
         Block block = world.getBlockAt(x, y, z);
         BlockFace direction = (isTransparent(block, waterIsTransparent)) ? BlockFace.DOWN : BlockFace.UP;
@@ -291,7 +294,7 @@ public class Visualization
     }
 
     //helper method for above.  allows visualization blocks to sit underneath partly transparent blocks like grass and fence
-    private static boolean isTransparent(Block block, boolean waterIsTransparent)
+    private static boolean isTransparent(@NotNull Block block, boolean waterIsTransparent)
     {
         Material blockMaterial = block.getType();
         //Blacklist
@@ -328,7 +331,7 @@ public class Visualization
                 block.getType().isTransparent();
     }
 
-    public static Visualization fromClaims(Iterable<Claim> claims, int height, VisualizationType type, Location locality)
+    public static @NotNull Visualization fromClaims(@NotNull Iterable<Claim> claims, int height, @NotNull VisualizationType type, @NotNull Location locality)
     {
         Visualization visualization = new Visualization();
 

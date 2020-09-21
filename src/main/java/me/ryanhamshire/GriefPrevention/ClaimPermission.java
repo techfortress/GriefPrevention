@@ -18,6 +18,9 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
+
 //basic enum stuff
 public enum ClaimPermission
 {
@@ -31,7 +34,8 @@ public enum ClaimPermission
      * @param other the ClaimPermission to compare against
      * @return true if this ClaimPermission is equal or lesser than the provided ClaimPermission
      */
-    public boolean isGrantedBy(ClaimPermission other)
+    @Contract("null -> false")
+    public boolean isGrantedBy(@Nullable ClaimPermission other)
     {
         // As this uses declaration order to compare, if trust levels are reordered this method must be rewritten.
         return other != null && other.ordinal() <= this.ordinal();

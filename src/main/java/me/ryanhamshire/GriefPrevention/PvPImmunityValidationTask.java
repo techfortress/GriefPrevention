@@ -19,6 +19,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 //sends a message to a player
 //used to send delayed messages, for example help text triggered by a player's chat
@@ -26,7 +27,7 @@ class PvPImmunityValidationTask implements Runnable
 {
     private final Player player;
 
-    public PvPImmunityValidationTask(Player player)
+    public PvPImmunityValidationTask(@NotNull Player player)
     {
         this.player = player;
     }

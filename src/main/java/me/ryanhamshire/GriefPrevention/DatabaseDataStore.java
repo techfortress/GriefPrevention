@@ -22,6 +22,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -151,10 +152,10 @@ public class DatabaseDataStore extends DataStore
             String name = results.getString("name");
 
             //ignore non-groups.  all group names start with a dollar sign.
-            if (!name.startsWith("$")) continue;
+            if (name == null || !name.startsWith("$")) continue;
 
             String groupName = name.substring(1);
-            if (groupName == null || groupName.isEmpty()) continue;  //defensive coding, avoid unlikely cases
+            if (groupName.isEmpty()) continue;  //defensive coding, avoid unlikely cases
 
             int groupBonusBlocks = results.getInt("bonusblocks");
 
@@ -227,10 +228,7 @@ public class DatabaseDataStore extends DataStore
                         UUID playerID = UUIDFetcher.getUUIDOf(playerName);
 
                         //if successful, update the playerdata row by replacing the player's name with the player's UUID
-                        if (playerID != null)
-                        {
-                            changes.put(playerName, playerID);
-                        }
+                        changes.put(playerName, playerID);
                     }
                     //otherwise leave it as-is. no harm done - it won't be requested by name, and this update only happens once.
                     catch (Exception ex) { }
@@ -415,7 +413,7 @@ public class DatabaseDataStore extends DataStore
     }
 
     @Override
-    synchronized void writeClaimToStorage(Claim claim)  //see datastore.cs.  this will ALWAYS be a top level claim
+    synchronized void writeClaimToStorage(@NotNull Claim claim)  //see datastore.cs.  this will ALWAYS be a top level claim
     {
         try
         {
@@ -435,7 +433,7 @@ public class DatabaseDataStore extends DataStore
     }
 
     //actually writes claim data to the database
-    synchronized private void writeClaimData(Claim claim) throws SQLException
+    synchronized private void writeClaimData(@NotNull Claim claim) throws SQLException
     {
         String lesserCornerString = this.locationToString(claim.getLesserBoundaryCorner());
         String greaterCornerString = this.locationToString(claim.getGreaterBoundaryCorner());
@@ -480,7 +478,7 @@ public class DatabaseDataStore extends DataStore
 
     //deletes a claim from the database
     @Override
-    synchronized void deleteClaimFromSecondaryStorage(Claim claim)
+    synchronized void deleteClaimFromSecondaryStorage(@NotNull Claim claim)
     {
         try (PreparedStatement deleteStmnt = this.databaseConnection.prepareStatement(this.getDeleteClaimSQL()))
         {
@@ -496,7 +494,7 @@ public class DatabaseDataStore extends DataStore
     }
 
     @Override
-    PlayerData getPlayerDataFromStorage(UUID playerID)
+    @NotNull PlayerData getPlayerDataFromStorage(@NotNull UUID playerID)
     {
         PlayerData playerData = new PlayerData();
         playerData.playerID = playerID;
@@ -525,15 +523,12 @@ public class DatabaseDataStore extends DataStore
 
     //saves changes to player data.  MUST be called after you're done making changes, otherwise a reload will lose them
     @Override
-    public void overrideSavePlayerData(UUID playerID, PlayerData playerData)
+    public void overrideSavePlayerData(@NotNull UUID playerID, @NotNull PlayerData playerData)
     {
-        //never save data for the "administrative" account.  an empty string for player name indicates administrative account
-        if (playerID == null) return;
-
         this.savePlayerData(playerID.toString(), playerData);
     }
 
-    private void savePlayerData(String playerID, PlayerData playerData)
+    private void savePlayerData(@NotNull String playerID, @NotNull PlayerData playerData)
     {
         try (PreparedStatement deleteStmnt = this.databaseConnection.prepareStatement(this.getDeletePlayerDataSQL());
              PreparedStatement insertStmnt = this.databaseConnection.prepareStatement(this.getInsertPlayerDataSQL()))
@@ -586,7 +581,7 @@ public class DatabaseDataStore extends DataStore
 
     //updates the database with a group's bonus blocks
     @Override
-    synchronized void saveGroupBonusBlocks(String groupName, int currentValue)
+    synchronized void saveGroupBonusBlocks(@NotNull String groupName, int currentValue)
     {
         //group bonus blocks are stored in the player data table, with player name = $groupName
         try (PreparedStatement deleteStmnt = this.databaseConnection.prepareStatement(this.getDeleteGroupBonusSQL());
@@ -702,7 +697,7 @@ public class DatabaseDataStore extends DataStore
      * @param input Arraylist with strings to concat
      * @return String with all values from input array
      */
-    private String storageStringBuilder(ArrayList<String> input)
+    private String storageStringBuilder(@NotNull ArrayList<String> input)
     {
         String output = "";
         for (String string : input)

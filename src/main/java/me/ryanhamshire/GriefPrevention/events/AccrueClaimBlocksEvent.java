@@ -3,6 +3,7 @@ package me.ryanhamshire.GriefPrevention.events;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Called when GP is about to deliver claim blocks to a player (~every 10 minutes)
@@ -15,13 +16,13 @@ public class AccrueClaimBlocksEvent extends Event
     // Custom Event Requirements
     private static final HandlerList handlers = new HandlerList();
 
-    public static HandlerList getHandlerList()
+    public static @NotNull HandlerList getHandlerList()
     {
         return handlers;
     }
 
     @Override
-    public HandlerList getHandlers()
+    public @NotNull HandlerList getHandlers()
     {
         return handlers;
     }
@@ -36,7 +37,7 @@ public class AccrueClaimBlocksEvent extends Event
      * @param blocksToAccrue Blocks to accrue
      * @deprecated Use {@link #AccrueClaimBlocksEvent(Player, int, boolean)} instead
      */
-    public AccrueClaimBlocksEvent(Player player, int blocksToAccrue)
+    public AccrueClaimBlocksEvent(@NotNull Player player, int blocksToAccrue)
     {
         this.player = player;
         this.blocksToAccrue = blocksToAccrue / 6;
@@ -47,14 +48,14 @@ public class AccrueClaimBlocksEvent extends Event
      * @param blocksToAccrue Blocks to accrue
      * @param isIdle Whether player is detected as idle
      */
-    public AccrueClaimBlocksEvent(Player player, int blocksToAccrue, boolean isIdle)
+    public AccrueClaimBlocksEvent(@NotNull Player player, int blocksToAccrue, boolean isIdle)
     {
         this.player = player;
         this.blocksToAccrue = blocksToAccrue / 6;
         this.isIdle = isIdle;
     }
 
-    public Player getPlayer()
+    public @NotNull Player getPlayer()
     {
         return this.player;
     }

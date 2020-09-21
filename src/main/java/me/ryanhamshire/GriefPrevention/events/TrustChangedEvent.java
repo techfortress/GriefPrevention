@@ -6,6 +6,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,8 +29,8 @@ public class TrustChangedEvent extends Event implements Cancellable
     private final String identifier;
     private boolean cancelled;
 
-    public TrustChangedEvent(Player changer, List<Claim> claims, ClaimPermission claimPermission, boolean given,
-                             String identifier)
+    public TrustChangedEvent(@NotNull Player changer, @NotNull List<Claim> claims,
+                             @Nullable ClaimPermission claimPermission, boolean given, @NotNull String identifier)
     {
         super();
         this.changer = changer;
@@ -38,7 +40,8 @@ public class TrustChangedEvent extends Event implements Cancellable
         this.identifier = identifier;
     }
 
-    public TrustChangedEvent(Player changer, Claim claim, ClaimPermission claimPermission, boolean given, String identifier)
+    public TrustChangedEvent(@NotNull Player changer, @NotNull Claim claim, @Nullable ClaimPermission claimPermission,
+                             boolean given,  @NotNull String identifier)
     {
         this.changer = changer;
         claims = new ArrayList<>();
@@ -49,12 +52,12 @@ public class TrustChangedEvent extends Event implements Cancellable
     }
 
     @Override
-    public HandlerList getHandlers()
+    public @NotNull HandlerList getHandlers()
     {
         return handlers;
     }
 
-    public static HandlerList getHandlerList()
+    public static @NotNull HandlerList getHandlerList()
     {
         return handlers;
     }
@@ -64,7 +67,7 @@ public class TrustChangedEvent extends Event implements Cancellable
      *
      * @return the changer
      */
-    public Player getChanger()
+    public @NotNull Player getChanger()
     {
         return changer;
     }
@@ -74,7 +77,7 @@ public class TrustChangedEvent extends Event implements Cancellable
      *
      * @return the changed claims
      */
-    public List<Claim> getClaims()
+    public @NotNull List<Claim> getClaims()
     {
         return claims;
     }
@@ -84,7 +87,7 @@ public class TrustChangedEvent extends Event implements Cancellable
      *
      * @return the claim permission
      */
-    public ClaimPermission getClaimPermission()
+    public @Nullable ClaimPermission getClaimPermission()
     {
         return claimPermission;
     }
@@ -105,7 +108,7 @@ public class TrustChangedEvent extends Event implements Cancellable
      *
      * @return the identifier
      */
-    public String getIdentifier()
+    public @NotNull String getIdentifier()
     {
         return identifier;
     }

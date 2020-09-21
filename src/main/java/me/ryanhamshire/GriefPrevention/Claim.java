@@ -27,6 +27,9 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -35,6 +38,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 //represents a player claim
@@ -44,21 +48,21 @@ public class Claim
 {
     //two locations, which together define the boundaries of the claim
     //note that the upper Y value is always ignored, because claims ALWAYS extend up to the sky
-    Location lesserBoundaryCorner;
-    Location greaterBoundaryCorner;
+    @NotNull Location lesserBoundaryCorner;
+    @NotNull Location greaterBoundaryCorner;
 
     //modification date.  this comes from the file timestamp during load, and is updated with runtime changes
-    public Date modifiedDate;
+    public @NotNull Date modifiedDate;
 
     //id number.  unique to this claim, never changes.
-    Long id = null;
+    long id;
 
     //ownerID.  for admin claims, this is NULL
     //use getOwnerName() to get a friendly name (will be "an administrator" for admin claims)
-    public UUID ownerID;
+    public @Nullable UUID ownerID;
 
     //list of players who (beyond the claim owner) have permission to grant permissions in this claim
-    public ArrayList<String> managers = new ArrayList<>();
+    public @NotNull ArrayList<String> managers = new ArrayList<>();
 
     //permissions for this claim, see ClaimPermission class
     private HashMap<String, ClaimPermission> playerIDToClaimPermissionMap = new HashMap<>();
@@ -73,17 +77,17 @@ public class Claim
 
     //parent claim
     //only used for claim subdivisions.  top level claims have null here
-    public Claim parent = null;
+    public @Nullable Claim parent = null;
 
     // intended for subclaims - they inherit no permissions
     private boolean inheritNothing = false;
 
     //children (subdivisions)
     //note subdivisions themselves never have children
-    public ArrayList<Claim> children = new ArrayList<>();
+    public @NotNull ArrayList<Claim> children = new ArrayList<>();
 
     //information about a siege involving this claim.  null means no siege is impacting this claim
-    public SiegeData siegeData = null;
+    public @Nullable SiegeData siegeData = null;
 
     //following a siege, buttons/levers are unlocked temporarily.  this represents that state
     public boolean doorsOpen = false;
@@ -98,21 +102,14 @@ public class Claim
     }
 
     //accessor for ID
-    public Long getID()
+    public @NotNull Long getID()
     {
         return this.id;
     }
 
-    //basic constructor, just notes the creation time
-    //see above declarations for other defaults
-    Claim()
-    {
-        this.modifiedDate = Calendar.getInstance().getTime();
-    }
-
     //players may only siege someone when he's not in an admin claim
     //and when he has some level of permission in the claim
-    public boolean canSiege(Player defender)
+    public boolean canSiege(@NotNull Player defender)
     {
         if (this.isAdminClaim()) return false;
 
@@ -124,7 +121,7 @@ public class Claim
     //removes any lava above sea level in a claim
     //exclusionClaim is another claim indicating an sub-area to be excluded from this operation
     //it may be null
-    public void removeSurfaceFluids(Claim exclusionClaim)
+    public void removeSurfaceFluids(@Nullable Claim exclusionClaim)
     {
         //don't do this for administrative claims
         if (this.isAdminClaim()) return;
@@ -138,7 +135,8 @@ public class Claim
         Location lesser = this.getLesserBoundaryCorner();
         Location greater = this.getGreaterBoundaryCorner();
 
-        if (lesser.getWorld().getEnvironment() == Environment.NETHER) return;  //don't clean up lava in the nether
+        // TODO claim world handling
+        if (Objects.requireNonNull(lesser.getWorld()).getEnvironment() == Environment.NETHER) return;  //don't clean up lava in the nether
 
         int seaLevel = 0;  //clean up all fluids in the end
 
@@ -178,7 +176,8 @@ public class Claim
         int seaLevel = 0;  //clean up all fluids in the end
 
         //respect sea level in normal worlds
-        if (lesser.getWorld().getEnvironment() == Environment.NORMAL)
+        // TODO claim world handling
+        if (Objects.requireNonNull(lesser.getWorld()).getEnvironment() == Environment.NORMAL)
             seaLevel = GriefPrevention.instance.getSeaLevel(lesser.getWorld());
 
         for (int x = lesser.getBlockX(); x <= greater.getBlockX(); x++)
@@ -202,13 +201,15 @@ public class Claim
     }
 
     //main constructor.  note that only creating a claim instance does nothing - a claim must be added to the data store to be effective
-    Claim(Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> builderIDs, List<String> containerIDs, List<String> accessorIDs, List<String> managerIDs, boolean inheritNothing, Long id)
+    Claim(@NotNull Location lesserBoundaryCorner, @NotNull Location greaterBoundaryCorner, @Nullable UUID ownerID,
+          @NotNull List<String> builderIDs, @NotNull List<String> containerIDs, @NotNull List<String> accessorIDs,
+          @NotNull List<String> managerIDs, boolean inheritNothing, @Nullable Long id)
     {
         //modification date
         this.modifiedDate = Calendar.getInstance().getTime();
 
         //id
-        this.id = id;
+        this.id = id == null ? -1L : id;
 
         //store corners
         this.lesserBoundaryCorner = lesserBoundaryCorner;
@@ -244,13 +245,15 @@ public class Claim
         this.inheritNothing = inheritNothing;
     }
 
-    Claim(Location lesserBoundaryCorner, Location greaterBoundaryCorner, UUID ownerID, List<String> builderIDs, List<String> containerIDs, List<String> accessorIDs, List<String> managerIDs, Long id)
+    Claim(@NotNull Location lesserBoundaryCorner, @NotNull Location greaterBoundaryCorner, @Nullable UUID ownerID,
+          @NotNull List<String> builderIDs, @NotNull List<String> containerIDs, @NotNull List<String> accessorIDs,
+          @NotNull List<String> managerIDs, @Nullable Long id)
     {
         this(lesserBoundaryCorner, greaterBoundaryCorner, ownerID, builderIDs, containerIDs, accessorIDs, managerIDs, false, id);
     }
 
     //produces a copy of a claim.
-    public Claim(Claim claim) {
+    public Claim(@NotNull Claim claim) {
         this.modifiedDate = claim.modifiedDate;
         this.lesserBoundaryCorner = claim.greaterBoundaryCorner.clone();
         this.greaterBoundaryCorner = claim.greaterBoundaryCorner.clone();
@@ -297,21 +300,22 @@ public class Claim
     }
 
     //distance check for claims, distance in this case is a band around the outside of the claim rather then euclidean distance
-    public boolean isNear(Location location, int howNear)
+    public boolean isNear(@NotNull Location location, int howNear)
     {
         Claim claim = new Claim
                 (new Location(this.lesserBoundaryCorner.getWorld(), this.lesserBoundaryCorner.getBlockX() - howNear, this.lesserBoundaryCorner.getBlockY(), this.lesserBoundaryCorner.getBlockZ() - howNear),
                         new Location(this.greaterBoundaryCorner.getWorld(), this.greaterBoundaryCorner.getBlockX() + howNear, this.greaterBoundaryCorner.getBlockY(), this.greaterBoundaryCorner.getBlockZ() + howNear),
-                        null, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null);
+                        null, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), -1L);
 
         return claim.contains(location, false, true);
     }
 
     //permissions.  note administrative "public" claims have different rules than other claims
     //all of these return NULL when a player has permission, or a String error message when the player doesn't have permission
-    public String allowEdit(Player player)
+    public @Nullable String allowEdit(@NotNull Player player)
     {
         //if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
+        //noinspection ConstantConditions // Defensive coding
         if (player == null) return "";
 
         //special cases...
@@ -368,9 +372,10 @@ public class Claim
     }
 
     //build permission check
-    public String allowBuild(Player player, Material material)
+    public @Nullable String allowBuild(@NotNull Player player, @NotNull Material material)
     {
         //if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
+        //noinspection ConstantConditions // Defensive coding
         if (player == null) return "";
 
         //when a player tries to build in a claim, if he's under siege, the siege may extend to include the new claim
@@ -432,12 +437,12 @@ public class Claim
         return reason;
     }
 
-    public boolean hasExplicitPermission(UUID uuid, ClaimPermission level)
+    public boolean hasExplicitPermission(@NotNull UUID uuid, @NotNull ClaimPermission level)
     {
         return level.isGrantedBy(this.playerIDToClaimPermissionMap.get(uuid.toString()));
     }
 
-    public boolean hasExplicitPermission(Player player, ClaimPermission level)
+    public boolean hasExplicitPermission(@NotNull Player player, @NotNull ClaimPermission level)
     {
         // Check explicit ClaimPermission for UUID
         if (this.hasExplicitPermission(player.getUniqueId(), level)) return true;
@@ -464,7 +469,7 @@ public class Claim
     }
 
     //break permission check
-    public String allowBreak(Player player, Material material)
+    public @Nullable String allowBreak(@NotNull Player player, @NotNull Material material)
     {
         //if under siege, some blocks will be breakable
         if (this.siegeData != null || this.doorsOpen)
@@ -502,7 +507,7 @@ public class Claim
     }
 
     //access permission check
-    public String allowAccess(Player player)
+    public @Nullable String allowAccess(@NotNull Player player)
     {
         //following a siege where the defender lost, the claim will allow everyone access for a time
         if (this.doorsOpen) return null;
@@ -540,9 +545,10 @@ public class Claim
     }
 
     //inventory permission check
-    public String allowContainers(Player player)
+    public @Nullable String allowContainers(@NotNull Player player)
     {
         //if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
+        //noinspection ConstantConditions // Defensive coding
         if (player == null) return "";
 
         //trying to access inventory in a claim may extend an existing siege to include this claim
@@ -587,9 +593,10 @@ public class Claim
     }
 
     //grant permission check, relatively simple
-    public String allowGrantPermission(Player player)
+    public @Nullable String allowGrantPermission(@NotNull Player player)
     {
         //if we don't know who's asking, always say no (i've been told some mods can make this happen somehow)
+        //noinspection ConstantConditions // Defensive coding
         if (player == null) return "";
 
         //anyone who can modify the claim can do this
@@ -625,7 +632,8 @@ public class Claim
         return reason;
     }
 
-    public ClaimPermission getPermission(String playerID)
+    @Contract("null -> null")
+    public @Nullable ClaimPermission getPermission(@Nullable String playerID)
     {
         if (playerID == null || playerID.isEmpty())
         {
@@ -636,8 +644,9 @@ public class Claim
     }
 
     //grants a permission for a player or the public
-    public void setPermission(String playerID, ClaimPermission permissionLevel)
+    public void setPermission(@NotNull String playerID, @Nullable ClaimPermission permissionLevel)
     {
+        //noinspection ConstantConditions // Defensive coding
         if (playerID == null || playerID.isEmpty())
         {
             return;
@@ -647,7 +656,7 @@ public class Claim
     }
 
     //revokes a permission for a player or the public
-    public void dropPermission(String playerID)
+    public void dropPermission(@NotNull String playerID)
     {
         this.playerIDToClaimPermissionMap.remove(playerID.toLowerCase());
 
@@ -671,7 +680,8 @@ public class Claim
 
     //gets ALL permissions
     //useful for  making copies of permissions during a claim resize and listing all permissions in a claim
-    public void getPermissions(ArrayList<String> builders, ArrayList<String> containers, ArrayList<String> accessors, ArrayList<String> managers)
+    public void getPermissions(@NotNull ArrayList<String> builders, @NotNull ArrayList<String> containers,
+                               @NotNull ArrayList<String> accessors, @NotNull ArrayList<String> managers)
     {
         //loop through all the entries in the hash map
         for (Map.Entry<String, ClaimPermission> entry : this.playerIDToClaimPermissionMap.entrySet())
@@ -696,20 +706,20 @@ public class Claim
     }
 
     //returns a copy of the location representing lower x, y, z limits
-    public Location getLesserBoundaryCorner()
+    public @NotNull Location getLesserBoundaryCorner()
     {
         return this.lesserBoundaryCorner.clone();
     }
 
     //returns a copy of the location representing upper x, y, z limits
     //NOTE: remember upper Y will always be ignored, all claims always extend to the sky
-    public Location getGreaterBoundaryCorner()
+    public @NotNull Location getGreaterBoundaryCorner()
     {
         return this.greaterBoundaryCorner.clone();
     }
 
     //returns a friendly owner name (for admin claims, returns "an administrator" as the owner)
-    public String getOwnerName()
+    public @NotNull String getOwnerName()
     {
         if (this.parent != null)
             return this.parent.getOwnerName();
@@ -723,10 +733,10 @@ public class Claim
     //whether or not a location is in a claim
     //ignoreHeight = true means location UNDER the claim will return TRUE
     //excludeSubdivisions = true means that locations inside subdivisions of the claim will return FALSE
-    public boolean contains(Location location, boolean ignoreHeight, boolean excludeSubdivisions)
+    public boolean contains(@NotNull Location location, boolean ignoreHeight, boolean excludeSubdivisions)
     {
         //not in the same world implies false
-        if (!location.getWorld().equals(this.lesserBoundaryCorner.getWorld())) return false;
+        if (!Objects.equals(location.getWorld(), this.lesserBoundaryCorner.getWorld())) return false;
 
         double x = location.getX();
         double y = location.getY();
@@ -770,11 +780,11 @@ public class Claim
 
     //whether or not two claims overlap
     //used internally to prevent overlaps when creating claims
-    boolean overlaps(Claim otherClaim)
+    boolean overlaps(@NotNull Claim otherClaim)
     {
         // For help visualizing test cases, try https://silentmatt.com/rectangle-intersection/
 
-        if (!this.lesserBoundaryCorner.getWorld().equals(otherClaim.getLesserBoundaryCorner().getWorld())) return false;
+        if (!Objects.equals(this.lesserBoundaryCorner.getWorld(), otherClaim.getLesserBoundaryCorner().getWorld())) return false;
 
         return !(this.getGreaterBoundaryCorner().getX() < otherClaim.getLesserBoundaryCorner().getX() ||
                 this.getLesserBoundaryCorner().getX() > otherClaim.getGreaterBoundaryCorner().getX() ||
@@ -784,7 +794,7 @@ public class Claim
     }
 
     //whether more entities may be added to a claim
-    public String allowMoreEntities(boolean remove)
+    public @Nullable String allowMoreEntities(boolean remove)
     {
         if (this.parent != null) return this.parent.allowMoreEntities(remove);
 
@@ -823,7 +833,7 @@ public class Claim
         return null;
     }
 
-    public String allowMoreActiveBlocks()
+    public @Nullable String allowMoreActiveBlocks()
     {
         if (this.parent != null) return this.parent.allowMoreActiveBlocks();
 
@@ -857,7 +867,7 @@ public class Claim
     }
 
     //implements a strict ordering of claims, used to keep the claims collection sorted for faster searching
-    boolean greaterThan(Claim otherClaim)
+    boolean greaterThan(@NotNull Claim otherClaim)
     {
         Location thisCorner = this.getLesserBoundaryCorner();
         Location otherCorner = otherClaim.getLesserBoundaryCorner();
@@ -870,20 +880,21 @@ public class Claim
 
         if (thisCorner.getBlockZ() < otherCorner.getBlockZ()) return false;
 
-        return thisCorner.getWorld().getName().compareTo(otherCorner.getWorld().getName()) < 0;
+        // TODO claim world handling (also this is an unused method, delete)
+        return Objects.requireNonNull(thisCorner.getWorld()).getName().compareTo(Objects.requireNonNull(otherCorner.getWorld()).getName()) < 0;
     }
 
 
     long getPlayerInvestmentScore()
     {
         //decide which blocks will be considered player placed
-        Location lesserBoundaryCorner = this.getLesserBoundaryCorner();
-        ArrayList<Material> playerBlocks = RestoreNatureProcessingTask.getPlayerBlocks(lesserBoundaryCorner.getWorld().getEnvironment(), lesserBoundaryCorner.getBlock().getBiome());
+        // TODO claim world handling
+        ArrayList<Material> playerBlocks = RestoreNatureProcessingTask.getPlayerBlocks(Objects.requireNonNull(this.lesserBoundaryCorner.getWorld()).getEnvironment(), lesserBoundaryCorner.getBlock().getBiome());
 
         //scan the claim for player placed blocks
         double score = 0;
 
-        boolean creativeMode = GriefPrevention.instance.creativeRulesApply(lesserBoundaryCorner);
+        boolean creativeMode = GriefPrevention.instance.creativeRulesApply(this.lesserBoundaryCorner);
 
         for (int x = this.lesserBoundaryCorner.getBlockX(); x <= this.greaterBoundaryCorner.getBlockX(); x++)
         {
@@ -931,11 +942,12 @@ public class Claim
         return (long) score;
     }
 
-    public ArrayList<Chunk> getChunks()
+    public @NotNull ArrayList<Chunk> getChunks()
     {
         ArrayList<Chunk> chunks = new ArrayList<>();
 
-        World world = this.getLesserBoundaryCorner().getWorld();
+        // TODO claim world handling
+        World world = Objects.requireNonNull(this.getLesserBoundaryCorner().getWorld());
         Chunk lesserChunk = this.getLesserBoundaryCorner().getChunk();
         Chunk greaterChunk = this.getGreaterBoundaryCorner().getChunk();
 
@@ -950,7 +962,7 @@ public class Claim
         return chunks;
     }
 
-    ArrayList<Long> getChunkHashes()
+    @NotNull ArrayList<Long> getChunkHashes()
     {
         return DataStore.getChunkHashes(this);
     }

@@ -8,6 +8,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStreamReader;
 import java.io.OutputStream;
@@ -32,13 +33,13 @@ class UUIDFetcher
     //record of username -> proper casing updates
     static HashMap<String, String> correctedNames;
 
-    public UUIDFetcher(List<String> names, boolean rateLimiting)
+    public UUIDFetcher(@NotNull List<String> names, boolean rateLimiting)
     {
         this.names = names;
         this.rateLimiting = rateLimiting;
     }
 
-    public UUIDFetcher(List<String> names)
+    public UUIDFetcher(@NotNull List<String> names)
     {
         this(names, true);
     }
@@ -61,11 +62,13 @@ class UUIDFetcher
         OfflinePlayer[] players = GriefPrevention.instance.getServer().getOfflinePlayers();
         for (OfflinePlayer player : players)
         {
-            if (player.getName() != null && player.getUniqueId() != null)
+            String name = player.getName();
+            if (name != null)
             {
-                lookupCache.put(player.getName(), player.getUniqueId());
-                lookupCache.put(player.getName().toLowerCase(), player.getUniqueId());
-                correctedNames.put(player.getName().toLowerCase(), player.getName());
+                player.getUniqueId();
+                lookupCache.put(name, player.getUniqueId());
+                lookupCache.put(name.toLowerCase(), player.getUniqueId());
+                correctedNames.put(name.toLowerCase(), name);
             }
         }
 
@@ -222,7 +225,7 @@ class UUIDFetcher
         return new UUID(mostSignificant, leastSignificant);
     }
 
-    public static UUID getUUIDOf(String name) throws Exception
+    public static UUID getUUIDOf(@NotNull String name) throws Exception
     {
         UUID result = lookupCache.get(name);
         if (result == null)

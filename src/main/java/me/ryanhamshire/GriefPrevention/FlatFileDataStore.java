@@ -24,6 +24,7 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -94,7 +95,7 @@ public class FlatFileDataStore extends DataStore
             if (!file.getName().startsWith("$")) continue;
 
             String groupName = file.getName().substring(1);
-            if (groupName == null || groupName.isEmpty()) continue;  //defensive coding, avoid unlikely cases
+            if (groupName.isEmpty()) continue;  //defensive coding, avoid unlikely cases
 
             BufferedReader inStream = null;
             try
@@ -184,16 +185,12 @@ public class FlatFileDataStore extends DataStore
                 }
 
                 //try to convert player name to UUID
-                UUID playerID = null;
                 try
                 {
-                    playerID = UUIDFetcher.getUUIDOf(currentFilename);
+                    UUID playerID = UUIDFetcher.getUUIDOf(currentFilename);
 
                     //if successful, rename the file using the UUID
-                    if (playerID != null)
-                    {
-                        playerFile.renameTo(new File(playerDataFolder, playerID.toString()));
-                    }
+                    playerFile.renameTo(new File(playerDataFolder, playerID.toString()));
                 }
                 catch (Exception ex) { }
             }
@@ -215,7 +212,7 @@ public class FlatFileDataStore extends DataStore
         super.initialize();
     }
 
-    void loadClaimData_Legacy(File[] files) throws Exception
+    void loadClaimData_Legacy(@NotNull File[] files) throws Exception
     {
         List<World> validWorlds = Bukkit.getServer().getWorlds();
 
@@ -350,7 +347,8 @@ public class FlatFileDataStore extends DataStore
                         //otherwise there's already a top level claim, so this must be a subdivision of that top level claim
                         else
                         {
-                            Claim subdivision = new Claim(lesserBoundaryCorner, greaterBoundaryCorner, null, builderNames, containerNames, accessorNames, managerNames, null);
+                            Claim subdivision = new Claim(lesserBoundaryCorner, greaterBoundaryCorner, null, builderNames, containerNames, accessorNames, managerNames, nextClaimID);
+                            incrementNextClaimID();
 
                             subdivision.modifiedDate = new Date(files[i].lastModified());
                             subdivision.parent = topLevelClaim;
@@ -392,7 +390,7 @@ public class FlatFileDataStore extends DataStore
         }
     }
 
-    void loadClaimData(File[] files) throws Exception
+    void loadClaimData(@NotNull File[] files) throws Exception
     {
         ConcurrentHashMap<Claim, Long> orphans = new ConcurrentHashMap<>();
         for (int i = 0; i < files.length; i++)
@@ -471,7 +469,7 @@ public class FlatFileDataStore extends DataStore
         }
     }
 
-    Claim loadClaim(File file, ArrayList<Long> out_parentID, long claimID) throws IOException, InvalidConfigurationException, Exception
+    @NotNull Claim loadClaim(@NotNull File file, @NotNull ArrayList<Long> out_parentID, long claimID) throws IOException, InvalidConfigurationException, Exception
     {
         List<String> lines = Files.readLines(file, Charset.forName("UTF-8"));
         StringBuilder builder = new StringBuilder();
@@ -483,7 +481,7 @@ public class FlatFileDataStore extends DataStore
         return this.loadClaim(builder.toString(), out_parentID, file.lastModified(), claimID, Bukkit.getServer().getWorlds());
     }
 
-    Claim loadClaim(String input, ArrayList<Long> out_parentID, long lastModifiedDate, long claimID, List<World> validWorlds) throws InvalidConfigurationException, Exception
+    @NotNull Claim loadClaim(@NotNull String input, @NotNull ArrayList<Long> out_parentID, long lastModifiedDate, long claimID, @NotNull List<World> validWorlds) throws InvalidConfigurationException, Exception
     {
         Claim claim = null;
         YamlConfiguration yaml = new YamlConfiguration();
@@ -496,7 +494,7 @@ public class FlatFileDataStore extends DataStore
         //owner
         String ownerIdentifier = yaml.getString("Owner");
         UUID ownerID = null;
-        if (!ownerIdentifier.isEmpty())
+        if (ownerIdentifier != null && !ownerIdentifier.isEmpty())
         {
             try
             {
@@ -529,7 +527,7 @@ public class FlatFileDataStore extends DataStore
         return claim;
     }
 
-    String getYamlForClaim(Claim claim)
+    @NotNull String getYamlForClaim(@NotNull Claim claim)
     {
         YamlConfiguration yaml = new YamlConfiguration();
 
@@ -567,7 +565,7 @@ public class FlatFileDataStore extends DataStore
     }
 
     @Override
-    synchronized void writeClaimToStorage(Claim claim)
+    synchronized void writeClaimToStorage(@NotNull Claim claim)
     {
         String claimID = String.valueOf(claim.id);
 
@@ -592,7 +590,7 @@ public class FlatFileDataStore extends DataStore
 
     //deletes a claim from the file system
     @Override
-    synchronized void deleteClaimFromSecondaryStorage(Claim claim)
+    synchronized void deleteClaimFromSecondaryStorage(@NotNull Claim claim)
     {
         String claimID = String.valueOf(claim.id);
 
@@ -605,7 +603,7 @@ public class FlatFileDataStore extends DataStore
     }
 
     @Override
-    synchronized PlayerData getPlayerDataFromStorage(UUID playerID)
+    synchronized @NotNull PlayerData getPlayerDataFromStorage(@NotNull UUID playerID)
     {
         File playerFile = new File(playerDataFolderPath + File.separator + playerID.toString());
 
@@ -692,11 +690,8 @@ public class FlatFileDataStore extends DataStore
 
     //saves changes to player data.  MUST be called after you're done making changes, otherwise a reload will lose them
     @Override
-    public void overrideSavePlayerData(UUID playerID, PlayerData playerData)
+    public void overrideSavePlayerData(@NotNull UUID playerID, @NotNull PlayerData playerData)
     {
-        //never save data for the "administrative" account.  null for claim owner ID indicates administrative account
-        if (playerID == null) return;
-
         StringBuilder fileContent = new StringBuilder();
         try
         {
@@ -765,7 +760,7 @@ public class FlatFileDataStore extends DataStore
 
     //grants a group (players with a specific permission) bonus claim blocks as long as they're still members of the group
     @Override
-    synchronized void saveGroupBonusBlocks(String groupName, int currentValue)
+    synchronized void saveGroupBonusBlocks(@NotNull String groupName, int currentValue)
     {
         //write changes to file to ensure they don't get lost
         BufferedWriter outStream = null;
@@ -798,7 +793,7 @@ public class FlatFileDataStore extends DataStore
         catch (IOException exception) {}
     }
 
-    synchronized void migrateData(DatabaseDataStore databaseStore)
+    synchronized void migrateData(@NotNull DatabaseDataStore databaseStore)
     {
         //migrate claims
         for (Claim claim : this.claims)

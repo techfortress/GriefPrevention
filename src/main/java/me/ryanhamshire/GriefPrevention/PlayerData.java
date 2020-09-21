@@ -20,6 +20,8 @@ package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.InetAddress;
 import java.util.Calendar;
@@ -43,26 +45,26 @@ public class PlayerData
     private int newlyAccruedClaimBlocks = 0;
 
     //where this player was the last time we checked on him for earning claim blocks
-    public Location lastAfkCheckLocation = null;
+    public @Nullable Location lastAfkCheckLocation = null;
 
     //how many claim blocks the player has been gifted by admins, or purchased via economy integration
     private Integer bonusClaimBlocks = null;
 
     //what "mode" the shovel is in determines what it will do when it's used
-    public ShovelMode shovelMode = ShovelMode.Basic;
+    public @NotNull ShovelMode shovelMode = ShovelMode.Basic;
 
     //radius for restore nature fill mode
     int fillRadius = 0;
 
     //last place the player used the shovel, useful in creating and resizing claims,
     //because the player must use the shovel twice in those instances
-    public Location lastShovelLocation = null;
+    public @Nullable Location lastShovelLocation = null;
 
     //the claim this player is currently resizing
-    public Claim claimResizing = null;
+    public @Nullable Claim claimResizing = null;
 
     //the claim this player is currently subdividing
-    public Claim claimSubdividing = null;
+    public @Nullable Claim claimSubdividing = null;
 
     //whether or not the player has a pending /trapped rescue
     public boolean pendingTrapped = false;
@@ -77,7 +79,7 @@ public class PlayerData
     boolean wasKicked = false;
 
     //visualization
-    public Visualization currentVisualization = null;
+    public @Nullable Visualization currentVisualization = null;
 
     //anti-camping pvp protection
     public boolean pvpImmune = false;
@@ -87,10 +89,10 @@ public class PlayerData
     public boolean ignoreClaims = false;
 
     //the last claim this player was in, that we know of
-    public Claim lastClaim = null;
+    public @Nullable Claim lastClaim = null;
 
     //siege
-    public SiegeData siegeData = null;
+    public @Nullable SiegeData siegeData = null;
 
     //pvp
     public long lastPvpTimestamp = 0;
@@ -111,17 +113,17 @@ public class PlayerData
     boolean dropsAreUnlocked = false;
 
     //message to send to player after he respawns
-    String messageOnRespawn = null;
+    @Nullable String messageOnRespawn = null;
 
     //player which a pet will be given to when it's right-clicked
-    OfflinePlayer petGiveawayRecipient = null;
+    @Nullable OfflinePlayer petGiveawayRecipient = null;
 
     //timestamp for last "you're building outside your land claims" message
-    Long buildWarningTimestamp = null;
+    @Nullable Long buildWarningTimestamp = null;
 
     //spot where a player can't talk, used to mute new players until they've moved a little
     //this is an anti-bot strategy.
-    Location noChatLocation = null;
+    @Nullable Location noChatLocation = null;
 
     //ignore list
     //true means invisible (admin-forced ignore), false means player-created ignore

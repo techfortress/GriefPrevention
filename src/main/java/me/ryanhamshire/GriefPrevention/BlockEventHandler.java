@@ -64,6 +64,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.projectiles.BlockProjectileSource;
 import org.bukkit.projectiles.ProjectileSource;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -81,7 +82,7 @@ public class BlockEventHandler implements Listener
     private final ArrayList<Material> trashBlocks;
 
     //constructor
-    public BlockEventHandler(DataStore dataStore)
+    public BlockEventHandler(@NotNull DataStore dataStore)
     {
         this.dataStore = dataStore;
 
@@ -104,7 +105,7 @@ public class BlockEventHandler implements Listener
 
     //when a player breaks a block...
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onBlockBreak(BlockBreakEvent breakEvent)
+    public void onBlockBreak(@NotNull BlockBreakEvent breakEvent)
     {
         Player player = breakEvent.getPlayer();
         Block block = breakEvent.getBlock();
@@ -121,12 +122,10 @@ public class BlockEventHandler implements Listener
 
     //when a player changes the text of a sign...
     @EventHandler(ignoreCancelled = true)
-    public void onSignChanged(SignChangeEvent event)
+    public void onSignChanged(@NotNull SignChangeEvent event)
     {
         Player player = event.getPlayer();
         Block sign = event.getBlock();
-
-        if (player == null || sign == null) return;
 
         String noBuildReason = GriefPrevention.instance.allowBuild(player, sign.getLocation(), sign.getType());
         if (noBuildReason != null)
@@ -143,11 +142,13 @@ public class BlockEventHandler implements Listener
         boolean notEmpty = false;
         for (int i = 0; i < event.getLines().length; i++)
         {
-            String withoutSpaces = event.getLine(i).replace(" ", "");
+            String line = event.getLine(i);
+            if (line == null) continue;
+            String withoutSpaces = line.trim();
             if (!withoutSpaces.isEmpty())
             {
                 notEmpty = true;
-                lines.append("\n  ").append(event.getLine(i));
+                lines.append("\n  ").append(line);
             }
         }
 
@@ -166,7 +167,7 @@ public class BlockEventHandler implements Listener
         //if(notEmpty && (playerData.lastSignMessage == null || !playerData.lastSignMessage.equals(signMessage)))
         if (notEmpty)
         {
-            GriefPrevention.AddLogEntry(player.getName() + lines.toString().replace("\n  ", ";"), null);
+            GriefPrevention.instance.getLogger().info(player.getName() + lines.toString().replace("\n  ", ";"));
             PlayerEventHandler.makeSocialLogEntry(player.getName(), signMessage);
             //playerData.lastSignMessage = signMessage;
 
@@ -187,7 +188,7 @@ public class BlockEventHandler implements Listener
 
     //when a player places multiple blocks...
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onBlocksPlace(BlockMultiPlaceEvent placeEvent)
+    public void onBlocksPlace(@NotNull BlockMultiPlaceEvent placeEvent)
     {
         Player player = placeEvent.getPlayer();
 
@@ -207,7 +208,7 @@ public class BlockEventHandler implements Listener
         }
     }
 
-    private boolean doesAllowFireProximityInWorld(World world)
+    private boolean doesAllowFireProximityInWorld(@NotNull World world)
     {
         if (GriefPrevention.instance.pvpRulesApply(world))
         {
@@ -220,9 +221,8 @@ public class BlockEventHandler implements Listener
     }
 
     //when a player places a block...
-    @SuppressWarnings("null")
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onBlockPlace(BlockPlaceEvent placeEvent)
+    public void onBlockPlace(@NotNull BlockPlaceEvent placeEvent)
     {
         Player player = placeEvent.getPlayer();
         Block block = placeEvent.getBlock();
@@ -362,7 +362,7 @@ public class BlockEventHandler implements Listener
                         radius--;
                     }
 
-                    if (result != null && result.succeeded)
+                    if (result != null && result.succeeded && result.claim != null)
                     {
                         //notify and explain to player
                         GriefPrevention.sendMessage(player, TextMode.Success, Messages.AutomaticClaimNotification);
@@ -449,7 +449,7 @@ public class BlockEventHandler implements Listener
         //limit active blocks in creative mode worlds
         if (!player.hasPermission("griefprevention.adminclaims") && GriefPrevention.instance.creativeRulesApply(block.getLocation()) && isActiveBlock(block))
         {
-            String noPlaceReason = claim.allowMoreActiveBlocks();
+            String noPlaceReason = Objects.requireNonNull(claim).allowMoreActiveBlocks(); // TODO while claim is guaranteed to be not null due to creative rules, could be cleaner.
             if (noPlaceReason != null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, noPlaceReason);
@@ -459,17 +459,17 @@ public class BlockEventHandler implements Listener
         }
     }
 
-    static boolean isActiveBlock(Block block)
+    static boolean isActiveBlock(@NotNull Block block)
     {
         return isActiveBlock(block.getType());
     }
 
-    static boolean isActiveBlock(BlockState state)
+    static boolean isActiveBlock(@NotNull BlockState state)
     {
         return isActiveBlock(state.getType());
     }
 
-    static boolean isActiveBlock(Material type)
+    static boolean isActiveBlock(@NotNull Material type)
     {
         if (type == Material.HOPPER || type == Material.BEACON || type == Material.SPAWNER) return true;
         return false;
@@ -477,20 +477,20 @@ public class BlockEventHandler implements Listener
 
     // Prevent pistons pushing blocks into or out of claims.
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onBlockPistonExtend(BlockPistonExtendEvent event)
+    public void onBlockPistonExtend(@NotNull BlockPistonExtendEvent event)
     {
         onPistonEvent(event, event.getBlocks());
     }
 
     // Prevent pistons pulling blocks into or out of claims.
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onBlockPistonRetract(BlockPistonRetractEvent event)
+    public void onBlockPistonRetract(@NotNull BlockPistonRetractEvent event)
     {
         onPistonEvent(event, event.getBlocks());
     }
 
     // Handle piston push and pulls.
-    private void onPistonEvent(BlockPistonEvent event, List<Block> blocks)
+    private void onPistonEvent(@NotNull BlockPistonEvent event, @NotNull List<Block> blocks)
     {
         PistonMode pistonMode = GriefPrevention.instance.config_pistonMovement;
         // Return if piston movements are ignored.
@@ -660,11 +660,12 @@ public class BlockEventHandler implements Listener
 
     //blocks are ignited ONLY by flint and steel (not by being near lava, open flames, etc), unless configured otherwise
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onBlockIgnite(BlockIgniteEvent igniteEvent)
+    public void onBlockIgnite(@NotNull BlockIgniteEvent igniteEvent)
     {
         //don't track in worlds where claims are not enabled
         if (!GriefPrevention.instance.claimsEnabledForWorld(igniteEvent.getBlock().getWorld())) return;
 
+        // TODO probably just hack around this in another PR instead of null checking
         if (igniteEvent.getCause() == IgniteCause.LIGHTNING && GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getIgnitingEntity().getLocation(), false, null) != null)
         {
 //        	if(igniteEvent.getIgnitingEntity().hasMetadata("GP_TRIDENT")){ //BlockIgniteEvent is called before LightningStrikeEvent. See #532
@@ -725,7 +726,7 @@ public class BlockEventHandler implements Listener
 
     //fire doesn't spread unless configured to, but other blocks still do (mushrooms and vines, for example)
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onBlockSpread(BlockSpreadEvent spreadEvent)
+    public void onBlockSpread(@NotNull BlockSpreadEvent spreadEvent)
     {
         if (spreadEvent.getSource().getType() != Material.FIRE) return;
 
@@ -762,7 +763,7 @@ public class BlockEventHandler implements Listener
 
     //blocks are not destroyed by fire, unless configured to do so
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onBlockBurn(BlockBurnEvent burnEvent)
+    public void onBlockBurn(@NotNull BlockBurnEvent burnEvent)
     {
         //don't track in worlds where claims are not enabled
         if (!GriefPrevention.instance.claimsEnabledForWorld(burnEvent.getBlock().getWorld())) return;
@@ -811,7 +812,7 @@ public class BlockEventHandler implements Listener
     private Claim lastSpreadClaim = null;
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onBlockFromTo(BlockFromToEvent spreadEvent)
+    public void onBlockFromTo(@NotNull BlockFromToEvent spreadEvent)
     {
         //always allow fluids to flow straight down
         if (spreadEvent.getFace() == BlockFace.DOWN) return;
@@ -846,7 +847,7 @@ public class BlockEventHandler implements Listener
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onForm(BlockFormEvent event)
+    public void onForm(@NotNull BlockFormEvent event)
     {
         Block block = event.getBlock();
         Location location = block.getLocation();
@@ -867,7 +868,7 @@ public class BlockEventHandler implements Listener
 
     //Stop projectiles from destroying blocks that don't fire a proper event
     @EventHandler(ignoreCancelled = true)
-    private void chorusFlower(ProjectileHitEvent event)
+    private void chorusFlower(@NotNull ProjectileHitEvent event)
     {
         //don't track in worlds where claims are not enabled
         if (!GriefPrevention.instance.claimsEnabledForWorld(event.getEntity().getWorld())) return;
@@ -907,7 +908,7 @@ public class BlockEventHandler implements Listener
 
     //ensures dispensers can't be used to dispense a block(like water or lava) or item across a claim boundary
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onDispense(BlockDispenseEvent dispenseEvent)
+    public void onDispense(@NotNull BlockDispenseEvent dispenseEvent)
     {
         //don't track in worlds where claims are not enabled
         if (!GriefPrevention.instance.claimsEnabledForWorld(dispenseEvent.getBlock().getWorld())) return;
@@ -942,7 +943,7 @@ public class BlockEventHandler implements Listener
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onTreeGrow(StructureGrowEvent growEvent)
+    public void onTreeGrow(@NotNull StructureGrowEvent growEvent)
     {
         //only take these potentially expensive steps if configured to do so
         if (!GriefPrevention.instance.config_limitTreeGrowth) return;
@@ -986,7 +987,7 @@ public class BlockEventHandler implements Listener
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onInventoryPickupItem(InventoryPickupItemEvent event)
+    public void onInventoryPickupItem(@NotNull InventoryPickupItemEvent event)
     {
         //prevent hoppers from picking-up items dropped by players on death
 
@@ -996,9 +997,13 @@ public class BlockEventHandler implements Listener
             Item item = event.getItem();
             List<MetadataValue> data = item.getMetadata("GP_ITEMOWNER");
             //if this is marked as belonging to a player
-            if (data != null && data.size() > 0)
+            if (data.size() > 0)
             {
-                UUID ownerID = (UUID) data.get(0).value();
+                Object value = data.get(0).value();
+
+                if (!(value instanceof UUID)) return;
+
+                UUID ownerID = (UUID) value;
 
                 //has that player unlocked his drops?
                 OfflinePlayer owner = GriefPrevention.instance.getServer().getOfflinePlayer(ownerID);

@@ -20,6 +20,9 @@ package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 //tries to rescue a trapped player from a claim where he doesn't have permission to save himself
 //related to the /trapped slash command
@@ -35,7 +38,7 @@ class PlayerRescueTask implements Runnable
     //player data
     private final Player player;
 
-    public PlayerRescueTask(Player player, Location location, Location destination)
+    public PlayerRescueTask(@NotNull Player player, @NotNull Location location, @NotNull Location destination)
     {
         this.player = player;
         this.location = location;
@@ -53,7 +56,7 @@ class PlayerRescueTask implements Runnable
         playerData.pendingTrapped = false;
 
         //if the player moved three or more blocks from where he used /trapped, admonish him and don't save him
-        if (!player.getLocation().getWorld().equals(this.location.getWorld()) || player.getLocation().distance(this.location) > 3)
+        if (!Objects.equals(player.getLocation().getWorld(), this.location.getWorld()) || player.getLocation().distance(this.location) > 3)
         {
             GriefPrevention.sendMessage(player, TextMode.Err, Messages.RescueAbortedMoved);
             return;

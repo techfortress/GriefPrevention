@@ -4,6 +4,7 @@ import me.ryanhamshire.GriefPrevention.Claim;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
 
 //if cancelled, the claim will not be deleted
 public class ClaimExpirationEvent extends Event implements Cancellable
@@ -11,25 +12,25 @@ public class ClaimExpirationEvent extends Event implements Cancellable
     private static final HandlerList handlers = new HandlerList();
     private boolean cancelled = false;
 
-    public static HandlerList getHandlerList()
+    public static @NotNull HandlerList getHandlerList()
     {
         return handlers;
     }
 
-    Claim claim;
+    private final Claim claim;
 
-    public ClaimExpirationEvent(Claim claim)
+    public ClaimExpirationEvent(@NotNull Claim claim)
     {
         this.claim = claim;
     }
 
-    public Claim getClaim()
+    public @NotNull Claim getClaim()
     {
         return this.claim;
     }
 
     @Override
-    public HandlerList getHandlers()
+    public @NotNull HandlerList getHandlers()
     {
         return handlers;
     }

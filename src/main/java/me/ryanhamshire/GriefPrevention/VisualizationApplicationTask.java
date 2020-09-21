@@ -19,6 +19,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 //applies a visualization for a player by sending him block change packets
 class VisualizationApplicationTask implements Runnable
@@ -27,7 +28,7 @@ class VisualizationApplicationTask implements Runnable
     private final Player player;
     private final PlayerData playerData;
 
-    public VisualizationApplicationTask(Player player, PlayerData playerData, Visualization visualization)
+    public VisualizationApplicationTask(@NotNull Player player, @NotNull PlayerData playerData, @NotNull Visualization visualization)
     {
         this.visualization = visualization;
         this.playerData = playerData;

@@ -5,6 +5,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * This Event is thrown when a claim is created but before it is saved. If it is cancelled the claim will not be saved
@@ -18,7 +20,7 @@ public class ClaimCreatedEvent extends Event implements Cancellable
 
     private static final HandlerList handlers = new HandlerList();
 
-    public static HandlerList getHandlerList()
+    public static @NotNull HandlerList getHandlerList()
     {
         return handlers;
     }
@@ -29,14 +31,14 @@ public class ClaimCreatedEvent extends Event implements Cancellable
 
     private boolean cancelled = false;
 
-    public ClaimCreatedEvent(Claim claim, CommandSender creator)
+    public ClaimCreatedEvent(@NotNull Claim claim, @Nullable CommandSender creator)
     {
         this.claim = claim;
         this.creator = creator;
     }
 
     @Override
-    public HandlerList getHandlers()
+    public @NotNull HandlerList getHandlers()
     {
         return handlers;
     }
@@ -58,7 +60,7 @@ public class ClaimCreatedEvent extends Event implements Cancellable
      *
      * @return Claim
      */
-    public Claim getClaim()
+    public @NotNull Claim getClaim()
     {
         return claim;
     }
@@ -68,7 +70,7 @@ public class ClaimCreatedEvent extends Event implements Cancellable
      *
      * @return the CommandSender
      */
-    public CommandSender getCreator()
+    public @Nullable CommandSender getCreator()
     {
         return creator;
     }

@@ -4,6 +4,7 @@ import me.ryanhamshire.GriefPrevention.Claim;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
 
 //if cancelled, GriefPrevention will not cancel the PvP event it's processing.
 public class PreventPvPEvent extends Event implements Cancellable
@@ -18,7 +19,7 @@ public class PreventPvPEvent extends Event implements Cancellable
 
     Claim claim;
 
-    public PreventPvPEvent(Claim claim)
+    public PreventPvPEvent(@NotNull Claim claim)
     {
         this.claim = claim;
     }
@@ -29,7 +30,7 @@ public class PreventPvPEvent extends Event implements Cancellable
     }
 
     @Override
-    public HandlerList getHandlers()
+    public @NotNull HandlerList getHandlers()
     {
         return handlers;
     }

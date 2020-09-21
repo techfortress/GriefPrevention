@@ -21,6 +21,7 @@ package me.ryanhamshire.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.events.PlayerKickBanEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 //kicks or bans a player
 //need a task for this because async threads (like the chat event handlers) can't kick or ban.
@@ -39,7 +40,7 @@ class PlayerKickBanTask implements Runnable
     //whether to ban
     private final boolean ban;
 
-    public PlayerKickBanTask(Player player, String reason, String source, boolean ban)
+    public PlayerKickBanTask(@NotNull Player player, @NotNull String reason, @NotNull String source, boolean ban)
     {
         this.player = player;
         this.reason = reason;

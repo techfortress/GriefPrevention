@@ -20,6 +20,7 @@ package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
@@ -28,9 +29,9 @@ import java.util.UUID;
 
 class CleanupUnusedClaimPreTask implements Runnable
 {
-    private UUID ownerID = null;
+    private final UUID ownerID;
 
-    CleanupUnusedClaimPreTask(UUID uuid)
+    CleanupUnusedClaimPreTask(@NotNull UUID uuid)
     {
         this.ownerID = uuid;
     }

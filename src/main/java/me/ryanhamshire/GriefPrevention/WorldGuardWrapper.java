@@ -16,11 +16,12 @@ import org.bukkit.entity.Player;
 
 class WorldGuardWrapper
 {
-    private WorldGuardPlugin worldGuard = null;
+    private final WorldGuardPlugin worldGuard;
 
     public WorldGuardWrapper() throws ClassNotFoundException
     {
-        this.worldGuard = (WorldGuardPlugin) GriefPrevention.instance.getServer().getPluginManager().getPlugin("WorldGuard");
+        Class.forName("com.sk89q.worldguard.bukkit.WorldGuardPlugin");
+        this.worldGuard = WorldGuardPlugin.getPlugin(WorldGuardPlugin.class);
     }
 
     public boolean canBuild(Location lesserCorner, Location greaterCorner, Player creatingPlayer)

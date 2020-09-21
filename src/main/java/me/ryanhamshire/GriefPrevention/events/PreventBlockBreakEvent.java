@@ -4,6 +4,7 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.jetbrains.annotations.NotNull;
 
 //if cancelled, GriefPrevention will allow a block to be broken which it would not have otherwise
 public class PreventBlockBreakEvent extends Event implements Cancellable
@@ -12,23 +13,23 @@ public class PreventBlockBreakEvent extends Event implements Cancellable
     private boolean cancelled = false;
     private final BlockBreakEvent innerEvent;
 
-    public static HandlerList getHandlerList()
+    public static @NotNull HandlerList getHandlerList()
     {
         return handlers;
     }
 
-    public PreventBlockBreakEvent(BlockBreakEvent innerEvent)
+    public PreventBlockBreakEvent(@NotNull BlockBreakEvent innerEvent)
     {
         this.innerEvent = innerEvent;
     }
 
-    public BlockBreakEvent getInnerEvent()
+    public @NotNull BlockBreakEvent getInnerEvent()
     {
         return this.innerEvent;
     }
 
     @Override
-    public HandlerList getHandlers()
+    public @NotNull HandlerList getHandlers()
     {
         return handlers;
     }

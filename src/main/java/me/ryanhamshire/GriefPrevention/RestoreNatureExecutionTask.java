@@ -27,6 +27,8 @@ import org.bukkit.entity.Animals;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Hanging;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 
@@ -46,7 +48,8 @@ class RestoreNatureExecutionTask implements Runnable
     //player who should be notified about the result (will see a visualization when the restoration is complete)
     private final Player player;
 
-    public RestoreNatureExecutionTask(BlockSnapshot[][][] snapshots, int miny, Location lesserCorner, Location greaterCorner, Player player)
+    public RestoreNatureExecutionTask(@NotNull BlockSnapshot[][][] snapshots, int miny, @NotNull Location lesserCorner,
+                                      @NotNull Location greaterCorner, @Nullable Player player)
     {
         this.snapshots = snapshots;
         this.miny = miny;

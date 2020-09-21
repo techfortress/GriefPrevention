@@ -20,6 +20,7 @@ package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
+import org.jetbrains.annotations.NotNull;
 
 //represents a "fake" block sent to a player as part of a visualization
 public class VisualizationElement
@@ -28,7 +29,7 @@ public class VisualizationElement
     public BlockData visualizedBlock;
     public BlockData realBlock;
 
-    public VisualizationElement(Location location, BlockData visualizedBlock, BlockData realBlock)
+    public VisualizationElement(@NotNull Location location, @NotNull BlockData visualizedBlock, @NotNull BlockData realBlock)
     {
         this.location = location;
         this.visualizedBlock = visualizedBlock;

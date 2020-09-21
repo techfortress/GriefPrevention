@@ -21,6 +21,7 @@ package me.ryanhamshire.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.events.VisualizationEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 
@@ -31,7 +32,7 @@ class VisualizationReversionTask implements Runnable
     private final Player player;
     private final PlayerData playerData;
 
-    public VisualizationReversionTask(Player player, PlayerData playerData, Visualization visualization)
+    public VisualizationReversionTask(@NotNull Player player, @NotNull PlayerData playerData, @NotNull Visualization visualization)
     {
         this.visualization = visualization;
         this.playerData = playerData;

@@ -18,15 +18,17 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.net.InetAddress;
 
 public class IpBanInfo
 {
-    InetAddress address;
+    @NotNull InetAddress address;
     long expirationTimestamp;
-    String bannedAccountName;
+    @NotNull String bannedAccountName;
 
-    IpBanInfo(InetAddress address, long expirationTimestamp, String bannedAccountName)
+    IpBanInfo(@NotNull InetAddress address, long expirationTimestamp, @NotNull String bannedAccountName)
     {
         this.address = address;
         this.expirationTimestamp = expirationTimestamp;

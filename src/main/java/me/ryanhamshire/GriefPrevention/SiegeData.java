@@ -19,18 +19,19 @@
 package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
 //information about an ongoing siege
 public class SiegeData
 {
-    public Player defender;
-    public Player attacker;
-    public ArrayList<Claim> claims;
+    public @NotNull Player defender;
+    public @NotNull Player attacker;
+    public @NotNull ArrayList<Claim> claims;
     public int checkupTaskID;
 
-    public SiegeData(Player attacker, Player defender, Claim claim)
+    public SiegeData(@NotNull Player attacker, @NotNull Player defender, @NotNull Claim claim)
     {
         this.defender = defender;
         this.attacker = attacker;

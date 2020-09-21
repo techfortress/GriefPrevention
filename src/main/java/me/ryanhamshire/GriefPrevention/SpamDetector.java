@@ -1,5 +1,7 @@
 package me.ryanhamshire.GriefPrevention;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -16,7 +18,7 @@ class SpamDetector
     //data for individual chatters
     ConcurrentHashMap<UUID, ChatterData> dataStore = new ConcurrentHashMap<>();
 
-    private ChatterData getChatterData(UUID chatterID)
+    private @NotNull ChatterData getChatterData(@NotNull UUID chatterID)
     {
         ChatterData data = this.dataStore.get(chatterID);
         if (data == null)
@@ -28,10 +30,9 @@ class SpamDetector
         return data;
     }
 
-    SpamAnalysisResult AnalyzeMessage(UUID chatterID, String message, long timestamp)
+    @NotNull SpamAnalysisResult AnalyzeMessage(@NotNull UUID chatterID, @NotNull String message, long timestamp)
     {
-        SpamAnalysisResult result = new SpamAnalysisResult();
-        result.finalMessage = message;
+        SpamAnalysisResult result = new SpamAnalysisResult(message);
 
         //remedy any CAPS SPAM, exception for very short messages which could be emoticons like =D or XD
         if (message.length() > 4 && this.stringsAreSimilar(message.toUpperCase(), message))
@@ -165,7 +166,7 @@ class SpamDetector
     }
 
     //if two strings are 75% identical, they're too close to follow each other in the chat
-    private boolean stringsAreSimilar(String message, String lastMessage)
+    private boolean stringsAreSimilar(@NotNull String message, @NotNull String lastMessage)
     {
         //ignore differences in only punctuation and whitespace
         message = message.replaceAll("[^\\p{Alpha}]", "");
@@ -216,15 +217,20 @@ class SpamDetector
 
 class SpamAnalysisResult
 {
-    String finalMessage;
+    @NotNull String finalMessage;
     boolean shouldWarnChatter = false;
     boolean shouldBanChatter = false;
     String muteReason;
+
+    SpamAnalysisResult(@NotNull String finalMessage)
+    {
+        this.finalMessage = finalMessage;
+    }
 }
 
 class ChatterData
 {
-    public String lastMessage = "";                 //the player's last chat message, or slash command complete with parameters 
+    public @NotNull String lastMessage = "";                 //the player's last chat message, or slash command complete with parameters
     public long lastMessageTimestamp;               //last time the player sent a chat message or used a monitored slash command
     public int spamLevel = 0;                       //number of consecutive "spams"
     public boolean spamWarned = false;              //whether the player has received a warning recently
@@ -233,7 +239,7 @@ class ChatterData
     private final ConcurrentLinkedQueue<LengthTimestampPair> recentMessageLengths = new ConcurrentLinkedQueue<>();
     private int recentTotalLength = 0;
 
-    public void AddMessage(String message, long timestamp)
+    public void AddMessage(@NotNull String message, long timestamp)
     {
         int length = message.length();
         this.recentMessageLengths.add(new LengthTimestampPair(length, timestamp));

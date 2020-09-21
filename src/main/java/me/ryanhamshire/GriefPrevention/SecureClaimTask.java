@@ -19,6 +19,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
 
@@ -27,7 +28,7 @@ class SecureClaimTask implements Runnable
 {
     private final SiegeData siegeData;
 
-    public SecureClaimTask(SiegeData siegeData)
+    public SecureClaimTask(@NotNull SiegeData siegeData)
     {
         this.siegeData = siegeData;
     }

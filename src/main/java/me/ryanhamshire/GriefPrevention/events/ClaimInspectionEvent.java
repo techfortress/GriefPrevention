@@ -6,6 +6,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -18,7 +20,7 @@ public class ClaimInspectionEvent extends PlayerEvent implements Cancellable
 {
     private static final HandlerList handlers = new HandlerList();
 
-    public static HandlerList getHandlerList()
+    public static @NotNull HandlerList getHandlerList()
     {
         return handlers;
     }
@@ -34,20 +36,9 @@ public class ClaimInspectionEvent extends PlayerEvent implements Cancellable
      * @param inspectedBlock The inspected block
      * @param claim The claim involved
      */
-    public ClaimInspectionEvent(Player player, Block inspectedBlock, Claim claim)
+    public ClaimInspectionEvent(@NotNull Player player, @Nullable Block inspectedBlock, @Nullable Claim claim)
     {
-        super(player);
-
-        this.inspectedBlock = inspectedBlock;
-        if (claim != null)
-        {
-            this.claims = Collections.singleton(claim);
-        }
-        else
-        {
-            this.claims = null;
-        }
-        this.inspectingNearbyClaims = false;
+        this(player, inspectedBlock, claim == null ? Collections.emptyList() : Collections.singleton(claim), false);
     }
 
     /**
@@ -57,7 +48,8 @@ public class ClaimInspectionEvent extends PlayerEvent implements Cancellable
      * @param claims The list of claims involved
      * @param inspectingNearbyClaims Whether or not the user is inspecting nearby claims ("shift-clicking")
      */
-    public ClaimInspectionEvent(Player player, Block inspectedBlock, Collection<Claim> claims, boolean inspectingNearbyClaims)
+    public ClaimInspectionEvent(@NotNull Player player, @Nullable Block inspectedBlock,
+                                @NotNull Collection<Claim> claims, boolean inspectingNearbyClaims)
     {
         super(player);
         this.inspectedBlock = inspectedBlock;
@@ -65,12 +57,12 @@ public class ClaimInspectionEvent extends PlayerEvent implements Cancellable
         this.inspectingNearbyClaims = inspectingNearbyClaims;
     }
 
-    public Block getInspectedBlock()
+    public @Nullable Block getInspectedBlock()
     {
         return inspectedBlock;
     }
 
-    public Collection<Claim> getClaims()
+    public @NotNull Collection<Claim> getClaims()
     {
         return claims;
     }
@@ -81,7 +73,7 @@ public class ClaimInspectionEvent extends PlayerEvent implements Cancellable
     }
 
     @Override
-    public HandlerList getHandlers()
+    public @NotNull HandlerList getHandlers()
     {
         return handlers;
     }

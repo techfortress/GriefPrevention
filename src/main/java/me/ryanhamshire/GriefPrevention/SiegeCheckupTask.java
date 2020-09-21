@@ -19,6 +19,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 
 //checks to see whether or not a siege should end based on the locations of the players
 //for example, defender escaped or attacker gave up and left
@@ -26,7 +27,7 @@ class SiegeCheckupTask implements Runnable
 {
     private final SiegeData siegeData;
 
-    public SiegeCheckupTask(SiegeData siegeData)
+    public SiegeCheckupTask(@NotNull SiegeData siegeData)
     {
         this.siegeData = siegeData;
     }

@@ -1,5 +1,7 @@
 package me.ryanhamshire.GriefPrevention;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -8,7 +10,7 @@ class WordFinder
 {
     private Pattern pattern;
 
-    WordFinder(List<String> wordsToFind)
+    WordFinder(@NotNull List<String> wordsToFind)
     {
         if (wordsToFind.size() == 0) return;
 

@@ -22,6 +22,7 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
 //players can be "trapped" in a portal frame if they don't have permission to break
 //solid blocks blocking them from exiting the frame
@@ -35,7 +36,8 @@ class CheckForPortalTrapTask extends BukkitRunnable
     //where to send the player back to if he hasn't left the portal frame
     private final Location returnLocation;
 
-    public CheckForPortalTrapTask(Player player, GriefPrevention plugin, Location locationToReturn)
+    public CheckForPortalTrapTask(@NotNull Player player, @NotNull GriefPrevention plugin,
+                                  @NotNull Location locationToReturn)
     {
         this.player = player;
         this.instance = plugin;

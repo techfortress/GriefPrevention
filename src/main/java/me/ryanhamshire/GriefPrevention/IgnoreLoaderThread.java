@@ -1,6 +1,7 @@
 package me.ryanhamshire.GriefPrevention;
 
 import com.google.common.io.Files;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -14,7 +15,7 @@ class IgnoreLoaderThread extends Thread
     private final UUID playerToLoad;
     private final ConcurrentHashMap<UUID, Boolean> destinationMap;
 
-    IgnoreLoaderThread(UUID playerToLoad, ConcurrentHashMap<UUID, Boolean> destinationMap)
+    IgnoreLoaderThread(@NotNull UUID playerToLoad, @NotNull ConcurrentHashMap<UUID, Boolean> destinationMap)
     {
         this.playerToLoad = playerToLoad;
         this.destinationMap = destinationMap;

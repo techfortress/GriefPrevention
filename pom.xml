@@ -114,6 +114,14 @@
                     </exclusion>
                 </exclusions>
         </dependency>
+        <!-- Annotations including Nullable and NotNull -->
+        <dependency>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+            <version>20.1.0</version>
+            <!-- Not required at runtime, don't include in final jar. -->
+            <scope>provided</scope>
+        </dependency>
         <!--Tests-->
         <dependency>
             <groupId>org.junit.jupiter</groupId>

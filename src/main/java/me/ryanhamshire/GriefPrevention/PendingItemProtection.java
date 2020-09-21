@@ -2,17 +2,18 @@ package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.Location;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.UUID;
 
 class PendingItemProtection
 {
-    public Location location;
-    public UUID owner;
+    @NotNull public Location location;
+    @NotNull public UUID owner;
     long expirationTimestamp;
-    ItemStack itemStack;
+    @NotNull ItemStack itemStack;
 
-    public PendingItemProtection(Location location, UUID owner, long expirationTimestamp, ItemStack itemStack)
+    public PendingItemProtection(@NotNull Location location, @NotNull UUID owner, long expirationTimestamp, @NotNull ItemStack itemStack)
     {
         this.location = location;
         this.owner = owner;

@@ -26,6 +26,8 @@ import org.bukkit.block.Biome;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.type.Leaves;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,7 +57,10 @@ class RestoreNatureProcessingTask implements Runnable
     private final ArrayList<Material> playerBlocks;        //a "complete" list of player-placed blocks.  MUST BE MAINTAINED as patches introduce more
 
 
-    public RestoreNatureProcessingTask(BlockSnapshot[][][] snapshots, int miny, Environment environment, Biome biome, Location lesserBoundaryCorner, Location greaterBoundaryCorner, int seaLevel, boolean aggressiveMode, boolean creativeMode, Player player)
+    public RestoreNatureProcessingTask(@NotNull BlockSnapshot[][][] snapshots, int miny, @NotNull Environment environment,
+                                       @NotNull Biome biome, @NotNull Location lesserBoundaryCorner,
+                                       @NotNull Location greaterBoundaryCorner, int seaLevel, boolean aggressiveMode,
+                                       boolean creativeMode, @Nullable Player player)
     {
         this.snapshots = snapshots;
         this.miny = miny;

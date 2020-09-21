@@ -18,13 +18,16 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 public class CustomizableMessage
 {
-    public Messages id;
-    public String text;
-    public String notes;
+    public @NotNull Messages id;
+    public @NotNull String text;
+    public @Nullable String notes;
 
-    public CustomizableMessage(Messages id, String text, String notes)
+    public CustomizableMessage(@NotNull Messages id, @NotNull String text, @Nullable String notes)
     {
         this.id = id;
         this.text = text;

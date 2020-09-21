@@ -20,6 +20,7 @@ package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
+import org.jetbrains.annotations.NotNull;
 
 //tells a player about how many claim blocks he has, etc
 //implemented as a task so that it can be delayed
@@ -29,7 +30,7 @@ class EquipShovelProcessingTask implements Runnable
     //player data
     private final Player player;
 
-    public EquipShovelProcessingTask(Player player)
+    public EquipShovelProcessingTask(@NotNull Player player)
     {
         this.player = player;
     }

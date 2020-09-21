@@ -21,6 +21,7 @@ package me.ryanhamshire.GriefPrevention;
 import me.ryanhamshire.GriefPrevention.events.ClaimExpirationEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -28,11 +29,11 @@ import java.util.Vector;
 
 class CleanupUnusedClaimTask implements Runnable
 {
-    Claim claim;
-    PlayerData ownerData;
-    OfflinePlayer ownerInfo;
+    private final Claim claim;
+    private final PlayerData ownerData;
+    private final OfflinePlayer ownerInfo;
 
-    CleanupUnusedClaimTask(Claim claim, PlayerData ownerData, OfflinePlayer ownerInfo)
+    CleanupUnusedClaimTask(@NotNull Claim claim, @NotNull PlayerData ownerData, @NotNull OfflinePlayer ownerInfo)
     {
         this.claim = claim;
         this.ownerData = ownerData;

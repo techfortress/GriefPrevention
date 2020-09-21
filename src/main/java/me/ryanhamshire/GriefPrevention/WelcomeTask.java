@@ -6,12 +6,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Objects;
 
 public class WelcomeTask implements Runnable
 {
     private final Player player;
 
-    public WelcomeTask(Player player)
+    public WelcomeTask(@NotNull Player player)
     {
         this.player = player;
     }
@@ -30,7 +33,7 @@ public class WelcomeTask implements Runnable
         if (GriefPrevention.instance.config_claims_supplyPlayerManual)
         {
             ItemFactory factory = Bukkit.getItemFactory();
-            BookMeta meta = (BookMeta) factory.getItemMeta(Material.WRITTEN_BOOK);
+            BookMeta meta = Objects.requireNonNull((BookMeta) factory.getItemMeta(Material.WRITTEN_BOOK));
 
             DataStore datastore = GriefPrevention.instance.dataStore;
             meta.setAuthor(datastore.getMessage(Messages.BookAuthor));

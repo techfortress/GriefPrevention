@@ -3,6 +3,7 @@ package me.ryanhamshire.GriefPrevention.events;
 import me.ryanhamshire.GriefPrevention.Claim;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * This event gets called whenever a claim is going to be deleted. This event is
@@ -16,14 +17,14 @@ public class ClaimDeletedEvent extends Event
     // Custom Event Requirements
     private static final HandlerList handlers = new HandlerList();
 
-    public static HandlerList getHandlerList()
+    public static @NotNull HandlerList getHandlerList()
     {
         return handlers;
     }
 
     private final Claim claim;
 
-    public ClaimDeletedEvent(Claim claim)
+    public ClaimDeletedEvent(@NotNull Claim claim)
     {
         this.claim = claim;
     }
@@ -33,13 +34,13 @@ public class ClaimDeletedEvent extends Event
      *
      * @return
      */
-    public Claim getClaim()
+    public @NotNull Claim getClaim()
     {
         return claim;
     }
 
     @Override
-    public HandlerList getHandlers()
+    public @NotNull HandlerList getHandlers()
     {
         return handlers;
     }

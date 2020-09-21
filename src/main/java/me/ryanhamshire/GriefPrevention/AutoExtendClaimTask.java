@@ -5,6 +5,7 @@ import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Biome;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 
@@ -15,7 +16,7 @@ class AutoExtendClaimTask implements Runnable
     private final ArrayList<ChunkSnapshot> chunks;
     private final Environment worldType;
 
-    public AutoExtendClaimTask(Claim claim, ArrayList<ChunkSnapshot> chunks, Environment worldType)
+    public AutoExtendClaimTask(@NotNull Claim claim, @NotNull ArrayList<ChunkSnapshot> chunks, @NotNull Environment worldType)
     {
         this.claim = claim;
         this.chunks = chunks;
@@ -116,7 +117,7 @@ class AutoExtendClaimTask implements Runnable
         private final Claim claim;
         private final int newY;
 
-        public ExecuteExtendClaimTask(Claim claim, int newY)
+        public ExecuteExtendClaimTask(@NotNull Claim claim, int newY)
         {
             this.claim = claim;
             this.newY = newY;

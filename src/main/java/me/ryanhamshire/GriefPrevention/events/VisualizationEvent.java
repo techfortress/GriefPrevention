@@ -5,6 +5,8 @@ import me.ryanhamshire.GriefPrevention.Visualization;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.player.PlayerEvent;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -26,7 +28,7 @@ public class VisualizationEvent extends PlayerEvent
      * @param player Player receiving visuals
      * @param claim The claim being visualized (with subdivides), or null if visuals being removed
      */
-    public VisualizationEvent(Player player, Visualization visualization, Claim claim)
+    public VisualizationEvent(@NotNull Player player, @Nullable Visualization visualization, @NotNull Claim claim)
     {
         super(player);
         this.visualization = visualization;
@@ -41,7 +43,7 @@ public class VisualizationEvent extends PlayerEvent
      * @param player Player receiving visuals
      * @param claims Claims being visualized (without subdivides)
      */
-    public VisualizationEvent(Player player, Visualization visualization, Collection<Claim> claims)
+    public VisualizationEvent(@NotNull Player player, @Nullable Visualization visualization, @NotNull Collection<Claim> claims)
     {
         this(player, visualization, claims, false);
     }
@@ -53,7 +55,7 @@ public class VisualizationEvent extends PlayerEvent
      * @param claims Claims being visualized (without subdivides)
      * @param visualizingNearbyClaims If the event is called on nearby claims (shift inspecting)
      */
-    public VisualizationEvent(Player player, Visualization visualization, Collection<Claim> claims, boolean visualizingNearbyClaims)
+    public VisualizationEvent(@NotNull Player player, @Nullable Visualization visualization, @NotNull Collection<Claim> claims, boolean visualizingNearbyClaims)
     {
         super(player);
         this.visualization = visualization;
@@ -67,7 +69,7 @@ public class VisualizationEvent extends PlayerEvent
      *
      * @return The visualization object
      */
-    public Visualization getVisualization()
+    public @Nullable Visualization getVisualization()
     {
         return visualization;
     }
@@ -77,7 +79,7 @@ public class VisualizationEvent extends PlayerEvent
      *
      * @return Claims being visualized
      */
-    public Collection<Claim> getClaims()
+    public @NotNull Collection<Claim> getClaims()
     {
         return claims;
     }
@@ -102,12 +104,12 @@ public class VisualizationEvent extends PlayerEvent
     }
 
     @Override
-    public HandlerList getHandlers()
+    public @NotNull HandlerList getHandlers()
     {
         return handlers;
     }
 
-    public static HandlerList getHandlerList()
+    public static @NotNull HandlerList getHandlerList()
     {
         return handlers;
     }

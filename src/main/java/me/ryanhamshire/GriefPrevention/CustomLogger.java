@@ -20,6 +20,7 @@ package me.ryanhamshire.GriefPrevention;
 
 import com.google.common.io.Files;
 import org.bukkit.scheduler.BukkitScheduler;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.nio.charset.Charset;
@@ -62,7 +63,7 @@ class CustomLogger
 
     private static final Pattern inlineFormatterPattern = Pattern.compile("§.");
 
-    void AddEntry(String entry, CustomLogEntryTypes entryType)
+    void AddEntry(@NotNull String entry, @NotNull CustomLogEntryTypes entryType)
     {
         //if disabled, do nothing
         int daysToKeepLogs = GriefPrevention.instance.config_logs_daysToKeep;
@@ -78,7 +79,7 @@ class CustomLogger
         this.queuedEntries.append(timestamp).append(' ').append(entry).append('\n');
     }
 
-    private boolean isEnabledType(CustomLogEntryTypes entryType)
+    private boolean isEnabledType(@NotNull CustomLogEntryTypes entryType)
     {
         if (entryType == CustomLogEntryTypes.Exception) return true;
         if (entryType == CustomLogEntryTypes.SocialActivity && !GriefPrevention.instance.config_logs_socialEnabled)
