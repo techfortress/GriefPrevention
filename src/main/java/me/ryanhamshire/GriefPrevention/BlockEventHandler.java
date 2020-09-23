@@ -449,7 +449,7 @@ public class BlockEventHandler implements Listener
         //limit active blocks in creative mode worlds
         if (!player.hasPermission("griefprevention.adminclaims") && GriefPrevention.instance.creativeRulesApply(block.getLocation()) && isActiveBlock(block))
         {
-            String noPlaceReason = Objects.requireNonNull(claim).allowMoreActiveBlocks(); // TODO while claim is guaranteed to be not null due to creative rules, could be cleaner.
+            String noPlaceReason = Objects.requireNonNull(claim).allowMoreActiveBlocks();
             if (noPlaceReason != null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, noPlaceReason);
@@ -665,7 +665,6 @@ public class BlockEventHandler implements Listener
         //don't track in worlds where claims are not enabled
         if (!GriefPrevention.instance.claimsEnabledForWorld(igniteEvent.getBlock().getWorld())) return;
 
-        // TODO probably just hack around this in another PR instead of null checking
         if (igniteEvent.getCause() == IgniteCause.LIGHTNING && GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getIgnitingEntity().getLocation(), false, null) != null)
         {
 //        	if(igniteEvent.getIgnitingEntity().hasMetadata("GP_TRIDENT")){ //BlockIgniteEvent is called before LightningStrikeEvent. See #532

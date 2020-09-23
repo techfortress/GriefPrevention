@@ -1295,7 +1295,6 @@ public abstract class DataStore
     synchronized public @NotNull CreateClaimResult resizeClaim(@NotNull Claim claim, int newx1, int newx2, int newy1, int newy2, int newz1, int newz2, @Nullable Player resizingPlayer)
     {
         //try to create this new claim, ignoring the original when checking for overlap
-        // TODO claim world handling
         CreateClaimResult result = this.createClaim(Objects.requireNonNull(claim.getLesserBoundaryCorner().getWorld()), newx1, newx2, newy1, newy2, newz1, newz2, claim.ownerID, claim.parent, claim.id, resizingPlayer, true);
 
         //if succeeded

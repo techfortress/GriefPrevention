@@ -3442,7 +3442,7 @@ public class GriefPrevention extends JavaPlugin
 
     public @Nullable String allowBuild(@NotNull Player player, @NotNull Location location, @NotNull Material material)
     {
-        if (!GriefPrevention.instance.claimsEnabledForWorld(location.getWorld())) return null; // TODO if null world always deny or error?
+        if (!GriefPrevention.instance.claimsEnabledForWorld(location.getWorld())) return null;
 
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         Claim claim = this.dataStore.getClaimAt(location, false, playerData.lastClaim);
@@ -3495,7 +3495,7 @@ public class GriefPrevention extends JavaPlugin
     public @Nullable String allowBreak(@NotNull Player player, @NotNull Block block, @NotNull Location location,
                                        @Nullable BlockBreakEvent breakEvent)
     {
-        if (!GriefPrevention.instance.claimsEnabledForWorld(location.getWorld())) return null; // TODO if null world always deny or error?
+        if (!GriefPrevention.instance.claimsEnabledForWorld(location.getWorld())) return null;
 
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         Claim claim = this.dataStore.getClaimAt(location, false, playerData.lastClaim);

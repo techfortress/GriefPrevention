@@ -135,7 +135,6 @@ public class Claim
         Location lesser = this.getLesserBoundaryCorner();
         Location greater = this.getGreaterBoundaryCorner();
 
-        // TODO claim world handling
         if (Objects.requireNonNull(lesser.getWorld()).getEnvironment() == Environment.NETHER) return;  //don't clean up lava in the nether
 
         int seaLevel = 0;  //clean up all fluids in the end
@@ -176,7 +175,6 @@ public class Claim
         int seaLevel = 0;  //clean up all fluids in the end
 
         //respect sea level in normal worlds
-        // TODO claim world handling
         if (Objects.requireNonNull(lesser.getWorld()).getEnvironment() == Environment.NORMAL)
             seaLevel = GriefPrevention.instance.getSeaLevel(lesser.getWorld());
 
@@ -880,7 +878,6 @@ public class Claim
 
         if (thisCorner.getBlockZ() < otherCorner.getBlockZ()) return false;
 
-        // TODO claim world handling (also this is an unused method, delete)
         return Objects.requireNonNull(thisCorner.getWorld()).getName().compareTo(Objects.requireNonNull(otherCorner.getWorld()).getName()) < 0;
     }
 
@@ -888,7 +885,6 @@ public class Claim
     long getPlayerInvestmentScore()
     {
         //decide which blocks will be considered player placed
-        // TODO claim world handling
         ArrayList<Material> playerBlocks = RestoreNatureProcessingTask.getPlayerBlocks(Objects.requireNonNull(this.lesserBoundaryCorner.getWorld()).getEnvironment(), lesserBoundaryCorner.getBlock().getBiome());
 
         //scan the claim for player placed blocks
@@ -946,7 +942,6 @@ public class Claim
     {
         ArrayList<Chunk> chunks = new ArrayList<>();
 
-        // TODO claim world handling
         World world = Objects.requireNonNull(this.getLesserBoundaryCorner().getWorld());
         Chunk lesserChunk = this.getLesserBoundaryCorner().getChunk();
         Chunk greaterChunk = this.getGreaterBoundaryCorner().getChunk();

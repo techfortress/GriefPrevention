@@ -142,7 +142,7 @@ public class EntityEventHandler implements Listener
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
-    public void onEntityChangeBLock(@NotNull EntityChangeBlockEvent event) // TODO BLock
+    public void onEntityChangeBLock(@NotNull EntityChangeBlockEvent event)
     {
         if (!GriefPrevention.instance.config_endermenMoveBlocks && event.getEntityType() == EntityType.ENDERMAN)
         {
