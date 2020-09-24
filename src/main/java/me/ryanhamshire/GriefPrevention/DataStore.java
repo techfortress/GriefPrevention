@@ -1316,9 +1316,10 @@ public abstract class DataStore
 
     void resizeClaimWithChecks(@NotNull Player player, @NotNull PlayerData playerData, int newx1, int newx2, int newy1, int newy2, int newz1, int newz2)
     {
-        // TODO method is not exposed, change to add claim as argument
+        // Shouldn't be possible for resized claim to be null at this point, but better safe than sorry.
+        if (playerData.claimResizing == null) return;
         //for top level claims, apply size rules and claim blocks requirement
-        if (Objects.requireNonNull(playerData.claimResizing).parent == null)
+        if (playerData.claimResizing.parent == null)
         {
             //measure new claim, apply size rules
             int newWidth = (Math.abs(newx1 - newx2) + 1);

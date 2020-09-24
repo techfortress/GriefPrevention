@@ -1347,10 +1347,7 @@ public class EntityEventHandler implements Listener
                 }
 
                 //cache claim for later
-                if (playerData != null) // TODO claims always true, examine logic
-                {
-                    playerData.lastClaim = claim;
-                }
+                playerData.lastClaim = claim;
             }
         }
     }
