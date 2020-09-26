@@ -1020,8 +1020,8 @@ public class BlockEventHandler implements Listener
     @EventHandler(ignoreCancelled = true)
     public void onItemFrameBrokenByBoat(final HangingBreakEvent event)
     {
-        // Checks if the event is caused by Physic damage - 90% of cases caused by a boat (other 10% would be block,
-        // however since it's in a claim, unless you use a TNT block we can not worry about it).
+        // Checks if the event is caused by physics - 90% of cases caused by a boat (other 10% would be block,
+        // however since it's in a claim, unless you use a TNT block we don't need to worry about it).
         if (event.getCause() != HangingBreakEvent.RemoveCause.PHYSICS)
         {
             return;
