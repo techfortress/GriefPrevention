@@ -18,6 +18,11 @@ public class SiegeEventHandler implements Listener
     {
         if (event.getRequiredPermission() == ClaimPermission.Manage) return;
 
+        Player player = event.getCheckedPlayer();
+
+        // Player must be online to use siege features.
+        if (player == null) return;
+
         Claim claim = event.getClaim();
 
         // Admin claims cannot be sieged.
@@ -27,7 +32,7 @@ public class SiegeEventHandler implements Listener
         if (event.getRequiredPermission() == ClaimPermission.Edit)
         {
             if (claim.siegeData != null)
-                event.setDenialMessage(GriefPrevention.instance.dataStore.getMessage(Messages.NoModifyDuringSiege));
+                event.setDenialReason(GriefPrevention.instance.dataStore.getMessage(Messages.NoModifyDuringSiege));
             return;
         }
 
@@ -35,11 +40,9 @@ public class SiegeEventHandler implements Listener
         if (event.getRequiredPermission() == ClaimPermission.Access)
         {
             if (claim.doorsOpen)
-                event.setDenialMessage(null);
+                event.setDenialReason(null);
             return;
         }
-
-        Player player = event.getPlayer();
 
         // If under siege, nobody accesses containers.
         if (event.getRequiredPermission() == ClaimPermission.Inventory)
@@ -48,7 +51,7 @@ public class SiegeEventHandler implements Listener
             GriefPrevention.instance.dataStore.tryExtendSiege(player, claim);
 
             if (claim.siegeData != null)
-                event.setDenialMessage(GriefPrevention.instance.dataStore.getMessage(Messages.NoContainersSiege, claim.siegeData.attacker.getName()));
+                event.setDenialReason(GriefPrevention.instance.dataStore.getMessage(Messages.NoContainersSiege, claim.siegeData.attacker.getName()));
 
             return;
         }
@@ -82,15 +85,15 @@ public class SiegeEventHandler implements Listener
         {
             // Error messages for siege mode.
             if (!GriefPrevention.instance.config_siege_blocks.contains(broken))
-                event.setDenialMessage(GriefPrevention.instance.dataStore.getMessage(Messages.NonSiegeMaterial));
+                event.setDenialReason(GriefPrevention.instance.dataStore.getMessage(Messages.NonSiegeMaterial));
             else if (player.getUniqueId().equals(claim.ownerID))
-                event.setDenialMessage(GriefPrevention.instance.dataStore.getMessage(Messages.NoOwnerBuildUnderSiege));
+                event.setDenialReason(GriefPrevention.instance.dataStore.getMessage(Messages.NoOwnerBuildUnderSiege));
             return;
         }
 
         // No building while under siege.
         if (claim.siegeData != null)
-            event.setDenialMessage(GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildUnderSiege, claim.siegeData.attacker.getName()));
+            event.setDenialReason(GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildUnderSiege, claim.siegeData.attacker.getName()));
 
     }
 
