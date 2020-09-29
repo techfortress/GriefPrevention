@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -85,9 +86,8 @@ public class FlatFileDataStore extends DataStore
 
         //load group data into memory
         File[] files = playerDataFolder.listFiles();
-        for (int i = 0; i < files.length; i++)
+        for (File file : files)
         {
-            File file = files[i];
             if (!file.isFile()) continue;  //avoids folders
 
             //all group data files start with a dollar sign.  ignoring the rest, which are player data files.
@@ -149,7 +149,7 @@ public class FlatFileDataStore extends DataStore
         if (this.getSchemaVersion() == 0)
         {
             files = playerDataFolder.listFiles();
-            ArrayList<String> namesToConvert = new ArrayList<String>();
+            ArrayList<String> namesToConvert = new ArrayList<>();
             for (File playerFile : files)
             {
                 namesToConvert.add(playerFile.getName());
@@ -394,7 +394,7 @@ public class FlatFileDataStore extends DataStore
 
     void loadClaimData(File[] files) throws Exception
     {
-        ConcurrentHashMap<Claim, Long> orphans = new ConcurrentHashMap<Claim, Long>();
+        ConcurrentHashMap<Claim, Long> orphans = new ConcurrentHashMap<>();
         for (int i = 0; i < files.length; i++)
         {
             if (files[i].isFile())  //avoids folders
@@ -430,7 +430,7 @@ public class FlatFileDataStore extends DataStore
 
                 try
                 {
-                    ArrayList<Long> out_parentID = new ArrayList<Long>();  //hacky output parameter
+                    ArrayList<Long> out_parentID = new ArrayList<>();  //hacky output parameter
                     Claim claim = this.loadClaim(files[i], out_parentID, claimID);
                     if (out_parentID.size() == 0 || out_parentID.get(0) == -1)
                     {
@@ -542,10 +542,10 @@ public class FlatFileDataStore extends DataStore
         if (claim.ownerID != null) ownerID = claim.ownerID.toString();
         yaml.set("Owner", ownerID);
 
-        ArrayList<String> builders = new ArrayList<String>();
-        ArrayList<String> containers = new ArrayList<String>();
-        ArrayList<String> accessors = new ArrayList<String>();
-        ArrayList<String> managers = new ArrayList<String>();
+        ArrayList<String> builders = new ArrayList<>();
+        ArrayList<String> containers = new ArrayList<>();
+        ArrayList<String> accessors = new ArrayList<>();
+        ArrayList<String> managers = new ArrayList<>();
         claim.getPermissions(builders, containers, accessors, managers);
 
         yaml.set("Builders", builders);
@@ -801,9 +801,8 @@ public class FlatFileDataStore extends DataStore
     synchronized void migrateData(DatabaseDataStore databaseStore)
     {
         //migrate claims
-        for (int i = 0; i < this.claims.size(); i++)
+        for (Claim claim : this.claims)
         {
-            Claim claim = this.claims.get(i);
             databaseStore.addClaim(claim, true);
             for (Claim child : claim.children)
             {
@@ -812,19 +811,16 @@ public class FlatFileDataStore extends DataStore
         }
 
         //migrate groups
-        Iterator<String> groupNamesEnumerator = this.permissionToBonusBlocksMap.keySet().iterator();
-        while (groupNamesEnumerator.hasNext())
+        for (Map.Entry<String, Integer> groupEntry : this.permissionToBonusBlocksMap.entrySet())
         {
-            String groupName = groupNamesEnumerator.next();
-            databaseStore.saveGroupBonusBlocks(groupName, this.permissionToBonusBlocksMap.get(groupName));
+            databaseStore.saveGroupBonusBlocks(groupEntry.getKey(), groupEntry.getValue());
         }
 
         //migrate players
         File playerDataFolder = new File(playerDataFolderPath);
         File[] files = playerDataFolder.listFiles();
-        for (int i = 0; i < files.length; i++)
+        for (File file : files)
         {
-            File file = files[i];
             if (!file.isFile()) continue;  //avoids folders
             if (file.isHidden()) continue; //avoid hidden files, which are likely not created by GriefPrevention
 

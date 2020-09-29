@@ -36,11 +36,10 @@ import org.bukkit.event.block.BlockEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -66,10 +65,10 @@ public class Claim
     public UUID ownerID;
 
     //list of players who (beyond the claim owner) have permission to grant permissions in this claim
-    public ArrayList<String> managers = new ArrayList<String>();
+    public ArrayList<String> managers = new ArrayList<>();
 
     //permissions for this claim, see ClaimPermission class
-    private HashMap<String, ClaimPermission> playerIDToClaimPermissionMap = new HashMap<String, ClaimPermission>();
+    private HashMap<String, ClaimPermission> playerIDToClaimPermissionMap = new HashMap<>();
 
     //whether or not this claim is in the data store
     //if a claim instance isn't in the data store, it isn't "active" - players can't interract with it
@@ -88,7 +87,7 @@ public class Claim
 
     //children (subdivisions)
     //note subdivisions themselves never have children
-    public ArrayList<Claim> children = new ArrayList<Claim>();
+    public ArrayList<Claim> children = new ArrayList<>();
 
     //information about a siege involving this claim.  null means no siege is impacting this claim
     public SiegeData siegeData = null;
@@ -310,7 +309,7 @@ public class Claim
         Claim claim = new Claim
                 (new Location(this.lesserBoundaryCorner.getWorld(), this.lesserBoundaryCorner.getBlockX() - howNear, this.lesserBoundaryCorner.getBlockY(), this.lesserBoundaryCorner.getBlockZ() - howNear),
                         new Location(this.greaterBoundaryCorner.getWorld(), this.greaterBoundaryCorner.getBlockX() + howNear, this.greaterBoundaryCorner.getBlockY(), this.greaterBoundaryCorner.getBlockZ() + howNear),
-                        null, new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), null);
+                        null, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null);
 
         return claim.contains(location, false, true);
     }
@@ -326,7 +325,7 @@ public class Claim
         return checkPermission(player, ClaimPermission.Edit, null);
     }
 
-    private List<Material> placeableFarmingBlocksList = Arrays.asList(
+    private static final EnumSet<Material> PLACEABLE_FARMING_BLOCKS = EnumSet.of(
             Material.PUMPKIN_STEM,
             Material.WHEAT,
             Material.MELON_STEM,
@@ -335,9 +334,9 @@ public class Claim
             Material.NETHER_WART,
             Material.BEETROOTS);
 
-    private boolean placeableForFarming(Material material)
+    private static boolean placeableForFarming(Material material)
     {
-        return this.placeableFarmingBlocksList.contains(material);
+        return PLACEABLE_FARMING_BLOCKS.contains(material);
     }
 
     /**
@@ -523,7 +522,7 @@ public class Claim
             if (event instanceof BlockBreakEvent || event instanceof BlockPlaceEvent)
                 material = ((BlockEvent) event).getBlock().getType();
 
-            if (material != null && this.placeableForFarming(material)
+            if (material != null && placeableForFarming(material)
                     && this.getDefaultDenial(player, uuid, ClaimPermission.Inventory, event) == null)
                 return null;
         }
@@ -638,11 +637,8 @@ public class Claim
     public void getPermissions(ArrayList<String> builders, ArrayList<String> containers, ArrayList<String> accessors, ArrayList<String> managers)
     {
         //loop through all the entries in the hash map
-        Iterator<Map.Entry<String, ClaimPermission>> mappingsIterator = this.playerIDToClaimPermissionMap.entrySet().iterator();
-        while (mappingsIterator.hasNext())
+        for (Map.Entry<String, ClaimPermission> entry : this.playerIDToClaimPermissionMap.entrySet())
         {
-            Map.Entry<String, ClaimPermission> entry = mappingsIterator.next();
-
             //build up a list for each permission level
             if (entry.getValue() == ClaimPermission.Build)
             {
@@ -659,10 +655,7 @@ public class Claim
         }
 
         //managers are handled a little differently
-        for (int i = 0; i < this.managers.size(); i++)
-        {
-            managers.add(this.managers.get(i));
-        }
+        managers.addAll(this.managers);
     }
 
     //returns a copy of the location representing lower x, y, z limits
@@ -724,10 +717,10 @@ public class Claim
         else if (excludeSubdivisions)
         {
             //search all subdivisions to see if the location is in any of them
-            for (int i = 0; i < this.children.size(); i++)
+            for (Claim child : this.children)
             {
                 //if we find such a subdivision, return false
-                if (this.children.get(i).contains(location, ignoreHeight, true))
+                if (child.contains(location, ignoreHeight, true))
                 {
                     return false;
                 }
@@ -777,9 +770,8 @@ public class Claim
         for (Chunk chunk : chunks)
         {
             Entity[] entities = chunk.getEntities();
-            for (int i = 0; i < entities.length; i++)
+            for (Entity entity : entities)
             {
-                Entity entity = entities[i];
                 if (!(entity instanceof Player) && this.contains(entity.getLocation(), false, false))
                 {
                     totalEntities++;
@@ -809,9 +801,8 @@ public class Claim
         for (Chunk chunk : chunks)
         {
             BlockState[] actives = chunk.getTileEntities();
-            for (int i = 0; i < actives.length; i++)
+            for (BlockState active : actives)
             {
-                BlockState active = actives[i];
                 if (BlockEventHandler.isActiveBlock(active))
                 {
                     if (this.contains(active.getLocation(), false, false))
@@ -905,7 +896,7 @@ public class Claim
 
     public ArrayList<Chunk> getChunks()
     {
-        ArrayList<Chunk> chunks = new ArrayList<Chunk>();
+        ArrayList<Chunk> chunks = new ArrayList<>();
 
         World world = this.getLesserBoundaryCorner().getWorld();
         Chunk lesserChunk = this.getLesserBoundaryCorner().getChunk();

@@ -65,14 +65,14 @@ public abstract class DataStore
 {
 
     //in-memory cache for player data
-    protected ConcurrentHashMap<UUID, PlayerData> playerNameToPlayerDataMap = new ConcurrentHashMap<UUID, PlayerData>();
+    protected ConcurrentHashMap<UUID, PlayerData> playerNameToPlayerDataMap = new ConcurrentHashMap<>();
 
     //in-memory cache for group (permission-based) data
-    protected ConcurrentHashMap<String, Integer> permissionToBonusBlocksMap = new ConcurrentHashMap<String, Integer>();
+    protected ConcurrentHashMap<String, Integer> permissionToBonusBlocksMap = new ConcurrentHashMap<>();
 
     //in-memory cache for claim data
-    ArrayList<Claim> claims = new ArrayList<Claim>();
-    ConcurrentHashMap<Long, ArrayList<Claim>> chunksToClaimsMap = new ConcurrentHashMap<Long, ArrayList<Claim>>();
+    ArrayList<Claim> claims = new ArrayList<>();
+    ConcurrentHashMap<Long, ArrayList<Claim>> chunksToClaimsMap = new ConcurrentHashMap<>();
 
     //in-memory cache for messages
     private String[] messages;
@@ -108,7 +108,7 @@ public abstract class DataStore
     static final String SUBDIVISION_VIDEO_URL = "" + ChatColor.DARK_AQUA + ChatColor.UNDERLINE + "bit.ly/mcgpsub" + ChatColor.RESET;
 
     //list of UUIDs which are soft-muted
-    ConcurrentHashMap<UUID, Boolean> softMuteMap = new ConcurrentHashMap<UUID, Boolean>();
+    ConcurrentHashMap<UUID, Boolean> softMuteMap = new ConcurrentHashMap<>();
 
     //world guard reference, if available
     private WorldGuardWrapper worldGuard = null;
@@ -274,7 +274,7 @@ public abstract class DataStore
         {
             GriefPrevention.AddLogEntry("Failed to read from the banned words data file: " + e.toString());
             e.printStackTrace();
-            return new ArrayList<String>();
+            return new ArrayList<>();
         }
     }
 
@@ -348,16 +348,17 @@ public abstract class DataStore
     //this will return 0 when he's offline, and the correct number when online.
     synchronized public int getGroupBonusBlocks(UUID playerID)
     {
+        Player player = GriefPrevention.instance.getServer().getPlayer(playerID);
+
+        if (player == null) return 0;
+
         int bonusBlocks = 0;
-        Set<String> keys = permissionToBonusBlocksMap.keySet();
-        Iterator<String> iterator = keys.iterator();
-        while (iterator.hasNext())
+
+        for (Map.Entry<String, Integer> groupEntry : this.permissionToBonusBlocksMap.entrySet())
         {
-            String groupName = iterator.next();
-            Player player = GriefPrevention.instance.getServer().getPlayer(playerID);
-            if (player != null && player.hasPermission(groupName))
+            if (player.hasPermission(groupEntry.getKey()))
             {
-                bonusBlocks += this.permissionToBonusBlocksMap.get(groupName);
+                bonusBlocks += groupEntry.getValue();
             }
         }
 
@@ -511,7 +512,7 @@ public abstract class DataStore
     }
 
     //turns a location into a string, useful in data storage
-    private String locationStringDelimiter = ";";
+    private final String locationStringDelimiter = ";";
 
     String locationToString(Location location)
     {
@@ -781,7 +782,7 @@ public abstract class DataStore
         }
         else
         {
-            return Collections.unmodifiableCollection(new ArrayList<Claim>());
+            return Collections.unmodifiableCollection(new ArrayList<>());
         }
     }
 
@@ -904,10 +905,10 @@ public abstract class DataStore
                 new Location(world, smallx, smally, smallz),
                 new Location(world, bigx, bigy, bigz),
                 ownerID,
-                new ArrayList<String>(),
-                new ArrayList<String>(),
-                new ArrayList<String>(),
-                new ArrayList<String>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
+                new ArrayList<>(),
                 id);
 
         newClaim.parent = parent;
@@ -923,10 +924,8 @@ public abstract class DataStore
             claimsToCheck = this.claims;
         }
 
-        for (int i = 0; i < claimsToCheck.size(); i++)
+        for (Claim otherClaim : claimsToCheck)
         {
-            Claim otherClaim = claimsToCheck.get(i);
-
             //if we find an existing claim which will be overlapped
             if (otherClaim.id != newClaim.id && otherClaim.inDataStore && otherClaim.overlaps(newClaim))
             {
@@ -1187,10 +1186,9 @@ public abstract class DataStore
                     //drop any remainder on the ground at his feet
                     Object[] keys = wontFitItems.keySet().toArray();
                     Location winnerLocation = winner.getLocation();
-                    for (int i = 0; i < keys.length; i++)
+                    for (Map.Entry<Integer, ItemStack> wontFitItem : wontFitItems.entrySet())
                     {
-                        Integer key = (Integer) keys[i];
-                        winnerLocation.getWorld().dropItemNaturally(winnerLocation, wontFitItems.get(key));
+                        winner.getWorld().dropItemNaturally(winnerLocation, wontFitItem.getValue());
                     }
                 }
 
@@ -1200,7 +1198,7 @@ public abstract class DataStore
     }
 
     //timestamp for each siege cooldown to end
-    private HashMap<String, Long> siegeCooldownRemaining = new HashMap<String, Long>();
+    private final HashMap<String, Long> siegeCooldownRemaining = new HashMap<>();
 
     //whether or not a sieger can siege a particular victim or claim, considering only cooldowns
     synchronized public boolean onCooldown(Player attacker, Player defender, Claim defenderClaim)
@@ -1280,18 +1278,16 @@ public abstract class DataStore
     synchronized public void deleteClaimsForPlayer(UUID playerID, boolean releasePets)
     {
         //make a list of the player's claims
-        ArrayList<Claim> claimsToDelete = new ArrayList<Claim>();
-        for (int i = 0; i < this.claims.size(); i++)
+        ArrayList<Claim> claimsToDelete = new ArrayList<>();
+        for (Claim claim : this.claims)
         {
-            Claim claim = this.claims.get(i);
             if ((playerID == claim.ownerID || (playerID != null && playerID.equals(claim.ownerID))))
                 claimsToDelete.add(claim);
         }
 
         //delete them one by one
-        for (int i = 0; i < claimsToDelete.size(); i++)
+        for (Claim claim : claimsToDelete)
         {
-            Claim claim = claimsToDelete.get(i);
             claim.removeSurfaceFluids(null);
 
             this.deleteClaim(claim, releasePets);
@@ -1497,7 +1493,7 @@ public abstract class DataStore
         Messages[] messageIDs = Messages.values();
         this.messages = new String[Messages.values().length];
 
-        HashMap<String, CustomizableMessage> defaults = new HashMap<String, CustomizableMessage>();
+        HashMap<String, CustomizableMessage> defaults = new HashMap<>();
 
         //initialize defaults
         this.addDefault(defaults, Messages.RespectingClaims, "Now respecting claims.", null);
@@ -1742,10 +1738,9 @@ public abstract class DataStore
         FileConfiguration config = YamlConfiguration.loadConfiguration(new File(messagesFilePath));
 
         //for each message ID
-        for (int i = 0; i < messageIDs.length; i++)
+        for (Messages messageID : messageIDs)
         {
             //get default for this message
-            Messages messageID = messageIDs[i];
             CustomizableMessage messageData = defaults.get(messageID.name());
 
             //if default is missing, log an error and use some fake data for now so that the plugin can run
@@ -1815,7 +1810,7 @@ public abstract class DataStore
         if (this.getSchemaVersion() >= 1) return names;
 
         //list to build results
-        List<String> resultNames = new ArrayList<String>();
+        List<String> resultNames = new ArrayList<>();
 
         for (String name : names)
         {
@@ -1848,8 +1843,8 @@ public abstract class DataStore
 
     private class SavePlayerDataThread extends Thread
     {
-        private UUID playerID;
-        private PlayerData playerData;
+        private final UUID playerID;
+        private final PlayerData playerData;
 
         SavePlayerDataThread(UUID playerID, PlayerData playerData)
         {
@@ -1869,7 +1864,7 @@ public abstract class DataStore
     //gets all the claims "near" a location
     Set<Claim> getNearbyClaims(Location location)
     {
-        Set<Claim> claims = new HashSet<Claim>();
+        Set<Claim> claims = new HashSet<>();
 
         Chunk lesserChunk = location.getWorld().getChunkAt(location.subtract(150, 0, 150));
         Chunk greaterChunk = location.getWorld().getChunkAt(location.add(300, 0, 300));

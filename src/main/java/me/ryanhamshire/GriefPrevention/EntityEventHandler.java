@@ -106,8 +106,8 @@ import java.util.UUID;
 public class EntityEventHandler implements Listener
 {
     //convenience reference for the singleton datastore
-    private DataStore dataStore;
-    GriefPrevention instance;
+    private final DataStore dataStore;
+    private final GriefPrevention instance;
     private final NamespacedKey luredByPlayer;
 
     public EntityEventHandler(DataStore dataStore, GriefPrevention plugin)
@@ -342,12 +342,10 @@ public class EntityEventHandler implements Listener
         }
 
         //make a list of blocks which were allowed to explode
-        List<Block> explodedBlocks = new ArrayList<Block>();
+        List<Block> explodedBlocks = new ArrayList<>();
         Claim cachedClaim = null;
-        for (int i = 0; i < blocks.size(); i++)
+        for (Block block : blocks)
         {
-            Block block = blocks.get(i);
-
             //always ignore air blocks
             if (block.getType() == Material.AIR) continue;
 
@@ -1055,7 +1053,7 @@ public class EntityEventHandler implements Listener
                                     message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
                                 if (sendErrorMessagesToPlayers)
                                     GriefPrevention.sendMessage(attacker, TextMode.Err, message);
-                                PreventPvPEvent pvpEvent = new PreventPvPEvent(new Claim(subEvent.getEntity().getLocation(), subEvent.getEntity().getLocation(), null, new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), null));
+                                PreventPvPEvent pvpEvent = new PreventPvPEvent(new Claim(subEvent.getEntity().getLocation(), subEvent.getEntity().getLocation(), null, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
                                 Bukkit.getPluginManager().callEvent(pvpEvent);
                                 if (!pvpEvent.isCancelled())
                                 {
@@ -1451,7 +1449,7 @@ public class EntityEventHandler implements Listener
         }
     }
 
-    public static final HashSet<PotionEffectType> positiveEffects = new HashSet<PotionEffectType>(Arrays.asList
+    public static final HashSet<PotionEffectType> positiveEffects = new HashSet<>(Arrays.asList
             (
                     PotionEffectType.ABSORPTION,
                     PotionEffectType.DAMAGE_RESISTANCE,

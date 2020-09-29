@@ -37,7 +37,7 @@ import java.util.ArrayList;
 //the result is that those players see new blocks, but the world hasn't been changed.  other players can't see the new blocks, either.
 public class Visualization
 {
-    public ArrayList<VisualizationElement> elements = new ArrayList<VisualizationElement>();
+    public ArrayList<VisualizationElement> elements = new ArrayList<>();
 
     //sends a visualization to a player
     public static void Apply(Player player, Visualization visualization)

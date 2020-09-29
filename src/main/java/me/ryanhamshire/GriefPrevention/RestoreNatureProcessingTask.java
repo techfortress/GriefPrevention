@@ -28,6 +28,7 @@ import org.bukkit.block.data.type.Leaves;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 //non-main-thread task which processes world data to repair the unnatural
 //after processing is complete, creates a main thread task to make the necessary changes to the world
@@ -35,23 +36,23 @@ class RestoreNatureProcessingTask implements Runnable
 {
     //world information captured from the main thread
     //will be updated and sent back to main thread to be applied to the world
-    private BlockSnapshot[][][] snapshots;
+    private final BlockSnapshot[][][] snapshots;
 
     //other information collected from the main thread.
     //not to be updated, only to be passed back to main thread to provide some context about the operation
     private int miny;
-    private Environment environment;
-    private Location lesserBoundaryCorner;
-    private Location greaterBoundaryCorner;
-    private Player player;            //absolutely must not be accessed.  not thread safe.
-    private Biome biome;
-    private boolean creativeMode;
-    private int seaLevel;
-    private boolean aggressiveMode;
+    private final Environment environment;
+    private final Location lesserBoundaryCorner;
+    private final Location greaterBoundaryCorner;
+    private final Player player;            //absolutely must not be accessed.  not thread safe.
+    private final Biome biome;
+    private final boolean creativeMode;
+    private final int seaLevel;
+    private final boolean aggressiveMode;
 
     //two lists of materials
-    private ArrayList<Material> notAllowedToHang;    //natural blocks which don't naturally hang in their air
-    private ArrayList<Material> playerBlocks;        //a "complete" list of player-placed blocks.  MUST BE MAINTAINED as patches introduce more
+    private final ArrayList<Material> notAllowedToHang;    //natural blocks which don't naturally hang in their air
+    private final ArrayList<Material> playerBlocks;        //a "complete" list of player-placed blocks.  MUST BE MAINTAINED as patches introduce more
 
 
     public RestoreNatureProcessingTask(BlockSnapshot[][][] snapshots, int miny, Environment environment, Biome biome, Location lesserBoundaryCorner, Location greaterBoundaryCorner, int seaLevel, boolean aggressiveMode, boolean creativeMode, Player player)
@@ -68,7 +69,7 @@ class RestoreNatureProcessingTask implements Runnable
         this.player = player;
         this.creativeMode = creativeMode;
 
-        this.notAllowedToHang = new ArrayList<Material>();
+        this.notAllowedToHang = new ArrayList<>();
         this.notAllowedToHang.add(Material.DIRT);
         this.notAllowedToHang.add(Material.GRASS);
         this.notAllowedToHang.add(Material.SNOW);
@@ -85,7 +86,7 @@ class RestoreNatureProcessingTask implements Runnable
             this.notAllowedToHang.add(Material.STONE);
         }
 
-        this.playerBlocks = new ArrayList<Material>();
+        this.playerBlocks = new ArrayList<>();
         this.playerBlocks.addAll(RestoreNatureProcessingTask.getPlayerBlocks(this.environment, this.biome));
 
         //in aggressive or creative world mode, also treat these blocks as user placed, to be removed
@@ -390,8 +391,7 @@ class RestoreNatureProcessingTask implements Runnable
                         Material.LILY_PAD
                 };
 
-        ArrayList<Material> excludedBlocks = new ArrayList<Material>();
-        for (int i = 0; i < excludedBlocksArray.length; i++) excludedBlocks.add(excludedBlocksArray[i]);
+        ArrayList<Material> excludedBlocks = new ArrayList<>(Arrays.asList(excludedBlocksArray));
 
         excludedBlocks.addAll(Tag.SAPLINGS.getValues());
         excludedBlocks.addAll(Tag.LEAVES.getValues());
@@ -455,13 +455,13 @@ class RestoreNatureProcessingTask implements Runnable
 
     private void fillHolesAndTrenches()
     {
-        ArrayList<Material> fillableBlocks = new ArrayList<Material>();
+        ArrayList<Material> fillableBlocks = new ArrayList<>();
         fillableBlocks.add(Material.AIR);
         fillableBlocks.add(Material.WATER);
         fillableBlocks.add(Material.LAVA);
         fillableBlocks.add(Material.GRASS);
 
-        ArrayList<Material> notSuitableForFillBlocks = new ArrayList<Material>();
+        ArrayList<Material> notSuitableForFillBlocks = new ArrayList<>();
         notSuitableForFillBlocks.add(Material.GRASS);
         notSuitableForFillBlocks.add(Material.CACTUS);
         notSuitableForFillBlocks.add(Material.WATER);
@@ -647,7 +647,7 @@ class RestoreNatureProcessingTask implements Runnable
         //NOTE on this list.  why not make a list of natural blocks?
         //answer: better to leave a few player blocks than to remove too many natural blocks.  remember we're "restoring nature"
         //a few extra player blocks can be manually removed, but it will be impossible to guess exactly which natural materials to use in manual repair of an overzealous block removal
-        ArrayList<Material> playerBlocks = new ArrayList<Material>();
+        ArrayList<Material> playerBlocks = new ArrayList<>();
         playerBlocks.add(Material.FIRE);
         playerBlocks.add(Material.WHITE_BED);
         playerBlocks.add(Material.ORANGE_BED);

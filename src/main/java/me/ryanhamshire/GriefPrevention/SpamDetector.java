@@ -14,7 +14,7 @@ class SpamDetector
     private int duplicateMessageCount = 0;
 
     //data for individual chatters
-    ConcurrentHashMap<UUID, ChatterData> dataStore = new ConcurrentHashMap<UUID, ChatterData>();
+    ConcurrentHashMap<UUID, ChatterData> dataStore = new ConcurrentHashMap<>();
 
     private ChatterData getChatterData(UUID chatterID)
     {
@@ -230,7 +230,7 @@ class ChatterData
     public boolean spamWarned = false;              //whether the player has received a warning recently
 
     //all recent message lengths and their total
-    private ConcurrentLinkedQueue<LengthTimestampPair> recentMessageLengths = new ConcurrentLinkedQueue<LengthTimestampPair>();
+    private final ConcurrentLinkedQueue<LengthTimestampPair> recentMessageLengths = new ConcurrentLinkedQueue<>();
     private int recentTotalLength = 0;
 
     public void AddMessage(String message, long timestamp)

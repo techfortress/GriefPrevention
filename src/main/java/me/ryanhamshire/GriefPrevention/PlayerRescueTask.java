@@ -27,13 +27,13 @@ import org.bukkit.entity.Player;
 class PlayerRescueTask implements Runnable
 {
     //original location where /trapped was used
-    private Location location;
+    private final Location location;
 
     //rescue destination, may be decided at instantiation or at execution
     private Location destination;
 
     //player data
-    private Player player;
+    private final Player player;
 
     public PlayerRescueTask(Player player, Location location, Location destination)
     {

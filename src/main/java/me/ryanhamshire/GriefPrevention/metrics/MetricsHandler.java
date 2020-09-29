@@ -13,7 +13,7 @@ import java.util.concurrent.Callable;
  */
 public class MetricsHandler
 {
-    private Metrics metrics;
+    private final Metrics metrics;
 
     public MetricsHandler(GriefPrevention plugin, String dataMode)
     {
@@ -93,7 +93,7 @@ public class MetricsHandler
         addSimplePie("block_sky_trees", plugin.config_blockSkyTrees);
         addSimplePie("limit_tree_growth", plugin.config_limitTreeGrowth);
 
-        addSimplePie("pistons_only_work_in_claims", plugin.config_pistonsInClaimsOnly);
+        addSimplePie("pistons_only_work_in_claims", plugin.config_pistonMovement.name().toLowerCase().replace('_', ' '));
         addSimplePie("creatures_trample_crops", plugin.config_creaturesTrampleCrops);
 
         addSimplePie("claim_tool", plugin.config_claims_modificationTool.name());

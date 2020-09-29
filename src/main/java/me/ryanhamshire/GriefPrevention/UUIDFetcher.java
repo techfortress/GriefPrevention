@@ -47,12 +47,12 @@ class UUIDFetcher
     {
         if (lookupCache == null)
         {
-            lookupCache = new HashMap<String, UUID>();
+            lookupCache = new HashMap<>();
         }
 
         if (correctedNames == null)
         {
-            correctedNames = new HashMap<String, String>();
+            correctedNames = new HashMap<>();
         }
 
         GriefPrevention.AddLogEntry("UUID conversion process started.  Please be patient - this may take a while.");
@@ -167,10 +167,9 @@ class UUIDFetcher
         {
             GriefPrevention.AddLogEntry("Generating offline mode UUIDs for remaining unresolved players...");
 
-            for (int i = 0; i < names.size(); i++)
+            for (String name : names)
             {
-                String name = names.get(i);
-                UUID uuid = java.util.UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(Charsets.UTF_8));
+                UUID uuid = UUID.nameUUIDFromBytes(("OfflinePlayer:" + name).getBytes(Charsets.UTF_8));
                 GriefPrevention.AddLogEntry(name + " --> " + uuid.toString());
                 lookupCache.put(name, uuid);
                 lookupCache.put(name.toLowerCase(), uuid);

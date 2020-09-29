@@ -28,9 +28,9 @@ import java.util.Collection;
 //runs every 5 minutes in the main thread, grants blocks per hour / 12 to each online player who appears to be actively playing
 class DeliverClaimBlocksTask implements Runnable
 {
-    private Player player;
-    private GriefPrevention instance;
-    private int idleThresholdSquared;
+    private final Player player;
+    private final GriefPrevention instance;
+    private final int idleThresholdSquared;
 
     public DeliverClaimBlocksTask(Player player, GriefPrevention instance)
     {

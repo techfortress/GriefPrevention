@@ -81,7 +81,7 @@ public class GriefPrevention extends JavaPlugin
     public DataStore dataStore;
 
     //this tracks item stacks expected to drop which will need protection
-    ArrayList<PendingItemProtection> pendingItemWatchList = new ArrayList<PendingItemProtection>();
+    ArrayList<PendingItemProtection> pendingItemWatchList = new ArrayList<>();
 
     //log entry manager for GP's custom log files
     CustomLogger customLogger;
@@ -206,8 +206,7 @@ public class GriefPrevention extends JavaPlugin
     public HashMap<String, Integer> config_seaLevelOverride;        //override for sea level, because bukkit doesn't report the right value for all situations
 
     public boolean config_limitTreeGrowth;                          //whether trees should be prevented from growing into a claim from outside
-    public boolean config_checkPistonMovement;                      //whether to check piston movement
-    public boolean config_pistonsInClaimsOnly;                      //whether pistons are limited to only move blocks located within the piston's land claim
+    public PistonMode config_pistonMovement;                            //Setting for piston check options
 
     public boolean config_advanced_fixNegativeClaimblockAmounts;    //whether to attempt to fix negative claim block amounts (some addons cause/assume players can go into negative amounts)
     public int config_advanced_claim_expiration_check_rate;            //How often GP should check for expired claims, amount in seconds
@@ -467,7 +466,7 @@ public class GriefPrevention extends JavaPlugin
         config_pvp_allowLavaNearPlayers = config.getBoolean("GriefPrevention.PvP.AllowLavaDumpingNearOtherPlayers", false);
 
         //decide claim mode for each world
-        this.config_claims_worldModes = new ConcurrentHashMap<World, ClaimsMode>();
+        this.config_claims_worldModes = new ConcurrentHashMap<>();
         this.config_creativeWorldsExist = false;
         for (World world : worlds)
         {
@@ -538,7 +537,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //pvp worlds list
-        this.config_pvp_specifiedWorlds = new HashMap<World, Boolean>();
+        this.config_pvp_specifiedWorlds = new HashMap<>();
         for (World world : worlds)
         {
             boolean pvpWorld = config.getBoolean("GriefPrevention.PvP.RulesEnabledInWorld." + world.getName(), world.getPVP());
@@ -546,12 +545,12 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //sea level
-        this.config_seaLevelOverride = new HashMap<String, Integer>();
-        for (int i = 0; i < worlds.size(); i++)
+        this.config_seaLevelOverride = new HashMap<>();
+        for (World world : worlds)
         {
-            int seaLevelOverride = config.getInt("GriefPrevention.SeaLevelOverrides." + worlds.get(i).getName(), -1);
-            outConfig.set("GriefPrevention.SeaLevelOverrides." + worlds.get(i).getName(), seaLevelOverride);
-            this.config_seaLevelOverride.put(worlds.get(i).getName(), seaLevelOverride);
+            int seaLevelOverride = config.getInt("GriefPrevention.SeaLevelOverrides." + world.getName(), -1);
+            outConfig.set("GriefPrevention.SeaLevelOverrides." + world.getName(), seaLevelOverride);
+            this.config_seaLevelOverride.put(world.getName(), seaLevelOverride);
         }
 
         this.config_claims_preventGlobalMonsterEggs = config.getBoolean("GriefPrevention.Claims.PreventGlobalMonsterEggs", true);
@@ -630,12 +629,11 @@ public class GriefPrevention extends JavaPlugin
         this.config_blockSurfaceOtherExplosions = config.getBoolean("GriefPrevention.BlockSurfaceOtherExplosions", true);
         this.config_blockSkyTrees = config.getBoolean("GriefPrevention.LimitSkyTrees", true);
         this.config_limitTreeGrowth = config.getBoolean("GriefPrevention.LimitTreeGrowth", false);
-        this.config_checkPistonMovement = config.getBoolean("GriefPrevention.CheckPistonMovement", true);
-        this.config_pistonsInClaimsOnly = config.getBoolean("GriefPrevention.LimitPistonsToLandClaims", true);
-        if (!this.config_checkPistonMovement && this.config_pistonsInClaimsOnly) {
-            AddLogEntry("Error: You have enabled LimitPistonsToLandClaims, but CheckPistonMovement is off!");
-            this.config_pistonsInClaimsOnly = false;
-        }
+        this.config_pistonMovement = PistonMode.of(config.getString("GriefPrevention.PistonMovement", "CLAIMS_ONLY"));
+        if (config.isBoolean("GriefPrevention.LimitPistonsToLandClaims") && !config.getBoolean("GriefPrevention.LimitPistonsToLandClaims"))
+            this.config_pistonMovement = PistonMode.EVERYWHERE_SIMPLE;
+        if (config.isBoolean("GriefPrevention.CheckPistonMovement") && !config.getBoolean("GriefPrevention.CheckPistonMovement"))
+            this.config_pistonMovement = PistonMode.IGNORED;
 
         this.config_fireSpreads = config.getBoolean("GriefPrevention.FireSpreads", false);
         this.config_fireDestroys = config.getBoolean("GriefPrevention.FireDestroys", false);
@@ -686,7 +684,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //default for siege worlds list
-        ArrayList<String> defaultSiegeWorldNames = new ArrayList<String>();
+        ArrayList<String> defaultSiegeWorldNames = new ArrayList<>();
 
         //get siege world names from the config file
         List<String> siegeEnabledWorldNames = config.getStringList("GriefPrevention.Siege.Worlds");
@@ -696,10 +694,9 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //validate that list
-        this.config_siege_enabledWorlds = new ArrayList<World>();
-        for (int i = 0; i < siegeEnabledWorldNames.size(); i++)
+        this.config_siege_enabledWorlds = new ArrayList<>();
+        for (String worldName : siegeEnabledWorldNames)
         {
-            String worldName = siegeEnabledWorldNames.get(i);
             World world = this.getServer().getWorld(worldName);
             if (world == null)
             {
@@ -712,7 +709,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //default siege blocks
-        this.config_siege_blocks = new ArrayList<Material>();
+        this.config_siege_blocks = new ArrayList<>();
         this.config_siege_blocks.add(Material.DIRT);
         this.config_siege_blocks.add(Material.GRASS_BLOCK);
         this.config_siege_blocks.add(Material.GRASS);
@@ -748,10 +745,10 @@ public class GriefPrevention extends JavaPlugin
         this.config_siege_blocks.add(Material.SNOW);
 
         //build a default config entry
-        ArrayList<String> defaultBreakableBlocksList = new ArrayList<String>();
-        for (int i = 0; i < this.config_siege_blocks.size(); i++)
+        ArrayList<String> defaultBreakableBlocksList = new ArrayList<>();
+        for (Material siegeBlock : this.config_siege_blocks)
         {
-            defaultBreakableBlocksList.add(this.config_siege_blocks.get(i).name());
+            defaultBreakableBlocksList.add(siegeBlock.name());
         }
 
         //try to load the list from the config file
@@ -764,10 +761,9 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //parse the list of siege-breakable blocks
-        this.config_siege_blocks = new ArrayList<Material>();
-        for (int i = 0; i < breakableBlocksList.size(); i++)
+        this.config_siege_blocks = new ArrayList<>();
+        for (String blockName : breakableBlocksList)
         {
-            String blockName = breakableBlocksList.get(i);
             Material material = Material.getMaterial(blockName);
             if (material == null)
             {
@@ -902,8 +898,9 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.BlockSurfaceOtherExplosions", this.config_blockSurfaceOtherExplosions);
         outConfig.set("GriefPrevention.LimitSkyTrees", this.config_blockSkyTrees);
         outConfig.set("GriefPrevention.LimitTreeGrowth", this.config_limitTreeGrowth);
-        outConfig.set("GriefPrevention.CheckPistonMovement", this.config_checkPistonMovement);
-        outConfig.set("GriefPrevention.LimitPistonsToLandClaims", this.config_pistonsInClaimsOnly);
+        outConfig.set("GriefPrevention.PistonMovement", this.config_pistonMovement.name());
+        outConfig.set("GriefPrevention.CheckPistonMovement", null);
+        outConfig.set("GriefPrevention.LimitPistonsToLandClaims", null);
 
         outConfig.set("GriefPrevention.FireSpreads", this.config_fireSpreads);
         outConfig.set("GriefPrevention.FireDestroys", this.config_fireDestroys);
@@ -954,38 +951,38 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //try to parse the list of commands requiring access trust in land claims
-        this.config_claims_commandsRequiringAccessTrust = new ArrayList<String>();
+        this.config_claims_commandsRequiringAccessTrust = new ArrayList<>();
         String[] commands = accessTrustSlashCommands.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            if (!commands[i].isEmpty())
+            if (!command.isEmpty())
             {
-                this.config_claims_commandsRequiringAccessTrust.add(commands[i].trim().toLowerCase());
+                this.config_claims_commandsRequiringAccessTrust.add(command.trim().toLowerCase());
             }
         }
 
         //try to parse the list of commands which should be monitored for spam
-        this.config_spam_monitorSlashCommands = new ArrayList<String>();
+        this.config_spam_monitorSlashCommands = new ArrayList<>();
         commands = slashCommandsToMonitor.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            this.config_spam_monitorSlashCommands.add(commands[i].trim().toLowerCase());
+            this.config_spam_monitorSlashCommands.add(command.trim().toLowerCase());
         }
 
         //try to parse the list of commands which should be included in eavesdropping
-        this.config_eavesdrop_whisperCommands = new ArrayList<String>();
+        this.config_eavesdrop_whisperCommands = new ArrayList<>();
         commands = whisperCommandsToMonitor.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            this.config_eavesdrop_whisperCommands.add(commands[i].trim().toLowerCase());
+            this.config_eavesdrop_whisperCommands.add(command.trim().toLowerCase());
         }
 
         //try to parse the list of commands which should be banned during pvp combat
-        this.config_pvp_blockedCommands = new ArrayList<String>();
+        this.config_pvp_blockedCommands = new ArrayList<>();
         commands = bannedPvPCommandsList.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            this.config_pvp_blockedCommands.add(commands[i].trim().toLowerCase());
+            this.config_pvp_blockedCommands.add(command.trim().toLowerCase());
         }
     }
 
@@ -1323,9 +1320,9 @@ public class GriefPrevention extends JavaPlugin
         //abandonallclaims
         else if (cmd.getName().equalsIgnoreCase("abandonallclaims") && player != null)
         {
-            if (args.length != 1) return false;
+            if (args.length > 1) return false;
 
-            if (!"confirm".equalsIgnoreCase(args[0]))
+            if (args.length != 1 || !"confirm".equalsIgnoreCase(args[0]))
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.ConfirmAbandonAllClaims);
                 return true;
@@ -1494,51 +1491,51 @@ public class GriefPrevention extends JavaPlugin
 
             //otherwise build a list of explicit permissions by permission level
             //and send that to the player
-            ArrayList<String> builders = new ArrayList<String>();
-            ArrayList<String> containers = new ArrayList<String>();
-            ArrayList<String> accessors = new ArrayList<String>();
-            ArrayList<String> managers = new ArrayList<String>();
+            ArrayList<String> builders = new ArrayList<>();
+            ArrayList<String> containers = new ArrayList<>();
+            ArrayList<String> accessors = new ArrayList<>();
+            ArrayList<String> managers = new ArrayList<>();
             claim.getPermissions(builders, containers, accessors, managers);
 
             GriefPrevention.sendMessage(player, TextMode.Info, Messages.TrustListHeader);
 
             StringBuilder permissions = new StringBuilder();
-            permissions.append(ChatColor.GOLD + ">");
+            permissions.append(ChatColor.GOLD).append('>');
 
             if (managers.size() > 0)
             {
-                for (int i = 0; i < managers.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(managers.get(i)) + " ");
+                for (String manager : managers)
+                    permissions.append(this.trustEntryToPlayerName(manager)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
             permissions = new StringBuilder();
-            permissions.append(ChatColor.YELLOW + ">");
+            permissions.append(ChatColor.YELLOW).append('>');
 
             if (builders.size() > 0)
             {
-                for (int i = 0; i < builders.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(builders.get(i)) + " ");
+                for (String builder : builders)
+                    permissions.append(this.trustEntryToPlayerName(builder)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
             permissions = new StringBuilder();
-            permissions.append(ChatColor.GREEN + ">");
+            permissions.append(ChatColor.GREEN).append('>');
 
             if (containers.size() > 0)
             {
-                for (int i = 0; i < containers.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(containers.get(i)) + " ");
+                for (String container : containers)
+                    permissions.append(this.trustEntryToPlayerName(container)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
             permissions = new StringBuilder();
-            permissions.append(ChatColor.BLUE + ">");
+            permissions.append(ChatColor.BLUE).append('>');
 
             if (accessors.size() > 0)
             {
-                for (int i = 0; i < accessors.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(accessors.get(i)) + " ");
+                for (String accessor : accessors)
+                    permissions.append(this.trustEntryToPlayerName(accessor)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
@@ -2247,7 +2244,7 @@ public class GriefPrevention extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("adminclaimslist"))
         {
             //find admin claims
-            Vector<Claim> claims = new Vector<Claim>();
+            Vector<Claim> claims = new Vector<>();
             for (Claim claim : this.dataStore.claims)
             {
                 if (claim.ownerID == null)  //admin claim
@@ -2258,9 +2255,8 @@ public class GriefPrevention extends JavaPlugin
             if (claims.size() > 0)
             {
                 GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ClaimsListHeader);
-                for (int i = 0; i < claims.size(); i++)
+                for (Claim claim : claims)
                 {
-                    Claim claim = claims.get(i);
                     GriefPrevention.sendMessage(player, TextMode.Instr, getfriendlyLocationString(claim.getLesserBoundaryCorner()));
                 }
             }
@@ -2408,7 +2404,7 @@ public class GriefPrevention extends JavaPlugin
                 PlayerData playerData = this.dataStore.getPlayerData(playerID);
                 playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() + adjustment);
                 this.dataStore.savePlayerData(playerID, playerData);
-                builder.append(onlinePlayer.getName() + " ");
+                builder.append(onlinePlayer.getName()).append(' ');
             }
 
             GriefPrevention.sendMessage(player, TextMode.Success, Messages.AdjustBlocksAllSuccess, String.valueOf(adjustment));
@@ -3010,14 +3006,11 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //determine which claims should be modified
-        ArrayList<Claim> targetClaims = new ArrayList<Claim>();
+        ArrayList<Claim> targetClaims = new ArrayList<>();
         if (claim == null)
         {
             PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-            for (int i = 0; i < playerData.getClaims().size(); i++)
-            {
-                targetClaims.add(playerData.getClaims().get(i));
-            }
+            targetClaims.addAll(playerData.getClaims());
         }
         else
         {
@@ -3084,10 +3077,8 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //apply changes
-        for (int i = 0; i < targetClaims.size(); i++)
+        for (Claim currentClaim : targetClaims)
         {
-            Claim currentClaim = targetClaims.get(i);
-
             if (permissionLevel == null)
             {
                 if (!currentClaim.managers.contains(identifierToAdd))
@@ -3136,13 +3127,13 @@ public class GriefPrevention extends JavaPlugin
     }
 
     //helper method to resolve a player by name
-    ConcurrentHashMap<String, UUID> playerNameToIDMap = new ConcurrentHashMap<String, UUID>();
+    ConcurrentHashMap<String, UUID> playerNameToIDMap = new ConcurrentHashMap<>();
 
     //thread to build the above cache
     private class CacheOfflinePlayerNamesThread extends Thread
     {
-        private OfflinePlayer[] offlinePlayers;
-        private ConcurrentHashMap<String, UUID> playerNameToIDMap;
+        private final OfflinePlayer[] offlinePlayers;
+        private final ConcurrentHashMap<String, UUID> playerNameToIDMap;
 
         CacheOfflinePlayerNamesThread(OfflinePlayer[] offlinePlayers, ConcurrentHashMap<String, UUID> playerNameToIDMap)
         {
@@ -3306,16 +3297,16 @@ public class GriefPrevention extends JavaPlugin
         ItemStack[] armorStacks = inventory.getArmorContents();
 
         //check armor slots, stop if any items are found
-        for (int i = 0; i < armorStacks.length; i++)
+        for (ItemStack armorStack : armorStacks)
         {
-            if (!(armorStacks[i] == null || armorStacks[i].getType() == Material.AIR)) return false;
+            if (!(armorStack == null || armorStack.getType() == Material.AIR)) return false;
         }
 
         //check other slots, stop if any items are found
         ItemStack[] generalStacks = inventory.getContents();
-        for (int i = 0; i < generalStacks.length; i++)
+        for (ItemStack generalStack : generalStacks)
         {
-            if (!(generalStacks[i] == null || generalStacks[i].getType() == Material.AIR)) return false;
+            if (!(generalStack == null || generalStack.getType() == Material.AIR)) return false;
         }
 
         return true;
@@ -3662,7 +3653,7 @@ public class GriefPrevention extends JavaPlugin
         Location lesserCorner = newClaim.getLesserBoundaryCorner();
         Location greaterCorner = newClaim.getGreaterBoundaryCorner();
         World world = lesserCorner.getWorld();
-        ArrayList<ChunkSnapshot> snapshots = new ArrayList<ChunkSnapshot>();
+        ArrayList<ChunkSnapshot> snapshots = new ArrayList<>();
         for (int chunkx = lesserCorner.getBlockX() / 16; chunkx <= greaterCorner.getBlockX() / 16; chunkx++)
         {
             for (int chunkz = lesserCorner.getBlockZ() / 16; chunkz <= greaterCorner.getBlockZ() / 16; chunkz++)
@@ -3792,7 +3783,7 @@ public class GriefPrevention extends JavaPlugin
 	*/
 
     //Track scheduled "rescues" so we can cancel them if the player happens to teleport elsewhere so we can cancel it.
-    ConcurrentHashMap<UUID, BukkitTask> portalReturnTaskMap = new ConcurrentHashMap<UUID, BukkitTask>();
+    ConcurrentHashMap<UUID, BukkitTask> portalReturnTaskMap = new ConcurrentHashMap<>();
 
     public void startRescueTask(Player player, Location location)
     {

@@ -24,7 +24,7 @@ import java.util.Set;
 //ordered list of material info objects, for fast searching
 public class MaterialCollection
 {
-    Set<MaterialInfo> materials = new HashSet<MaterialInfo>();
+    Set<MaterialInfo> materials = new HashSet<>();
 
     void Add(MaterialInfo material)
     {
