@@ -462,7 +462,7 @@ public class Claim
             return null;
 
         // Look for explicit individual permission.
-        if (this.hasExplicitPermission(player, ClaimPermission.Access)) return null;
+        if (this.hasExplicitPermission(player, permission)) return null;
 
         // Check for public permission.
         if (permission.isGrantedBy(this.playerIDToClaimPermissionMap.get("public"))) return null;
