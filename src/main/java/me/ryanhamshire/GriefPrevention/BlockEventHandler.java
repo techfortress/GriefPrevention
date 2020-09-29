@@ -480,18 +480,18 @@ public class BlockEventHandler implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockPistonExtend(BlockPistonExtendEvent event)
     {
-        onPistonEvent(event, event.getBlocks(), true);
+        onPistonEvent(event, event.getBlocks(), false);
     }
 
     // Prevent pistons pulling blocks into or out of claims.
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockPistonRetract(BlockPistonRetractEvent event)
     {
-        onPistonEvent(event, event.getBlocks(), false);
+        onPistonEvent(event, event.getBlocks(), true);
     }
 
     // Handle piston push and pulls.
-    private void onPistonEvent(BlockPistonEvent event, List<Block> blocks, boolean isExtend)
+    private void onPistonEvent(BlockPistonEvent event, List<Block> blocks, boolean isRetract)
     {
         PistonMode pistonMode = GriefPrevention.instance.config_pistonMovement;
         // Return if piston movements are ignored.
@@ -501,6 +501,11 @@ public class BlockEventHandler implements Listener
         if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
 
         BlockFace direction = event.getDirection();
+
+        // Direction is always piston facing, correct for retraction.
+        if (isRetract)
+            direction = direction.getOppositeFace();
+
         Block pistonBlock = event.getBlock();
         Claim pistonClaim = this.dataStore.getClaimAt(pistonBlock.getLocation(), false, null);
 
@@ -540,20 +545,17 @@ public class BlockEventHandler implements Listener
             maxZ = Math.max(maxZ, block.getZ());
         }
 
-        // If extending, add direction to include invaded zone.
-        if (isExtend)
-        {
-            if (direction.getModX() > 0)
-                maxX += direction.getModX();
-            else
-                minX += direction.getModX();
-            if (direction.getModY() > 0)
-                maxY += direction.getModY();
-            if (direction.getModZ() > 0)
-                maxZ += direction.getModZ();
-            else
-                minZ += direction.getModZ();
-        }
+        // Add direction to include invaded zone.
+        if (direction.getModX() > 0)
+            maxX += direction.getModX();
+        else
+            minX += direction.getModX();
+        if (direction.getModY() > 0)
+            maxY += direction.getModY();
+        if (direction.getModZ() > 0)
+            maxZ += direction.getModZ();
+        else
+            minZ += direction.getModZ();
 
         /*
          * Claims-only mode. All moved blocks must be inside of the owning claim.
