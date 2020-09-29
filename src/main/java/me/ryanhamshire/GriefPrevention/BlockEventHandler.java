@@ -575,7 +575,7 @@ public class BlockEventHandler implements Listener
         }
 
         // Pushing down or pulling up is safe if all blocks are in line with the piston.
-        if (minX == maxX && minZ == maxZ && direction == (event instanceof BlockPistonExtendEvent ? BlockFace.DOWN : BlockFace.UP)) return;
+        if (minX == maxX && minZ == maxZ && direction == (isRetract ? BlockFace.UP : BlockFace.DOWN)) return;
 
         // Fast mode: Use the intersection of a cuboid containing all blocks instead of individual locations.
         if (pistonMode == PistonMode.EVERYWHERE_SIMPLE)
