@@ -480,18 +480,18 @@ public class BlockEventHandler implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockPistonExtend(BlockPistonExtendEvent event)
     {
-        onPistonEvent(event, event.getBlocks());
+        onPistonEvent(event, event.getBlocks(), true);
     }
 
     // Prevent pistons pulling blocks into or out of claims.
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockPistonRetract(BlockPistonRetractEvent event)
     {
-        onPistonEvent(event, event.getBlocks());
+        onPistonEvent(event, event.getBlocks(), false);
     }
 
     // Handle piston push and pulls.
-    private void onPistonEvent(BlockPistonEvent event, List<Block> blocks)
+    private void onPistonEvent(BlockPistonEvent event, List<Block> blocks, boolean isExtend)
     {
         PistonMode pistonMode = GriefPrevention.instance.config_pistonMovement;
         // Return if piston movements are ignored.
@@ -540,17 +540,20 @@ public class BlockEventHandler implements Listener
             maxZ = Math.max(maxZ, block.getZ());
         }
 
-        // Add direction to include invaded zone.
-        if (direction.getModX() > 0)
-            maxX += direction.getModX();
-        else
-            minX += direction.getModX();
-        if (direction.getModY() > 0)
-            maxY += direction.getModY();
-        if (direction.getModZ() > 0)
-            maxZ += direction.getModZ();
-        else
-            minZ += direction.getModZ();
+        // If extending, add direction to include invaded zone.
+        if (isExtend)
+        {
+            if (direction.getModX() > 0)
+                maxX += direction.getModX();
+            else
+                minX += direction.getModX();
+            if (direction.getModY() > 0)
+                maxY += direction.getModY();
+            if (direction.getModZ() > 0)
+                maxZ += direction.getModZ();
+            else
+                minZ += direction.getModZ();
+        }
 
         /*
          * Claims-only mode. All moved blocks must be inside of the owning claim.
