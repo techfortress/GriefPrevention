@@ -363,14 +363,26 @@ public class BlockEventHandler implements Listener
                         radius--;
                     }
 
-                    if (result != null && result.succeeded)
+                    if (result != null && result.claim != null)
                     {
-                        //notify and explain to player
-                        GriefPrevention.sendMessage(player, TextMode.Success, Messages.AutomaticClaimNotification);
+                        if (result.succeeded)
+                        {
+                            //notify and explain to player
+                            GriefPrevention.sendMessage(player, TextMode.Success, Messages.AutomaticClaimNotification);
 
-                        //show the player the protected area
-                        Visualization visualization = Visualization.FromClaim(result.claim, block.getY(), VisualizationType.Claim, player.getLocation());
-                        Visualization.Apply(player, visualization);
+                            //show the player the protected area
+                            Visualization visualization = Visualization.FromClaim(result.claim, block.getY(), VisualizationType.Claim, player.getLocation());
+                            Visualization.Apply(player, visualization);
+                        }
+                        else
+                        {
+                            //notify and explain to player
+                            GriefPrevention.sendMessage(player, TextMode.Err, Messages.AutomaticClaimOtherClaimTooClose);
+
+                            //show the player the protected area
+                            Visualization visualization = Visualization.FromClaim(result.claim, block.getY(), VisualizationType.ErrorClaim, player.getLocation());
+                            Visualization.Apply(player, visualization);
+                        }
                     }
                 }
 
