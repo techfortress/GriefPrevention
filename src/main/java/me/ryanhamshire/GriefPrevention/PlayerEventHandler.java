@@ -97,6 +97,7 @@ import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1449,8 +1450,8 @@ class PlayerEventHandler implements Listener
     }
 
     //block use of buckets within other players' claims
-    private final HashSet<Material> commonAdjacentBlocks_water = new HashSet<>(Arrays.asList(Material.WATER, Material.FARMLAND, Material.DIRT, Material.STONE));
-    private final HashSet<Material> commonAdjacentBlocks_lava = new HashSet<>(Arrays.asList(Material.LAVA, Material.DIRT, Material.STONE));
+    private final EnumSet<Material> commonAdjacentBlocks_water = EnumSet.of(Material.WATER, Material.FARMLAND, Material.DIRT, Material.STONE);
+    private final EnumSet<Material> commonAdjacentBlocks_lava = EnumSet.of(Material.LAVA, Material.DIRT, Material.STONE);
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerBucketEmpty(PlayerBucketEmptyEvent bucketEvent)
@@ -1515,7 +1516,7 @@ class PlayerEventHandler implements Listener
         if (block.getY() >= instance.getSeaLevel(block.getWorld()) - 5 && !player.hasPermission("griefprevention.lava") && block.getWorld().getEnvironment() != Environment.NETHER)
         {
             //if certain blocks are nearby, it's less suspicious and not worth logging
-            HashSet<Material> exclusionAdjacentTypes;
+            Set<Material> exclusionAdjacentTypes;
             if (bucketEvent.getBucket() == Material.WATER_BUCKET)
                 exclusionAdjacentTypes = this.commonAdjacentBlocks_water;
             else

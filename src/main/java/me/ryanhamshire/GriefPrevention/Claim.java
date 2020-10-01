@@ -469,18 +469,8 @@ public class Claim
         //if under siege, some blocks will be breakable
         if (this.siegeData != null || this.doorsOpen)
         {
-            boolean breakable = false;
-
             //search for block type in list of breakable blocks
-            for (int i = 0; i < GriefPrevention.instance.config_siege_blocks.size(); i++)
-            {
-                Material breakableMaterial = GriefPrevention.instance.config_siege_blocks.get(i);
-                if (breakableMaterial == material)
-                {
-                    breakable = true;
-                    break;
-                }
-            }
+            boolean breakable = GriefPrevention.instance.config_siege_blocks.contains(material);
 
             //custom error messages for siege mode
             if (!breakable)
@@ -878,7 +868,7 @@ public class Claim
     {
         //decide which blocks will be considered player placed
         Location lesserBoundaryCorner = this.getLesserBoundaryCorner();
-        ArrayList<Material> playerBlocks = RestoreNatureProcessingTask.getPlayerBlocks(lesserBoundaryCorner.getWorld().getEnvironment(), lesserBoundaryCorner.getBlock().getBiome());
+        EnumSet<Material> playerBlocks = RestoreNatureProcessingTask.getPlayerBlocks(lesserBoundaryCorner.getWorld().getEnvironment(), lesserBoundaryCorner.getBlock().getBiome());
 
         //scan the claim for player placed blocks
         double score = 0;

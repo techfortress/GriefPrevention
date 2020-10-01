@@ -58,6 +58,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
@@ -67,6 +68,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class GriefPrevention extends JavaPlugin
 {
@@ -141,7 +143,7 @@ public class GriefPrevention extends JavaPlugin
     public boolean config_claims_lecternReadingRequiresAccessTrust;                    //reading lecterns requires access trust
 
     public ArrayList<World> config_siege_enabledWorlds;                //whether or not /siege is enabled on this server
-    public ArrayList<Material> config_siege_blocks;                    //which blocks will be breakable in siege mode
+    public EnumSet<Material> config_siege_blocks;                    //which blocks will be breakable in siege mode
     public int config_siege_doorsOpenSeconds;  // how before claim is re-secured after siege win
     public int config_siege_cooldownEndInMinutes;
     public boolean config_spam_enabled;                                //whether or not to monitor for spam
@@ -704,7 +706,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //default siege blocks
-        this.config_siege_blocks = new ArrayList<>();
+        this.config_siege_blocks = EnumSet.noneOf(Material.class);
         this.config_siege_blocks.add(Material.DIRT);
         this.config_siege_blocks.add(Material.GRASS_BLOCK);
         this.config_siege_blocks.add(Material.GRASS);
@@ -739,35 +741,20 @@ public class GriefPrevention extends JavaPlugin
         this.config_siege_blocks.add(Material.BLACK_WOOL);
         this.config_siege_blocks.add(Material.SNOW);
 
-        //build a default config entry
-        ArrayList<String> defaultBreakableBlocksList = new ArrayList<>();
-        for (Material siegeBlock : this.config_siege_blocks)
-        {
-            defaultBreakableBlocksList.add(siegeBlock.name());
-        }
+        List<String> breakableBlocksList;
 
         //try to load the list from the config file
-        List<String> breakableBlocksList = config.getStringList("GriefPrevention.Siege.BreakableBlocks");
-
-        //if it fails, use default list instead
-        if (breakableBlocksList == null || breakableBlocksList.size() == 0)
+        if (config.isList("GriefPrevention.Siege.BreakableBlocks"))
         {
-            breakableBlocksList = defaultBreakableBlocksList;
+            breakableBlocksList = config.getStringList("GriefPrevention.Siege.BreakableBlocks");
+
+            //load materials
+            this.config_siege_blocks = parseMaterialListFromConfig(breakableBlocksList);
         }
-
-        //parse the list of siege-breakable blocks
-        this.config_siege_blocks = new ArrayList<>();
-        for (String blockName : breakableBlocksList)
+        //if it fails, use default siege block list instead
+        else
         {
-            Material material = Material.getMaterial(blockName);
-            if (material == null)
-            {
-                GriefPrevention.AddLogEntry("Siege Configuration: Material not found: " + blockName + ".");
-            }
-            else
-            {
-                this.config_siege_blocks.add(material);
-            }
+            breakableBlocksList = this.config_siege_blocks.stream().map(Material::name).collect(Collectors.toList());
         }
 
         this.config_siege_doorsOpenSeconds = config.getInt("GriefPrevention.Siege.DoorsOpenDelayInSeconds", 5 * 60);
@@ -3574,35 +3561,43 @@ public class GriefPrevention extends JavaPlugin
         GriefPrevention.instance.getServer().getScheduler().runTaskLaterAsynchronously(GriefPrevention.instance, task, delayInTicks);
     }
 
-    private void parseMaterialListFromConfig(List<String> stringsToParse, MaterialCollection materialCollection)
+    private EnumSet<Material> parseMaterialListFromConfig(List<String> stringsToParse)
     {
-        materialCollection.clear();
+        EnumSet<Material> materials = EnumSet.noneOf(Material.class);
 
         //for each string in the list
         for (int i = 0; i < stringsToParse.size(); i++)
         {
-            //try to parse the string value into a material info
-            MaterialInfo materialInfo = MaterialInfo.fromString(stringsToParse.get(i));
+            String string = stringsToParse.get(i);
+
+            //defensive coding
+            if (string == null) continue;
+
+            //try to parse the string value into a material
+            Material material = Material.getMaterial(string.toUpperCase());
 
             //null value returned indicates an error parsing the string from the config file
-            if (materialInfo == null)
+            if (material == null)
             {
-                //show error in log
-                GriefPrevention.AddLogEntry("ERROR: Unable to read a material entry from the config file.  Please update your config.yml.");
-
-                //update string, which will go out to config file to help user find the error entry
-                if (!stringsToParse.get(i).contains("can't"))
+                //check if string has failed validity before
+                if (!string.contains("can't"))
                 {
-                    stringsToParse.set(i, stringsToParse.get(i) + "     <-- can't understand this entry, see BukkitDev documentation");
+                    //update string, which will go out to config file to help user find the error entry
+                    stringsToParse.set(i, string + "     <-- can't understand this entry, see BukkitDev documentation");
+
+                    //warn about invalid material in log
+                    GriefPrevention.AddLogEntry(String.format("ERROR: Invalid material %s.  Please update your config.yml.", string));
                 }
             }
 
-            //otherwise store the valid entry in config data
+            //otherwise material is valid, add it
             else
             {
-                materialCollection.Add(materialInfo);
+                materials.add(material);
             }
         }
+
+        return materials;
     }
 
     public int getSeaLevel(World world)
