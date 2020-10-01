@@ -4,7 +4,7 @@ softdepend: [Vault, Multiverse-Core, My_Worlds, MystCraft, Transporter, TheUnder
 dev-url: https://dev.bukkit.org/projects/grief-prevention
 loadbefore: [TheUnderground]
 version: '${project.version}-${git.commit.id.abbrev}'
-api-version: '1.15'
+api-version: '1.16'
 commands:
     abandonclaim:
       description: Deletes a claim.
@@ -61,7 +61,7 @@ commands:
       aliases: acb
     adjustbonusclaimblocksall:
       description: Adds or subtracts bonus claim blocks for all online players.
-      usage: /AdjustBonusClaimBlocksAll <player> <amount>
+      usage: /AdjustBonusClaimBlocksAll <amount>
       permission: griefprevention.adjustclaimblocks
       aliases: acball
     setaccruedclaimblocks:

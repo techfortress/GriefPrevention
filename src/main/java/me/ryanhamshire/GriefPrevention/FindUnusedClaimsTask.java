@@ -31,47 +31,49 @@ import java.util.stream.Collectors;
 //...because the player has been gone a REALLY long time, and that expiration has been configured in config.yml
 
 //runs every 1 minute in the main thread
-class FindUnusedClaimsTask implements Runnable 
+class FindUnusedClaimsTask implements Runnable
 {
-	private List<UUID> claimOwnerUUIDs;
-	private Iterator<UUID> claimOwnerIterator;
-	
-	FindUnusedClaimsTask()
-	{
-		refreshUUIDs();
-	}
-	
-	@Override
-	public void run()
-	{
-		//don't do anything when there are no claims
-		if(claimOwnerUUIDs.isEmpty()) return;
+    private List<UUID> claimOwnerUUIDs;
+    private Iterator<UUID> claimOwnerIterator;
 
-		//wrap search around to beginning
-		if(!claimOwnerIterator.hasNext())
-		{
-			refreshUUIDs();
-			return;
-		}
-		
-		GriefPrevention.instance.getServer().getScheduler().runTaskAsynchronously(GriefPrevention.instance, new CleanupUnusedClaimPreTask(claimOwnerIterator.next()));
-	}
+    FindUnusedClaimsTask()
+    {
+        refreshUUIDs();
+    }
 
-	public void refreshUUIDs() {
-		// Fetch owner UUIDs from list of claims
-		claimOwnerUUIDs = GriefPrevention.instance.dataStore.claims.stream().map(claim -> claim.ownerID)
-						.distinct().filter(Objects::nonNull).collect(Collectors.toList());
+    @Override
+    public void run()
+    {
+        //don't do anything when there are no claims
+        if (claimOwnerUUIDs.isEmpty()) return;
 
-		if (!claimOwnerUUIDs.isEmpty()) {
-			// Randomize order
-			Collections.shuffle(claimOwnerUUIDs);
-		}
+        //wrap search around to beginning
+        if (!claimOwnerIterator.hasNext())
+        {
+            refreshUUIDs();
+            return;
+        }
 
-		GriefPrevention.AddLogEntry("The following UUIDs own a claim and will be checked for inactivity in the following order:", CustomLogEntryTypes.Debug, true);
+        GriefPrevention.instance.getServer().getScheduler().runTaskAsynchronously(GriefPrevention.instance, new CleanupUnusedClaimPreTask(claimOwnerIterator.next()));
+    }
 
-		for (UUID uuid : claimOwnerUUIDs)
-			GriefPrevention.AddLogEntry(uuid.toString(), CustomLogEntryTypes.Debug, true);
+    public void refreshUUIDs()
+    {
+        // Fetch owner UUIDs from list of claims
+        claimOwnerUUIDs = GriefPrevention.instance.dataStore.claims.stream().map(claim -> claim.ownerID)
+                .distinct().filter(Objects::nonNull).collect(Collectors.toList());
 
-		claimOwnerIterator = claimOwnerUUIDs.iterator();
-	}
+        if (!claimOwnerUUIDs.isEmpty())
+        {
+            // Randomize order
+            Collections.shuffle(claimOwnerUUIDs);
+        }
+
+        GriefPrevention.AddLogEntry("The following UUIDs own a claim and will be checked for inactivity in the following order:", CustomLogEntryTypes.Debug, true);
+
+        for (UUID uuid : claimOwnerUUIDs)
+            GriefPrevention.AddLogEntry(uuid.toString(), CustomLogEntryTypes.Debug, true);
+
+        claimOwnerIterator = claimOwnerUUIDs.iterator();
+    }
 }

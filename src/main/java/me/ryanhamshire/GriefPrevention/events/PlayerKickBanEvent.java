@@ -34,8 +34,8 @@ public class PlayerKickBanEvent extends Event
     /**
      * @param player Player getting kicked and/or banned
      * @param reason Reason message for kick/ban
-     *               @param source What caused the kick/ban
-     *               @param ban True if player is getting banned
+     * @param source What caused the kick/ban
+     * @param ban True if player is getting banned
      */
     public PlayerKickBanEvent(Player player, String reason, String source, boolean ban)
     {

@@ -6,7 +6,7 @@
 
     <groupId>me.ryanhamshire</groupId>
     <artifactId>GriefPrevention</artifactId>
-    <version>16.13.0</version>
+    <version>16.14.0</version>
     <properties>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
@@ -23,7 +23,7 @@
         </repository>
         <repository>
             <id>worldedit-worldguard-repo</id>
-            <url>http://maven.sk89q.com/repo/</url>
+            <url>https://maven.enginehub.org/repo/</url>
         </repository>
         <repository>
             <id>essx-repo</id>
@@ -71,16 +71,16 @@
     <dependencies>
         <!--Bukkit API-->
         <dependency>
-                <groupId>org.bukkit</groupId>
-                <artifactId>bukkit</artifactId>
-                <version>1.15.2-R0.1-SNAPSHOT</version>
+                <groupId>org.spigotmc</groupId>
+                <artifactId>spigot-api</artifactId>
+                <version>1.16.1-R0.1-SNAPSHOT</version>
                 <scope>provided</scope>
         </dependency>
          <!--Worldguard dependency-->
         <dependency>
                 <groupId>com.sk89q.worldguard</groupId>
-                <artifactId>worldguard-legacy</artifactId>
-                <version>7.0.0-SNAPSHOT</version>
+                <artifactId>worldguard-bukkit</artifactId>
+                <version>7.0.4-SNAPSHOT</version>
                 <scope>provided</scope>
                 <exclusions>
                     <exclusion>
@@ -113,6 +113,31 @@
                         <artifactId>bukkit</artifactId>
                     </exclusion>
                 </exclusions>
+        </dependency>
+        <!--Tests-->
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>5.6.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>5.6.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>3.4.6</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <version>3.4.6</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 

@@ -15,26 +15,26 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
+
 package me.ryanhamshire.GriefPrevention;
 
 //basic enum stuff
-public enum ClaimPermission 
+public enum ClaimPermission
 {
-	Build,
-	Inventory,
-	Access;
+    Build,
+    Inventory,
+    Access;
 
-	/**
-	 * Check if a ClaimPermission is granted by another ClaimPermission.
-	 *
-	 * @param other the ClaimPermission to compare against
-	 * @return true if this ClaimPermission is equal or lesser than the provided ClaimPermission
-	 */
-	public boolean isGrantedBy(ClaimPermission other)
-	{
-		// As this uses declaration order to compare, if trust levels are reordered this method must be rewritten.
-		return other != null && other.ordinal() <= this.ordinal();
-	}
+    /**
+     * Check if a ClaimPermission is granted by another ClaimPermission.
+     *
+     * @param other the ClaimPermission to compare against
+     * @return true if this ClaimPermission is equal or lesser than the provided ClaimPermission
+     */
+    public boolean isGrantedBy(ClaimPermission other)
+    {
+        // As this uses declaration order to compare, if trust levels are reordered this method must be rewritten.
+        return other != null && other.ordinal() <= this.ordinal();
+    }
 
 }

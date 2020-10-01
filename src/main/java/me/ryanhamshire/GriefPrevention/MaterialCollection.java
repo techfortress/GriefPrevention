@@ -24,31 +24,31 @@ import java.util.Set;
 //ordered list of material info objects, for fast searching
 public class MaterialCollection
 {
-	Set<MaterialInfo> materials = new HashSet<MaterialInfo>();
-	
-	void Add(MaterialInfo material)
-	{
-		this.materials.add(material);
-	}
-	
-	boolean Contains(MaterialInfo material)
-	{
-		return this.materials.contains(material);
-	}
-	
-	@Override
-	public String toString()
-	{
-		return materials.toString();
-	}
-	
-	public int size()
-	{
-		return this.materials.size();
-	}
+    Set<MaterialInfo> materials = new HashSet<MaterialInfo>();
 
-	public void clear() 
-	{
-		this.materials.clear();
-	}
+    void Add(MaterialInfo material)
+    {
+        this.materials.add(material);
+    }
+
+    boolean Contains(MaterialInfo material)
+    {
+        return this.materials.contains(material);
+    }
+
+    @Override
+    public String toString()
+    {
+        return materials.toString();
+    }
+
+    public int size()
+    {
+        return this.materials.size();
+    }
+
+    public void clear()
+    {
+        this.materials.clear();
+    }
 }

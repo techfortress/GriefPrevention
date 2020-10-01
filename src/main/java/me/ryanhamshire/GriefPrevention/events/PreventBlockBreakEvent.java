@@ -10,7 +10,7 @@ public class PreventBlockBreakEvent extends Event implements Cancellable
 {
     private static final HandlerList handlers = new HandlerList();
     private boolean cancelled = false;
-    private BlockBreakEvent innerEvent; 
+    private BlockBreakEvent innerEvent;
 
     public static HandlerList getHandlerList()
     {
@@ -21,7 +21,7 @@ public class PreventBlockBreakEvent extends Event implements Cancellable
     {
         this.innerEvent = innerEvent;
     }
-    
+
     public BlockBreakEvent getInnerEvent()
     {
         return this.innerEvent;
@@ -32,13 +32,13 @@ public class PreventBlockBreakEvent extends Event implements Cancellable
     {
         return handlers;
     }
-    
+
     @Override
     public boolean isCancelled()
     {
         return this.cancelled;
     }
-    
+
     @Override
     public void setCancelled(boolean cancelled)
     {

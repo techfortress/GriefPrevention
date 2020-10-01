@@ -16,12 +16,12 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
- package me.ryanhamshire.GriefPrevention;
-
-import java.util.Collection;
+package me.ryanhamshire.GriefPrevention;
 
 import me.ryanhamshire.GriefPrevention.events.AccrueClaimBlocksEvent;
 import org.bukkit.entity.Player;
+
+import java.util.Collection;
 
 //FEATURE: give players claim blocks for playing, as long as they're not away from their computer
 
@@ -43,13 +43,13 @@ class DeliverClaimBlocksTask implements Runnable
     public void run()
     {
         //if no player specified, this task will create a player-specific task for each online player, scheduled one tick apart
-        if(this.player == null)
+        if (this.player == null)
         {
             @SuppressWarnings("unchecked")
-            Collection<Player> players = (Collection<Player>)GriefPrevention.instance.getServer().getOnlinePlayers();
+            Collection<Player> players = (Collection<Player>) GriefPrevention.instance.getServer().getOnlinePlayers();
 
             long i = 0;
-            for(Player onlinePlayer : players)
+            for (Player onlinePlayer : players)
             {
                 DeliverClaimBlocksTask newTask = new DeliverClaimBlocksTask(onlinePlayer, instance);
                 instance.getServer().getScheduler().scheduleSyncDelayedTask(instance, newTask, i++);
@@ -59,7 +59,7 @@ class DeliverClaimBlocksTask implements Runnable
         }
 
         //deliver claim blocks to the specified player
-        if(!this.player.isOnline())
+        if (!this.player.isOnline())
         {
             return; //player is not online to receive claim blocks
         }
@@ -76,7 +76,7 @@ class DeliverClaimBlocksTask implements Runnable
             isIdle = player.isInsideVehicle() || player.getLocation().getBlock().isLiquid() ||
                     !(playerData.lastAfkCheckLocation == null || playerData.lastAfkCheckLocation.distanceSquared(player.getLocation()) > idleThresholdSquared);
         }
-        catch(IllegalArgumentException ignore) //can't measure distance when to/from are different worlds
+        catch (IllegalArgumentException ignore) //can't measure distance when to/from are different worlds
         {
         }
 
@@ -119,7 +119,7 @@ class DeliverClaimBlocksTask implements Runnable
             //many other operations will cause this player's data to save, including his eventual logout
             //dataStore.savePlayerData(player.getUniqueIdentifier(), playerData);
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             GriefPrevention.AddLogEntry("Problem delivering claim blocks to player " + player.getName() + ":");
             e.printStackTrace();

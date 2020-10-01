@@ -1,7 +1,6 @@
 package me.ryanhamshire.GriefPrevention.events;
 
 import me.ryanhamshire.GriefPrevention.Claim;
-
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -34,13 +33,13 @@ public class PreventPvPEvent extends Event implements Cancellable
     {
         return handlers;
     }
-    
+
     @Override
     public boolean isCancelled()
     {
         return this.cancelled;
     }
-    
+
     @Override
     public void setCancelled(boolean cancelled)
     {

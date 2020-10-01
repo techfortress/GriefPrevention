@@ -14,6 +14,7 @@ import java.util.concurrent.Callable;
 public class MetricsHandler
 {
     private Metrics metrics;
+
     public MetricsHandler(GriefPrevention plugin, String dataMode)
     {
         metrics = new Metrics(plugin);
@@ -23,7 +24,7 @@ public class MetricsHandler
             addSimplePie("custom_build", plugin.getDescription().getVersion().equals("15.2.2"));
             addSimplePie("bukkit_impl", plugin.getServer().getVersion().split("-")[1]);
         }
-        catch (Throwable ignored){}
+        catch (Throwable ignored) {}
 
         //enums and etc. would be amazing.
 

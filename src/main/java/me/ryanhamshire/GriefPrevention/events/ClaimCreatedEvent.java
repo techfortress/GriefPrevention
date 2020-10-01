@@ -13,11 +13,13 @@ import org.bukkit.event.HandlerList;
  * Created by Narimm on 5/08/2018.
  */
 
-public class ClaimCreatedEvent extends Event implements Cancellable {
+public class ClaimCreatedEvent extends Event implements Cancellable
+{
 
     private static final HandlerList handlers = new HandlerList();
 
-    public static HandlerList getHandlerList() {
+    public static HandlerList getHandlerList()
+    {
         return handlers;
     }
 
@@ -27,23 +29,27 @@ public class ClaimCreatedEvent extends Event implements Cancellable {
 
     private boolean cancelled = false;
 
-    public ClaimCreatedEvent(Claim claim, CommandSender creator) {
+    public ClaimCreatedEvent(Claim claim, CommandSender creator)
+    {
         this.claim = claim;
         this.creator = creator;
     }
 
     @Override
-    public HandlerList getHandlers() {
+    public HandlerList getHandlers()
+    {
         return handlers;
     }
 
     @Override
-    public boolean isCancelled() {
+    public boolean isCancelled()
+    {
         return cancelled;
     }
 
     @Override
-    public void setCancelled(boolean b) {
+    public void setCancelled(boolean b)
+    {
         this.cancelled = b;
     }
 
@@ -52,7 +58,8 @@ public class ClaimCreatedEvent extends Event implements Cancellable {
      *
      * @return Claim
      */
-    public Claim getClaim() {
+    public Claim getClaim()
+    {
         return claim;
     }
 
@@ -61,7 +68,8 @@ public class ClaimCreatedEvent extends Event implements Cancellable {
      *
      * @return the CommandSender
      */
-    public CommandSender getCreator() {
+    public CommandSender getCreator()
+    {
         return creator;
     }
 }

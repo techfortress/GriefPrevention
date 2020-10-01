@@ -15,16 +15,16 @@
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
- 
- package me.ryanhamshire.GriefPrevention;
+
+package me.ryanhamshire.GriefPrevention;
 
 //enumeration for golden shovel modes
-public enum ShovelMode 
+public enum ShovelMode
 {
-	Basic,
-	Admin,
-	Subdivide,
-	RestoreNature,
-	RestoreNatureAggressive,
-	RestoreNatureFill
+    Basic,
+    Admin,
+    Subdivide,
+    RestoreNature,
+    RestoreNatureAggressive,
+    RestoreNatureFill
 }

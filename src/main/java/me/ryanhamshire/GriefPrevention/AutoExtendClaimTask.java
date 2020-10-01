@@ -1,12 +1,12 @@
 package me.ryanhamshire.GriefPrevention;
 
-import java.util.ArrayList;
-
 import org.bukkit.Bukkit;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.Material;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Biome;
+
+import java.util.ArrayList;
 
 //automatically extends a claim downward based on block types detected
 class AutoExtendClaimTask implements Runnable
@@ -26,7 +26,7 @@ class AutoExtendClaimTask implements Runnable
     public void run()
     {
         int newY = this.getLowestBuiltY();
-        if(newY < this.claim.getLesserBoundaryCorner().getBlockY())
+        if (newY < this.claim.getLesserBoundaryCorner().getBlockY())
         {
             Bukkit.getScheduler().runTask(GriefPrevention.instance, new ExecuteExtendClaimTask(claim, newY));
         }
@@ -35,73 +35,73 @@ class AutoExtendClaimTask implements Runnable
     private int getLowestBuiltY()
     {
         int y = this.claim.getLesserBoundaryCorner().getBlockY();
-        
-        if(this.yTooSmall(y)) return y;
+
+        if (this.yTooSmall(y)) return y;
 
         try
         {
-            for(ChunkSnapshot chunk : this.chunks)
+            for (ChunkSnapshot chunk : this.chunks)
             {
-                Biome biome = chunk.getBiome(0,  0);
+                Biome biome = chunk.getBiome(0, 0);
                 ArrayList<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
 
                 boolean ychanged = true;
-                while(!this.yTooSmall(y) && ychanged)
+                while (!this.yTooSmall(y) && ychanged)
                 {
                     ychanged = false;
-                    for(int x = 0; x < 16; x++)
+                    for (int x = 0; x < 16; x++)
                     {
-                        for(int z = 0; z < 16; z++)
+                        for (int z = 0; z < 16; z++)
                         {
                             Material blockType = chunk.getBlockType(x, y, z);
-                            while(!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
+                            while (!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
                             {
                                 ychanged = true;
                                 blockType = chunk.getBlockType(x, --y, z);
                             }
 
-                            if(this.yTooSmall(y)) return y;
+                            if (this.yTooSmall(y)) return y;
                         }
                     }
                 }
 
-                if(this.yTooSmall(y)) return y;
+                if (this.yTooSmall(y)) return y;
             }
         }
         catch (NoSuchMethodError e)
         {
             GriefPrevention.instance.getLogger().severe("You are running an outdated build of Craftbukkit/Spigot/Paper. Please update.");
-            for(ChunkSnapshot chunk : this.chunks)
+            for (ChunkSnapshot chunk : this.chunks)
             {
-                Biome biome = chunk.getBiome(0,  0);
+                Biome biome = chunk.getBiome(0, 0);
                 ArrayList<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
 
                 boolean ychanged = true;
-                while(!this.yTooSmall(y) && ychanged)
+                while (!this.yTooSmall(y) && ychanged)
                 {
                     ychanged = false;
-                    for(int x = 0; x < 16; x++)
+                    for (int x = 0; x < 16; x++)
                     {
-                        for(int z = 0; z < 16; z++)
+                        for (int z = 0; z < 16; z++)
                         {
-                            	Material blockType = chunk.getBlockType(x, y, z);
-				while(!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
-				{
-				    ychanged = true;
-				    blockType = chunk.getBlockType(x, --y, z);
-				}
+                            Material blockType = chunk.getBlockType(x, y, z);
+                            while (!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
+                            {
+                                ychanged = true;
+                                blockType = chunk.getBlockType(x, --y, z);
+                            }
 
-				if(this.yTooSmall(y)) return y;
+                            if (this.yTooSmall(y)) return y;
                         }
                     }
                 }
 
-                if(this.yTooSmall(y)) return y;
+                if (this.yTooSmall(y)) return y;
             }
 
         }
 
-        
+
         return y;
     }
 
@@ -109,7 +109,7 @@ class AutoExtendClaimTask implements Runnable
     {
         return y == 0 || y <= GriefPrevention.instance.config_claims_maxDepth;
     }
-    
+
     //runs in the main execution thread, where it can safely change claims and save those changes
     private class ExecuteExtendClaimTask implements Runnable
     {
