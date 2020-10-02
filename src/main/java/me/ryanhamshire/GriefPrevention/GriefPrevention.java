@@ -62,6 +62,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
@@ -143,7 +144,7 @@ public class GriefPrevention extends JavaPlugin
     public boolean config_claims_lecternReadingRequiresAccessTrust;                    //reading lecterns requires access trust
 
     public ArrayList<World> config_siege_enabledWorlds;                //whether or not /siege is enabled on this server
-    public EnumSet<Material> config_siege_blocks;                    //which blocks will be breakable in siege mode
+    public Set<Material> config_siege_blocks;                    //which blocks will be breakable in siege mode
     public int config_siege_doorsOpenSeconds;  // how before claim is re-secured after siege win
     public int config_siege_cooldownEndInMinutes;
     public boolean config_spam_enabled;                                //whether or not to monitor for spam
@@ -3561,9 +3562,9 @@ public class GriefPrevention extends JavaPlugin
         GriefPrevention.instance.getServer().getScheduler().runTaskLaterAsynchronously(GriefPrevention.instance, task, delayInTicks);
     }
 
-    private EnumSet<Material> parseMaterialListFromConfig(List<String> stringsToParse)
+    private Set<Material> parseMaterialListFromConfig(List<String> stringsToParse)
     {
-        EnumSet<Material> materials = EnumSet.noneOf(Material.class);
+        Set<Material> materials = EnumSet.noneOf(Material.class);
 
         //for each string in the list
         for (int i = 0; i < stringsToParse.size(); i++)

@@ -30,6 +30,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.EnumSet;
+import java.util.Set;
 
 //non-main-thread task which processes world data to repair the unnatural
 //after processing is complete, creates a main thread task to make the necessary changes to the world
@@ -52,8 +53,8 @@ class RestoreNatureProcessingTask implements Runnable
     private final boolean aggressiveMode;
 
     //two lists of materials
-    private final EnumSet<Material> notAllowedToHang;    //natural blocks which don't naturally hang in their air
-    private final EnumSet<Material> playerBlocks;        //a "complete" list of player-placed blocks.  MUST BE MAINTAINED as patches introduce more
+    private final Set<Material> notAllowedToHang;    //natural blocks which don't naturally hang in their air
+    private final Set<Material> playerBlocks;        //a "complete" list of player-placed blocks.  MUST BE MAINTAINED as patches introduce more
 
 
     public RestoreNatureProcessingTask(BlockSnapshot[][][] snapshots, int miny, Environment environment, Biome biome, Location lesserBoundaryCorner, Location greaterBoundaryCorner, int seaLevel, boolean aggressiveMode, boolean creativeMode, Player player)
@@ -643,12 +644,12 @@ class RestoreNatureProcessingTask implements Runnable
     }
 
 
-    static EnumSet<Material> getPlayerBlocks(Environment environment, Biome biome)
+    static Set<Material> getPlayerBlocks(Environment environment, Biome biome)
     {
         //NOTE on this list.  why not make a list of natural blocks?
         //answer: better to leave a few player blocks than to remove too many natural blocks.  remember we're "restoring nature"
         //a few extra player blocks can be manually removed, but it will be impossible to guess exactly which natural materials to use in manual repair of an overzealous block removal
-        EnumSet<Material> playerBlocks = EnumSet.noneOf(Material.class);
+        Set<Material> playerBlocks = EnumSet.noneOf(Material.class);
         playerBlocks.add(Material.FIRE);
         playerBlocks.add(Material.WHITE_BED);
         playerBlocks.add(Material.ORANGE_BED);
