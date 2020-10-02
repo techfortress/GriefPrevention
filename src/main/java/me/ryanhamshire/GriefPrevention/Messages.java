@@ -101,6 +101,7 @@ public enum Messages
     TooDeepToClaim,
     ChestClaimConfirmation,
     AutomaticClaimNotification,
+    AutomaticClaimOtherClaimTooClose,
     UnprotectedChestWarning,
     ThatPlayerPvPImmune,
     CantFightWhileImmune,

@@ -57,6 +57,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.InventoryHolder;
@@ -333,7 +334,7 @@ public class BlockEventHandler implements Listener
                 else
                 {
                     //if failure due to insufficient claim blocks available
-                    if (playerData.getRemainingClaimBlocks() < 1)
+                    if (playerData.getRemainingClaimBlocks() < Math.pow(1 + 2 * GriefPrevention.instance.config_claims_automaticClaimsForNewPlayersRadiusMin, 2))
                     {
                         GriefPrevention.sendMessage(player, TextMode.Warn, Messages.NoEnoughBlocksForChestClaim);
                         return;
@@ -342,7 +343,7 @@ public class BlockEventHandler implements Listener
                     //as long as the automatic claim overlaps another existing claim, shrink it
                     //note that since the player had permission to place the chest, at the very least, the automatic claim will include the chest
                     CreateClaimResult result = null;
-                    while (radius >= 0)
+                    while (radius >= GriefPrevention.instance.config_claims_automaticClaimsForNewPlayersRadiusMin)
                     {
                         int area = (radius * 2 + 1) * (radius * 2 + 1);
                         if (playerData.getRemainingClaimBlocks() >= area)
@@ -362,14 +363,26 @@ public class BlockEventHandler implements Listener
                         radius--;
                     }
 
-                    if (result != null && result.succeeded && result.claim != null)
+                    if (result != null && result.claim != null)
                     {
-                        //notify and explain to player
-                        GriefPrevention.sendMessage(player, TextMode.Success, Messages.AutomaticClaimNotification);
+                        if (result.succeeded)
+                        {
+                            //notify and explain to player
+                            GriefPrevention.sendMessage(player, TextMode.Success, Messages.AutomaticClaimNotification);
 
-                        //show the player the protected area
-                        Visualization visualization = Visualization.FromClaim(result.claim, block.getY(), VisualizationType.Claim, player.getLocation());
-                        Visualization.Apply(player, visualization);
+                            //show the player the protected area
+                            Visualization visualization = Visualization.FromClaim(result.claim, block.getY(), VisualizationType.Claim, player.getLocation());
+                            Visualization.Apply(player, visualization);
+                        }
+                        else
+                        {
+                            //notify and explain to player
+                            GriefPrevention.sendMessage(player, TextMode.Err, Messages.AutomaticClaimOtherClaimTooClose);
+
+                            //show the player the protected area
+                            Visualization visualization = Visualization.FromClaim(result.claim, block.getY(), VisualizationType.ErrorClaim, player.getLocation());
+                            Visualization.Apply(player, visualization);
+                        }
                     }
                 }
 
@@ -1017,6 +1030,23 @@ public class BlockEventHandler implements Listener
                     }
                 }
             }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onItemFrameBrokenByBoat(final HangingBreakEvent event)
+    {
+        // Checks if the event is caused by physics - 90% of cases caused by a boat (other 10% would be block,
+        // however since it's in a claim, unless you use a TNT block we don't need to worry about it).
+        if (event.getCause() != HangingBreakEvent.RemoveCause.PHYSICS)
+        {
+            return;
+        }
+
+        // Cancels the event if in a claim, as we can not efficiently retrieve the person/entity who broke the Item Frame/Hangable Item.
+        if (this.dataStore.getClaimAt(event.getEntity().getLocation(), false, null) != null)
+        {
+            event.setCancelled(true);
         }
     }
 }
