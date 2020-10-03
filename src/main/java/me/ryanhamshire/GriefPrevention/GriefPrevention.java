@@ -49,7 +49,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.BlockIterator;
@@ -177,6 +176,7 @@ public class GriefPrevention extends JavaPlugin
     public boolean config_lockDeathDropsInPvpWorlds;                //whether players' dropped on death items are protected in pvp worlds
     public boolean config_lockDeathDropsInNonPvpWorlds;             //whether players' dropped on death items are protected in non-pvp worlds
 
+    private EconomyHandler economyHandler;
     public int config_economy_claimBlocksMaxBonus;                  //max "bonus" blocks a player can buy.  set to zero for no limit.
     public double config_economy_claimBlocksPurchaseCost;            //cost to purchase a claim block.  set to zero to disable purchase.
     public double config_economy_claimBlocksSellValue;                //return on a sold claim block.  set to zero to disable sale.
@@ -231,9 +231,6 @@ public class GriefPrevention extends JavaPlugin
     private String databaseUserName;
     private String databasePassword;
 
-
-    //reference to the economy plugin, if economy integration is enabled
-    public static Economy economy = null;
 
     //how far away to search from a tree trunk for its branch blocks
     public static final int TREE_RADIUS = 5;
@@ -362,41 +359,9 @@ public class GriefPrevention extends JavaPlugin
         EntityEventHandler entityEventHandler = new EntityEventHandler(this.dataStore, this);
         pluginManager.registerEvents(entityEventHandler, this);
 
-        //if economy is enabled
-        if (this.config_economy_claimBlocksPurchaseCost > 0 || this.config_economy_claimBlocksSellValue > 0)
-        {
-            //try to load Vault
-            GriefPrevention.AddLogEntry("GriefPrevention requires Vault for economy integration.");
-            GriefPrevention.AddLogEntry("Attempting to load Vault...");
-            RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
-            GriefPrevention.AddLogEntry("Vault loaded successfully!");
-
-            //ask Vault to hook into an economy plugin
-            GriefPrevention.AddLogEntry("Looking for a Vault-compatible economy plugin...");
-            if (economyProvider != null)
-            {
-                GriefPrevention.economy = economyProvider.getProvider();
-
-                //on success, display success message
-                if (GriefPrevention.economy != null)
-                {
-                    GriefPrevention.AddLogEntry("Hooked into economy: " + GriefPrevention.economy.getName() + ".");
-                    GriefPrevention.AddLogEntry("Ready to buy/sell claim blocks!");
-                }
-
-                //otherwise error message
-                else
-                {
-                    GriefPrevention.AddLogEntry("ERROR: Vault was unable to find a supported economy plugin.  Either install a Vault-compatible economy plugin, or set both of the economy config variables to zero.");
-                }
-            }
-
-            //another error case
-            else
-            {
-                GriefPrevention.AddLogEntry("ERROR: Vault was unable to find a supported economy plugin.  Either install a Vault-compatible economy plugin, or set both of the economy config variables to zero.");
-            }
-        }
+        //vault-based economy integration
+        economyHandler = new EconomyHandler(this);
+        pluginManager.registerEvents(economyHandler, this);
 
         //cache offline players
         OfflinePlayer[] offlinePlayers = this.getServer().getOfflinePlayers();
@@ -1795,7 +1760,8 @@ public class GriefPrevention extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("buyclaimblocks") && player != null)
         {
             //if economy is disabled, don't do anything
-            if (GriefPrevention.economy == null)
+            EconomyHandler.EconomyWrapper economyWrapper = economyHandler.getWrapper();
+            if (economyWrapper == null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.BuySellNotConfigured);
                 return true;
@@ -1814,10 +1780,12 @@ public class GriefPrevention extends JavaPlugin
                 return true;
             }
 
+            Economy economy = economyWrapper.getEconomy();
+
             //if no parameter, just tell player cost per block and balance
             if (args.length != 1)
             {
-                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, String.valueOf(GriefPrevention.instance.config_economy_claimBlocksPurchaseCost), String.valueOf(GriefPrevention.economy.getBalance(player.getName())));
+                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, String.valueOf(GriefPrevention.instance.config_economy_claimBlocksPurchaseCost), String.valueOf(economy.getBalance(player)));
                 return false;
             }
             else
@@ -1841,7 +1809,7 @@ public class GriefPrevention extends JavaPlugin
                 }
 
                 //if the player can't afford his purchase, send error message
-                double balance = economy.getBalance(player.getName());
+                double balance = economy.getBalance(player);
                 double totalCost = blockCount * GriefPrevention.instance.config_economy_claimBlocksPurchaseCost;
                 if (totalCost > balance)
                 {
@@ -1862,7 +1830,7 @@ public class GriefPrevention extends JavaPlugin
                     }
 
                     //withdraw cost
-                    economy.withdrawPlayer(player.getName(), totalCost);
+                    economy.withdrawPlayer(player, totalCost);
 
                     //add blocks
                     playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() + blockCount);
@@ -1880,7 +1848,8 @@ public class GriefPrevention extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("sellclaimblocks") && player != null)
         {
             //if economy is disabled, don't do anything
-            if (GriefPrevention.economy == null)
+            EconomyHandler.EconomyWrapper economyWrapper = economyHandler.getWrapper();
+            if (economyWrapper == null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.BuySellNotConfigured);
                 return true;
@@ -1937,7 +1906,7 @@ public class GriefPrevention extends JavaPlugin
             {
                 //compute value and deposit it
                 double totalValue = blockCount * GriefPrevention.instance.config_economy_claimBlocksSellValue;
-                economy.depositPlayer(player.getName(), totalValue);
+                economyWrapper.getEconomy().depositPlayer(player, totalValue);
 
                 //subtract blocks
                 playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() - blockCount);
