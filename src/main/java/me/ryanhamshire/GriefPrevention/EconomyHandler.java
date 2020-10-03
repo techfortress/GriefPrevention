@@ -30,7 +30,7 @@ public class EconomyHandler implements Listener
     EconomyWrapper getWrapper()
     {
         // Attempt to load the Economy if it is not already set up.
-        loadEconomy(true);
+        loadEconomy(false);
 
         return economy;
     }
@@ -43,7 +43,7 @@ public class EconomyHandler implements Listener
     @EventHandler
     private void onPluginEnable(PluginEnableEvent event)
     {
-        loadEconomy(false);
+        loadEconomy(true);
     }
 
     /**
@@ -54,18 +54,19 @@ public class EconomyHandler implements Listener
     @EventHandler
     private void onPluginDisable(PluginDisableEvent event)
     {
-        loadEconomy(false);
+        loadEconomy(true);
     }
 
     /**
-     * Attempt to change economy.
+     * Attempt to change economy. If the setup state does not match the
+     * provided value this does nothing to prevent unnecessary loads.
      *
-     * @param skipIfSetUp whether or not to refresh Economy even if it is already set
+     * @param setupState the expected setup state
      */
-    private void loadEconomy(boolean skipIfSetUp)
+    private void loadEconomy(boolean setupState)
     {
         // If no change is likely, have we already obtained the Economy?
-        if (skipIfSetUp && setupDone) return;
+        if (setupState != setupDone) return;
 
         // Are we configured to allow transactions?
         if (!(instance.config_economy_claimBlocksPurchaseCost > 0 || instance.config_economy_claimBlocksSellValue > 0))
