@@ -39,67 +39,32 @@ class AutoExtendClaimTask implements Runnable
 
         if (this.yTooSmall(y)) return y;
 
-        try
+        for (ChunkSnapshot chunk : this.chunks)
         {
-            for (ChunkSnapshot chunk : this.chunks)
+            Biome biome = chunk.getBiome(0, 0);
+            Set<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
+
+            boolean ychanged = true;
+            while (!this.yTooSmall(y) && ychanged)
             {
-                Biome biome = chunk.getBiome(0, 0);
-                Set<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
-
-                boolean ychanged = true;
-                while (!this.yTooSmall(y) && ychanged)
+                ychanged = false;
+                for (int x = 0; x < 16; x++)
                 {
-                    ychanged = false;
-                    for (int x = 0; x < 16; x++)
+                    for (int z = 0; z < 16; z++)
                     {
-                        for (int z = 0; z < 16; z++)
+                        Material blockType = chunk.getBlockType(x, y, z);
+                        while (!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
                         {
-                            Material blockType = chunk.getBlockType(x, y, z);
-                            while (!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
-                            {
-                                ychanged = true;
-                                blockType = chunk.getBlockType(x, --y, z);
-                            }
-
-                            if (this.yTooSmall(y)) return y;
+                            ychanged = true;
+                            blockType = chunk.getBlockType(x, --y, z);
                         }
+
+                        if (this.yTooSmall(y)) return y;
                     }
                 }
-
-                if (this.yTooSmall(y)) return y;
-            }
-        }
-        catch (NoSuchMethodError e)
-        {
-            GriefPrevention.instance.getLogger().severe("You are running an outdated build of Craftbukkit/Spigot/Paper. Please update.");
-            for (ChunkSnapshot chunk : this.chunks)
-            {
-                Biome biome = chunk.getBiome(0, 0);
-                Set<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
-
-                boolean ychanged = true;
-                while (!this.yTooSmall(y) && ychanged)
-                {
-                    ychanged = false;
-                    for (int x = 0; x < 16; x++)
-                    {
-                        for (int z = 0; z < 16; z++)
-                        {
-                            Material blockType = chunk.getBlockType(x, y, z);
-                            while (!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
-                            {
-                                ychanged = true;
-                                blockType = chunk.getBlockType(x, --y, z);
-                            }
-
-                            if (this.yTooSmall(y)) return y;
-                        }
-                    }
-                }
-
-                if (this.yTooSmall(y)) return y;
             }
 
+            if (this.yTooSmall(y)) return y;
         }
 
 
