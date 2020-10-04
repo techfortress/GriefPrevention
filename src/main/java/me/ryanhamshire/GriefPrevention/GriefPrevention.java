@@ -30,6 +30,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -38,7 +39,6 @@ import org.bukkit.Statistic;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -52,7 +52,6 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.BlockIterator;
 
 import java.io.File;
 import java.io.IOException;
@@ -2703,11 +2702,12 @@ public class GriefPrevention extends JavaPlugin
         //gpblockinfo
         else if (cmd.getName().equalsIgnoreCase("gpblockinfo") && player != null)
         {
-            ItemStack inHand = player.getItemInHand();
-            player.sendMessage("In Hand: " + String.format("%s(dValue:%s)", inHand.getType().name(), inHand.getData().getData()));
+            ItemStack inHand = player.getInventory().getItemInMainHand();
+            player.sendMessage("In Hand: " + inHand.getType().name());
 
-            Block inWorld = GriefPrevention.getTargetNonAirBlock(player, 300);
-            player.sendMessage("In World: " + String.format("%s(dValue:%s)", inWorld.getType().name(), inWorld.getData()));
+            Block inWorld = player.getTargetBlockExact(300, FluidCollisionMode.ALWAYS);
+            if (inWorld == null) inWorld = player.getEyeLocation().getBlock();
+            player.sendMessage("In World: " + inWorld.getType().name());
 
             return true;
         }
@@ -3616,19 +3616,6 @@ public class GriefPrevention extends JavaPlugin
         {
             return overrideValue;
         }
-    }
-
-    private static Block getTargetNonAirBlock(Player player, int maxDistance) throws IllegalStateException
-    {
-        BlockIterator iterator = new BlockIterator(player.getLocation(), player.getEyeHeight(), maxDistance);
-        Block result = player.getLocation().getBlock().getRelative(BlockFace.UP);
-        while (iterator.hasNext())
-        {
-            result = iterator.next();
-            if (result.getType() != Material.AIR) return result;
-        }
-
-        return result;
     }
 
     public boolean containsBlockedIP(String message)
