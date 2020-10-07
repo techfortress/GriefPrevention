@@ -367,17 +367,7 @@ public class EntityEventHandler implements Listener
             if (claim != null && claim.siegeData != null)
             {
                 Material material = block.getType();
-                boolean breakable = false;
-                for (int j = 0; j < GriefPrevention.instance.config_siege_blocks.size(); j++)
-                {
-                    Material breakableMaterial = GriefPrevention.instance.config_siege_blocks.get(j);
-                    if (breakableMaterial == material)
-                    {
-                        breakable = true;
-                        explodedBlocks.add(block);
-                        break;
-                    }
-                }
+                boolean breakable = GriefPrevention.instance.config_siege_blocks.contains(material);
 
                 if (breakable) continue;
             }
