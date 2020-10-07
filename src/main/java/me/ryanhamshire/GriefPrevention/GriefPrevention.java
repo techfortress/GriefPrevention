@@ -30,6 +30,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -38,7 +39,6 @@ import org.bukkit.Statistic;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -49,24 +49,25 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.BlockIterator;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class GriefPrevention extends JavaPlugin
 {
@@ -142,7 +143,7 @@ public class GriefPrevention extends JavaPlugin
     public boolean config_claims_lecternReadingRequiresAccessTrust;                    //reading lecterns requires access trust
 
     public ArrayList<World> config_siege_enabledWorlds;                //whether or not /siege is enabled on this server
-    public ArrayList<Material> config_siege_blocks;                    //which blocks will be breakable in siege mode
+    public Set<Material> config_siege_blocks;                    //which blocks will be breakable in siege mode
     public int config_siege_doorsOpenSeconds;  // how before claim is re-secured after siege win
     public int config_siege_cooldownEndInMinutes;
     public boolean config_spam_enabled;                                //whether or not to monitor for spam
@@ -174,6 +175,7 @@ public class GriefPrevention extends JavaPlugin
     public boolean config_lockDeathDropsInPvpWorlds;                //whether players' dropped on death items are protected in pvp worlds
     public boolean config_lockDeathDropsInNonPvpWorlds;             //whether players' dropped on death items are protected in non-pvp worlds
 
+    private EconomyHandler economyHandler;
     public int config_economy_claimBlocksMaxBonus;                  //max "bonus" blocks a player can buy.  set to zero for no limit.
     public double config_economy_claimBlocksPurchaseCost;            //cost to purchase a claim block.  set to zero to disable purchase.
     public double config_economy_claimBlocksSellValue;                //return on a sold claim block.  set to zero to disable sale.
@@ -228,9 +230,6 @@ public class GriefPrevention extends JavaPlugin
     private String databaseUserName;
     private String databasePassword;
 
-
-    //reference to the economy plugin, if economy integration is enabled
-    public static Economy economy = null;
 
     //how far away to search from a tree trunk for its branch blocks
     public static final int TREE_RADIUS = 5;
@@ -359,41 +358,9 @@ public class GriefPrevention extends JavaPlugin
         EntityEventHandler entityEventHandler = new EntityEventHandler(this.dataStore, this);
         pluginManager.registerEvents(entityEventHandler, this);
 
-        //if economy is enabled
-        if (this.config_economy_claimBlocksPurchaseCost > 0 || this.config_economy_claimBlocksSellValue > 0)
-        {
-            //try to load Vault
-            GriefPrevention.AddLogEntry("GriefPrevention requires Vault for economy integration.");
-            GriefPrevention.AddLogEntry("Attempting to load Vault...");
-            RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
-            GriefPrevention.AddLogEntry("Vault loaded successfully!");
-
-            //ask Vault to hook into an economy plugin
-            GriefPrevention.AddLogEntry("Looking for a Vault-compatible economy plugin...");
-            if (economyProvider != null)
-            {
-                GriefPrevention.economy = economyProvider.getProvider();
-
-                //on success, display success message
-                if (GriefPrevention.economy != null)
-                {
-                    GriefPrevention.AddLogEntry("Hooked into economy: " + GriefPrevention.economy.getName() + ".");
-                    GriefPrevention.AddLogEntry("Ready to buy/sell claim blocks!");
-                }
-
-                //otherwise error message
-                else
-                {
-                    GriefPrevention.AddLogEntry("ERROR: Vault was unable to find a supported economy plugin.  Either install a Vault-compatible economy plugin, or set both of the economy config variables to zero.");
-                }
-            }
-
-            //another error case
-            else
-            {
-                GriefPrevention.AddLogEntry("ERROR: Vault was unable to find a supported economy plugin.  Either install a Vault-compatible economy plugin, or set both of the economy config variables to zero.");
-            }
-        }
+        //vault-based economy integration
+        economyHandler = new EconomyHandler(this);
+        pluginManager.registerEvents(economyHandler, this);
 
         //cache offline players
         OfflinePlayer[] offlinePlayers = this.getServer().getOfflinePlayers();
@@ -707,7 +674,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //default siege blocks
-        this.config_siege_blocks = new ArrayList<>();
+        this.config_siege_blocks = EnumSet.noneOf(Material.class);
         this.config_siege_blocks.add(Material.DIRT);
         this.config_siege_blocks.add(Material.GRASS_BLOCK);
         this.config_siege_blocks.add(Material.GRASS);
@@ -742,35 +709,20 @@ public class GriefPrevention extends JavaPlugin
         this.config_siege_blocks.add(Material.BLACK_WOOL);
         this.config_siege_blocks.add(Material.SNOW);
 
-        //build a default config entry
-        ArrayList<String> defaultBreakableBlocksList = new ArrayList<>();
-        for (Material siegeBlock : this.config_siege_blocks)
-        {
-            defaultBreakableBlocksList.add(siegeBlock.name());
-        }
+        List<String> breakableBlocksList;
 
         //try to load the list from the config file
-        List<String> breakableBlocksList = config.getStringList("GriefPrevention.Siege.BreakableBlocks");
-
-        //if it fails, use default list instead
-        if (breakableBlocksList == null || breakableBlocksList.size() == 0)
+        if (config.isList("GriefPrevention.Siege.BreakableBlocks"))
         {
-            breakableBlocksList = defaultBreakableBlocksList;
+            breakableBlocksList = config.getStringList("GriefPrevention.Siege.BreakableBlocks");
+
+            //load materials
+            this.config_siege_blocks = parseMaterialListFromConfig(breakableBlocksList);
         }
-
-        //parse the list of siege-breakable blocks
-        this.config_siege_blocks = new ArrayList<>();
-        for (String blockName : breakableBlocksList)
+        //if it fails, use default siege block list instead
+        else
         {
-            Material material = Material.getMaterial(blockName);
-            if (material == null)
-            {
-                GriefPrevention.AddLogEntry("Siege Configuration: Material not found: " + blockName + ".");
-            }
-            else
-            {
-                this.config_siege_blocks.add(material);
-            }
+            breakableBlocksList = this.config_siege_blocks.stream().map(Material::name).collect(Collectors.toList());
         }
 
         this.config_siege_doorsOpenSeconds = config.getInt("GriefPrevention.Siege.DoorsOpenDelayInSeconds", 5 * 60);
@@ -1807,7 +1759,8 @@ public class GriefPrevention extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("buyclaimblocks") && player != null)
         {
             //if economy is disabled, don't do anything
-            if (GriefPrevention.economy == null)
+            EconomyHandler.EconomyWrapper economyWrapper = economyHandler.getWrapper();
+            if (economyWrapper == null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.BuySellNotConfigured);
                 return true;
@@ -1826,10 +1779,12 @@ public class GriefPrevention extends JavaPlugin
                 return true;
             }
 
+            Economy economy = economyWrapper.getEconomy();
+
             //if no parameter, just tell player cost per block and balance
             if (args.length != 1)
             {
-                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, String.valueOf(GriefPrevention.instance.config_economy_claimBlocksPurchaseCost), String.valueOf(GriefPrevention.economy.getBalance(player.getName())));
+                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, String.valueOf(GriefPrevention.instance.config_economy_claimBlocksPurchaseCost), String.valueOf(economy.getBalance(player)));
                 return false;
             }
             else
@@ -1853,7 +1808,7 @@ public class GriefPrevention extends JavaPlugin
                 }
 
                 //if the player can't afford his purchase, send error message
-                double balance = economy.getBalance(player.getName());
+                double balance = economy.getBalance(player);
                 double totalCost = blockCount * GriefPrevention.instance.config_economy_claimBlocksPurchaseCost;
                 if (totalCost > balance)
                 {
@@ -1874,7 +1829,7 @@ public class GriefPrevention extends JavaPlugin
                     }
 
                     //withdraw cost
-                    economy.withdrawPlayer(player.getName(), totalCost);
+                    economy.withdrawPlayer(player, totalCost);
 
                     //add blocks
                     playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() + blockCount);
@@ -1892,7 +1847,8 @@ public class GriefPrevention extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("sellclaimblocks") && player != null)
         {
             //if economy is disabled, don't do anything
-            if (GriefPrevention.economy == null)
+            EconomyHandler.EconomyWrapper economyWrapper = economyHandler.getWrapper();
+            if (economyWrapper == null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.BuySellNotConfigured);
                 return true;
@@ -1949,7 +1905,7 @@ public class GriefPrevention extends JavaPlugin
             {
                 //compute value and deposit it
                 double totalValue = blockCount * GriefPrevention.instance.config_economy_claimBlocksSellValue;
-                economy.depositPlayer(player.getName(), totalValue);
+                economyWrapper.getEconomy().depositPlayer(player, totalValue);
 
                 //subtract blocks
                 playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() - blockCount);
@@ -2715,11 +2671,12 @@ public class GriefPrevention extends JavaPlugin
         //gpblockinfo
         else if (cmd.getName().equalsIgnoreCase("gpblockinfo") && player != null)
         {
-            ItemStack inHand = player.getItemInHand();
-            player.sendMessage("In Hand: " + String.format("%s(dValue:%s)", inHand.getType().name(), inHand.getData().getData()));
+            ItemStack inHand = player.getInventory().getItemInMainHand();
+            player.sendMessage("In Hand: " + inHand.getType().name());
 
-            Block inWorld = GriefPrevention.getTargetNonAirBlock(player, 300);
-            player.sendMessage("In World: " + String.format("%s(dValue:%s)", inWorld.getType().name(), inWorld.getData()));
+            Block inWorld = player.getTargetBlockExact(300, FluidCollisionMode.ALWAYS);
+            if (inWorld == null) inWorld = player.getEyeLocation().getBlock();
+            player.sendMessage("In World: " + inWorld.getType().name());
 
             return true;
         }
@@ -3578,35 +3535,43 @@ public class GriefPrevention extends JavaPlugin
         GriefPrevention.instance.getServer().getScheduler().runTaskLaterAsynchronously(GriefPrevention.instance, task, delayInTicks);
     }
 
-    private void parseMaterialListFromConfig(List<String> stringsToParse, MaterialCollection materialCollection)
+    private Set<Material> parseMaterialListFromConfig(List<String> stringsToParse)
     {
-        materialCollection.clear();
+        Set<Material> materials = EnumSet.noneOf(Material.class);
 
         //for each string in the list
         for (int i = 0; i < stringsToParse.size(); i++)
         {
-            //try to parse the string value into a material info
-            MaterialInfo materialInfo = MaterialInfo.fromString(stringsToParse.get(i));
+            String string = stringsToParse.get(i);
+
+            //defensive coding
+            if (string == null) continue;
+
+            //try to parse the string value into a material
+            Material material = Material.getMaterial(string.toUpperCase());
 
             //null value returned indicates an error parsing the string from the config file
-            if (materialInfo == null)
+            if (material == null)
             {
-                //show error in log
-                GriefPrevention.AddLogEntry("ERROR: Unable to read a material entry from the config file.  Please update your config.yml.");
-
-                //update string, which will go out to config file to help user find the error entry
-                if (!stringsToParse.get(i).contains("can't"))
+                //check if string has failed validity before
+                if (!string.contains("can't"))
                 {
-                    stringsToParse.set(i, stringsToParse.get(i) + "     <-- can't understand this entry, see BukkitDev documentation");
+                    //update string, which will go out to config file to help user find the error entry
+                    stringsToParse.set(i, string + "     <-- can't understand this entry, see BukkitDev documentation");
+
+                    //warn about invalid material in log
+                    GriefPrevention.AddLogEntry(String.format("ERROR: Invalid material %s.  Please update your config.yml.", string));
                 }
             }
 
-            //otherwise store the valid entry in config data
+            //otherwise material is valid, add it
             else
             {
-                materialCollection.Add(materialInfo);
+                materials.add(material);
             }
         }
+
+        return materials;
     }
 
     public int getSeaLevel(World world)
@@ -3620,19 +3585,6 @@ public class GriefPrevention extends JavaPlugin
         {
             return overrideValue;
         }
-    }
-
-    private static Block getTargetNonAirBlock(Player player, int maxDistance) throws IllegalStateException
-    {
-        BlockIterator iterator = new BlockIterator(player.getLocation(), player.getEyeHeight(), maxDistance);
-        Block result = player.getLocation().getBlock().getRelative(BlockFace.UP);
-        while (iterator.hasNext())
-        {
-            result = iterator.next();
-            if (result.getType() != Material.AIR) return result;
-        }
-
-        return result;
     }
 
     public boolean containsBlockedIP(String message)

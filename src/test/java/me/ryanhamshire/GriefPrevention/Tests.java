@@ -2,7 +2,6 @@ package me.ryanhamshire.GriefPrevention;
 
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.UUID;
@@ -68,8 +67,10 @@ public class Tests
     @Test
     public void testWordFinderEmptyList()
     {
-        WordFinder finder = new WordFinder(new ArrayList<>());
+        WordFinder finder = new WordFinder(Collections.emptyList());
         assertFalse(finder.hasMatch("alpha"));
+        finder = new WordFinder(Collections.singletonList(""));
+        assertFalse(finder.hasMatch("beta"));
     }
 
     @Test
