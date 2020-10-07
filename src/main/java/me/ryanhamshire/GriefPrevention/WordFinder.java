@@ -29,6 +29,8 @@ class WordFinder
             //trim extraneous leading pipe (|)
             patternString = patternString.substring(1);
         }
+        // No words are defined, match nothing.
+        else return;
 
         this.pattern = Pattern.compile(patternString, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     }

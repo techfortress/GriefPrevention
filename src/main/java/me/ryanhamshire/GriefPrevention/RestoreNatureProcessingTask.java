@@ -31,6 +31,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
 
 //non-main-thread task which processes world data to repair the unnatural
 //after processing is complete, creates a main thread task to make the necessary changes to the world
@@ -53,8 +55,8 @@ class RestoreNatureProcessingTask implements Runnable
     private final boolean aggressiveMode;
 
     //two lists of materials
-    private final ArrayList<Material> notAllowedToHang;    //natural blocks which don't naturally hang in their air
-    private final ArrayList<Material> playerBlocks;        //a "complete" list of player-placed blocks.  MUST BE MAINTAINED as patches introduce more
+    private final Set<Material> notAllowedToHang;    //natural blocks which don't naturally hang in their air
+    private final Set<Material> playerBlocks;        //a "complete" list of player-placed blocks.  MUST BE MAINTAINED as patches introduce more
 
 
     public RestoreNatureProcessingTask(@NotNull BlockSnapshot[][][] snapshots, int miny, @NotNull Environment environment,
@@ -74,7 +76,7 @@ class RestoreNatureProcessingTask implements Runnable
         this.player = player;
         this.creativeMode = creativeMode;
 
-        this.notAllowedToHang = new ArrayList<>();
+        this.notAllowedToHang = EnumSet.noneOf(Material.class);
         this.notAllowedToHang.add(Material.DIRT);
         this.notAllowedToHang.add(Material.GRASS);
         this.notAllowedToHang.add(Material.SNOW);
@@ -91,7 +93,7 @@ class RestoreNatureProcessingTask implements Runnable
             this.notAllowedToHang.add(Material.STONE);
         }
 
-        this.playerBlocks = new ArrayList<>();
+        this.playerBlocks = EnumSet.noneOf(Material.class);
         this.playerBlocks.addAll(RestoreNatureProcessingTask.getPlayerBlocks(this.environment, this.biome));
 
         //in aggressive or creative world mode, also treat these blocks as user placed, to be removed
@@ -647,12 +649,12 @@ class RestoreNatureProcessingTask implements Runnable
     }
 
 
-    static ArrayList<Material> getPlayerBlocks(Environment environment, Biome biome)
+    static Set<Material> getPlayerBlocks(Environment environment, Biome biome)
     {
         //NOTE on this list.  why not make a list of natural blocks?
         //answer: better to leave a few player blocks than to remove too many natural blocks.  remember we're "restoring nature"
         //a few extra player blocks can be manually removed, but it will be impossible to guess exactly which natural materials to use in manual repair of an overzealous block removal
-        ArrayList<Material> playerBlocks = new ArrayList<>();
+        Set<Material> playerBlocks = EnumSet.noneOf(Material.class);
         playerBlocks.add(Material.FIRE);
         playerBlocks.add(Material.WHITE_BED);
         playerBlocks.add(Material.ORANGE_BED);

@@ -8,6 +8,7 @@ import org.bukkit.block.Biome;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 //automatically extends a claim downward based on block types detected
 class AutoExtendClaimTask implements Runnable
@@ -44,7 +45,7 @@ class AutoExtendClaimTask implements Runnable
             for (ChunkSnapshot chunk : this.chunks)
             {
                 Biome biome = chunk.getBiome(0, 0);
-                ArrayList<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
+                Set<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
 
                 boolean ychanged = true;
                 while (!this.yTooSmall(y) && ychanged)
@@ -75,7 +76,7 @@ class AutoExtendClaimTask implements Runnable
             for (ChunkSnapshot chunk : this.chunks)
             {
                 Biome biome = chunk.getBiome(0, 0);
-                ArrayList<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
+                Set<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
 
                 boolean ychanged = true;
                 while (!this.yTooSmall(y) && ychanged)
