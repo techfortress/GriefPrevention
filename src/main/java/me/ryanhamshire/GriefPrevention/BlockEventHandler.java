@@ -302,7 +302,7 @@ public class BlockEventHandler implements Listener
                 Block relative = block.getRelative(face);
                 if (!(relative.getBlockData() instanceof Chest)) continue;
 
-                Claim relativeClaim = this.dataStore.getClaimAt(relative.getLocation(), true, playerData.lastClaim);
+                Claim relativeClaim = this.dataStore.getClaimAt(relative.getLocation(), true, claim);
 
                 // Chests outside claims should connect (both null)
                 // and chests inside the same claim should connect (equal)
