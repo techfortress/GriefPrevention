@@ -434,7 +434,21 @@ public class Claim
      */
     public String checkPermission(Player player, ClaimPermission permission, Event event)
     {
-        return callPermissionCheck(new ClaimPermissionCheckEvent(player, this, permission, event));
+        return checkPermission(player, permission, event, null);
+    }
+
+    /**
+     * Check whether or not a Player has a certain level of trust. For internal use; allows changing default message.
+     *
+     * @param player the Player being checked for permissions
+     * @param permission the ClaimPermission level required
+     * @param event the Event triggering the permission check
+     * @param denialOverride a message overriding the default denial for clarity
+     * @return the denial message or null if permission is granted
+     */
+    String checkPermission(Player player, ClaimPermission permission, Event event, String denialOverride)
+    {
+        return callPermissionCheck(new ClaimPermissionCheckEvent(player, this, permission, event), denialOverride);
     }
 
     /**
@@ -447,20 +461,27 @@ public class Claim
      */
     public String checkPermission(UUID uuid, ClaimPermission permission, Event event)
     {
-        return callPermissionCheck(new ClaimPermissionCheckEvent(uuid, this, permission, event));
+        return callPermissionCheck(new ClaimPermissionCheckEvent(uuid, this, permission, event), null);
     }
 
     /**
      * Helper method for calling a ClaimPermissionCheckEvent.
      *
      * @param event the ClaimPermissionCheckEvent to call
+     * @param denialOverride a message overriding the default denial for clarity
      * @return the denial reason or null if permission is granted
      */
-    private String callPermissionCheck(ClaimPermissionCheckEvent event)
+    private String callPermissionCheck(ClaimPermissionCheckEvent event, String denialOverride)
     {
-        // Set denial message (if any) using default behavior, then allow addons to modify.
-        event.setDenialReason(getDefaultDenial(event.getCheckedPlayer(), event.getCheckedUUID(),
-                event.getRequiredPermission(), event.getTriggeringEvent()));
+        // Set denial message (if any) using default behavior.
+        String defaultDenial = getDefaultDenial(event.getCheckedPlayer(), event.getCheckedUUID(),
+                event.getRequiredPermission(), event.getTriggeringEvent());
+        // If permission is denied and a clarifying override is provided, use override.
+        if (defaultDenial != null && denialOverride != null) {
+            defaultDenial = denialOverride;
+        }
+
+        event.setDenialReason(defaultDenial);
 
         Bukkit.getPluginManager().callEvent(event);
 

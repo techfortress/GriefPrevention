@@ -1137,7 +1137,14 @@ public class EntityEventHandler implements Listener
                     //otherwise the player damaging the entity must have permission, unless it's a dog in a pvp world
                     else if (!(event.getEntity().getWorld().getPVP() && event.getEntity().getType() == EntityType.WOLF))
                     {
-                        String noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event);
+                        String override = null;
+                        if (sendErrorMessagesToPlayers)
+                        {
+                            override = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                            if (attacker.hasPermission("griefprevention.ignoreclaims"))
+                                override += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                        }
+                        String noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event, override);
                         if (noContainersReason != null)
                         {
                             event.setCancelled(true);
@@ -1149,10 +1156,7 @@ public class EntityEventHandler implements Listener
 
                             if (sendErrorMessagesToPlayers)
                             {
-                                String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
-                                if (attacker.hasPermission("griefprevention.ignoreclaims"))
-                                    message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                                GriefPrevention.sendMessage(attacker, TextMode.Err, message);
+                                GriefPrevention.sendMessage(attacker, TextMode.Err, noContainersReason);
                             }
                             event.setCancelled(true);
                         }
@@ -1326,15 +1330,14 @@ public class EntityEventHandler implements Listener
             //otherwise the player damaging the entity must have permission
             else
             {
-                String noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event);
+                String override = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                if (attacker.hasPermission("griefprevention.ignoreclaims"))
+                    override += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                String noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event, override);
                 if (noContainersReason != null)
                 {
                     event.setCancelled(true);
-                    String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
-                    if (attacker.hasPermission("griefprevention.ignoreclaims"))
-                        message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                    GriefPrevention.sendMessage(attacker, TextMode.Err, message);
-                    event.setCancelled(true);
+                    GriefPrevention.sendMessage(attacker, TextMode.Err, noContainersReason);
                 }
 
                 //cache claim for later
@@ -1376,7 +1379,9 @@ public class EntityEventHandler implements Listener
                         if (claim != null)
                         {
                             cachedClaim = claim;
-                            if (thrower == null || claim.checkPermission(thrower, ClaimPermission.Inventory, event) != null)
+                            String override = instance.dataStore.getMessage(Messages.NoDamageClaimedEntity);
+                            final String noContainersReason = claim.checkPermission(thrower, ClaimPermission.Inventory, event, override);
+                            if (thrower == null || noContainersReason != null)
                             {
                                 event.setIntensity(effected, 0);
                                 instance.sendMessage(thrower, TextMode.Err, Messages.NoDamageClaimedEntity, claim.getOwnerName());
