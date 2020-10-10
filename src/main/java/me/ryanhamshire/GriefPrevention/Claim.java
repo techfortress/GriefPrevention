@@ -616,6 +616,15 @@ public class Claim
         return reason;
     }
 
+    public String allowEntityInteraction(Player player)
+    {
+        if (GriefPrevention.instance.config_claims_entityInteractionRequiresBuildTrust)
+        {
+            return allowBuild(player, null);
+        }
+        return allowContainers(player);
+    }
+
     public ClaimPermission getPermission(String playerID)
     {
         if (playerID == null || playerID.isEmpty())

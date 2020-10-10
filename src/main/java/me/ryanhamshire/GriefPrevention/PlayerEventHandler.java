@@ -1306,7 +1306,7 @@ class PlayerEventHandler implements Listener
             Claim claim = this.dataStore.getClaimAt(entity.getLocation(), false, null);
             if (claim != null)
             {
-                if (claim.allowContainers(player) != null)
+                if (claim.allowEntityInteraction(player) != null)
                 {
                     String message = instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
                     if (player.hasPermission("griefprevention.ignoreclaims"))
@@ -1324,7 +1324,7 @@ class PlayerEventHandler implements Listener
             Claim claim = this.dataStore.getClaimAt(entity.getLocation(), false, playerData.lastClaim);
             if (claim != null)
             {
-                String failureReason = claim.allowContainers(player);
+                String failureReason = claim.allowEntityInteraction(player);
                 if (failureReason != null)
                 {
                     event.setCancelled(true);
@@ -1351,7 +1351,7 @@ class PlayerEventHandler implements Listener
             if (claim != null)
             {
                 //if no permission, cancel
-                String errorMessage = claim.allowContainers(player);
+                String errorMessage = claim.allowEntityInteraction(player);
                 if (errorMessage != null)
                 {
                     event.setCancelled(true);
@@ -1891,7 +1891,7 @@ class PlayerEventHandler implements Listener
                 Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
                 if (claim != null)
                 {
-                    String reason = claim.allowContainers(player);
+                    String reason = claim.allowEntityInteraction(player);
                     if (reason != null)
                     {
                         instance.sendMessage(player, TextMode.Err, reason);
