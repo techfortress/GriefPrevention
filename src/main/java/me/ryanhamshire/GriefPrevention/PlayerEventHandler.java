@@ -1306,12 +1306,13 @@ class PlayerEventHandler implements Listener
             Claim claim = this.dataStore.getClaimAt(entity.getLocation(), false, null);
             if (claim != null)
             {
-                if (claim.checkPermission(player, ClaimPermission.Inventory, event) != null)
+                String override = instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                if (player.hasPermission("griefprevention.ignoreclaims"))
+                    override += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                final String noContainersReason = claim.checkPermission(player, ClaimPermission.Inventory, event, override);
+                if (noContainersReason != null)
                 {
-                    String message = instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
-                    if (player.hasPermission("griefprevention.ignoreclaims"))
-                        message += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                    instance.sendMessage(player, TextMode.Err, message);
+                    instance.sendMessage(player, TextMode.Err, noContainersReason);
                     event.setCancelled(true);
                     return;
                 }
@@ -2333,7 +2334,7 @@ class PlayerEventHandler implements Listener
             if (claim != null)
             {
                 //if the player has permission to edit the claim or subdivision
-                String noEditReason = claim.checkPermission(player, ClaimPermission.Edit, null);
+                String noEditReason = claim.checkPermission(player, ClaimPermission.Edit, event, instance.dataStore.getMessage(Messages.CreateClaimFailOverlapOtherPlayer, claim.getOwnerName()));
                 if (noEditReason == null)
                 {
                     //if he clicked on a corner, start resizing it
@@ -2434,7 +2435,7 @@ class PlayerEventHandler implements Listener
                 //otherwise tell the player he can't claim here because it's someone else's claim, and show him the claim
                 else
                 {
-                    instance.sendMessage(player, TextMode.Err, Messages.CreateClaimFailOverlapOtherPlayer, claim.getOwnerName());
+                    instance.sendMessage(player, TextMode.Err, noEditReason);
                     Visualization visualization = Visualization.FromClaim(claim, clickedBlock.getY(), VisualizationType.ErrorClaim, player.getLocation());
 
                     // alert plugins of a visualization
