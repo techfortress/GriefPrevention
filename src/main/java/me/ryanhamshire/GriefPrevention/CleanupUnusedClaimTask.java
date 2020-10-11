@@ -86,22 +86,20 @@ class CleanupUnusedClaimTask implements Runnable
                 if (expireEventCanceled())
                     return;
                 //make a copy of this player's claim list
-                Vector<Claim> claims = new Vector<Claim>();
-                for (int i = 0; i < ownerData.getClaims().size(); i++)
-                {
-                    claims.add(ownerData.getClaims().get(i));
-                }
+                Vector<Claim> claims = new Vector<>(ownerData.getClaims());
 
                 //delete them
                 GriefPrevention.instance.dataStore.deleteClaimsForPlayer(claim.ownerID, true);
                 GriefPrevention.AddLogEntry(" All of " + claim.getOwnerName() + "'s claims have expired.", CustomLogEntryTypes.AdminActivity);
+                GriefPrevention.AddLogEntry("earliestPermissibleLastLogin#getTime: " + earliestPermissibleLastLogin.getTime(), CustomLogEntryTypes.Debug, true);
+                GriefPrevention.AddLogEntry("ownerInfo#getLastPlayed: " + ownerInfo.getLastPlayed(), CustomLogEntryTypes.Debug, true);
 
-                for (int i = 0; i < claims.size(); i++)
+                for (Claim claim : claims)
                 {
                     //if configured to do so, restore the land to natural
-                    if (GriefPrevention.instance.creativeRulesApply(claims.get(i).getLesserBoundaryCorner()) || GriefPrevention.instance.config_claims_survivalAutoNatureRestoration)
+                    if (GriefPrevention.instance.creativeRulesApply(claim.getLesserBoundaryCorner()) || GriefPrevention.instance.config_claims_survivalAutoNatureRestoration)
                     {
-                        GriefPrevention.instance.restoreClaim(claims.get(i), 0);
+                        GriefPrevention.instance.restoreClaim(claim, 0);
                     }
                 }
             }

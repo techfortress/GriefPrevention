@@ -24,7 +24,7 @@ import org.bukkit.entity.Player;
 //used to send delayed messages, for example help text triggered by a player's chat
 class PvPImmunityValidationTask implements Runnable
 {
-    private Player player;
+    private final Player player;
 
     public PvPImmunityValidationTask(Player player)
     {

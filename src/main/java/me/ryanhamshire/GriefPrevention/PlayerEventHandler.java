@@ -92,11 +92,11 @@ import org.bukkit.util.BlockIterator;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -107,23 +107,23 @@ import java.util.regex.Pattern;
 
 class PlayerEventHandler implements Listener
 {
-    private DataStore dataStore;
-    private GriefPrevention instance;
+    private final DataStore dataStore;
+    private final GriefPrevention instance;
 
     //list of temporarily banned ip's
-    private ArrayList<IpBanInfo> tempBannedIps = new ArrayList<IpBanInfo>();
+    private final ArrayList<IpBanInfo> tempBannedIps = new ArrayList<>();
 
     //number of milliseconds in a day
     private final long MILLISECONDS_IN_DAY = 1000 * 60 * 60 * 24;
 
     //timestamps of login and logout notifications in the last minute
-    private ArrayList<Long> recentLoginLogoutNotifications = new ArrayList<Long>();
+    private final ArrayList<Long> recentLoginLogoutNotifications = new ArrayList<>();
 
     //regex pattern for the "how do i claim land?" scanner
     private Pattern howToClaimPattern = null;
 
     //matcher for banned words
-    private WordFinder bannedWordFinder;
+    private final WordFinder bannedWordFinder;
 
     //spam tracker
     SpamDetector spamDetector = new SpamDetector();
@@ -163,7 +163,7 @@ class PlayerEventHandler implements Listener
         else if (this.dataStore.isSoftMuted(player.getUniqueId()))
         {
             String notificationMessage = "(Muted " + player.getName() + "): " + message;
-            Set<Player> recipientsToKeep = new HashSet<Player>();
+            Set<Player> recipientsToKeep = new HashSet<>();
             for (Player recipient : recipients)
             {
                 if (this.dataStore.isSoftMuted(recipient.getUniqueId()))
@@ -229,7 +229,7 @@ class PlayerEventHandler implements Listener
             //based on ignore lists, remove some of the audience
             if (!player.hasPermission("griefprevention.notignorable"))
             {
-                Set<Player> recipientsToRemove = new HashSet<Player>();
+                Set<Player> recipientsToRemove = new HashSet<>();
                 PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
                 for (Player recipient : recipients)
                 {
@@ -502,7 +502,7 @@ class PlayerEventHandler implements Listener
                 StringBuilder builder = new StringBuilder();
                 for (String arg : args)
                 {
-                    builder.append(arg + " ");
+                    builder.append(arg).append(' ');
                 }
 
                 makeSocialLogEntry(event.getPlayer().getName(), builder.toString());
@@ -537,7 +537,7 @@ class PlayerEventHandler implements Listener
         }
     }
 
-    private ConcurrentHashMap<String, CommandCategory> commandCategoryMap = new ConcurrentHashMap<String, CommandCategory>();
+    private final ConcurrentHashMap<String, CommandCategory> commandCategoryMap = new ConcurrentHashMap<>();
 
     private CommandCategory getCommandCategory(String commandName)
     {
@@ -548,7 +548,7 @@ class PlayerEventHandler implements Listener
         if (category != null) return category;
 
         //otherwise build a list of all the aliases of this command across all installed plugins
-        HashSet<String> aliases = new HashSet<String>();
+        HashSet<String> aliases = new HashSet<>();
         aliases.add(commandName);
         aliases.add("minecraft:" + commandName);
         for (Plugin plugin : Bukkit.getServer().getPluginManager().getPlugins())
@@ -611,14 +611,14 @@ class PlayerEventHandler implements Listener
         {
             entryBuilder.append(' ');
         }
-        entryBuilder.append(": " + message);
+        entryBuilder.append(": ").append(message);
 
         longestNameLength = Math.max(longestNameLength, name.length());
         //TODO: cleanup static
         GriefPrevention.AddLogEntry(entryBuilder.toString(), CustomLogEntryTypes.SocialActivity, true);
     }
 
-    private ConcurrentHashMap<UUID, Date> lastLoginThisServerSessionMap = new ConcurrentHashMap<UUID, Date>();
+    private final ConcurrentHashMap<UUID, Date> lastLoginThisServerSessionMap = new ConcurrentHashMap<>();
 
     //when a player attempts to join the server...
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -875,7 +875,7 @@ class PlayerEventHandler implements Listener
     }
 
     //when a player dies...
-    private HashMap<UUID, Long> deathTimestamps = new HashMap<UUID, Long>();
+    private final HashMap<UUID, Long> deathTimestamps = new HashMap<>();
 
     @EventHandler(priority = EventPriority.HIGHEST)
     void onPlayerDeath(PlayerDeathEvent event)
@@ -908,7 +908,7 @@ class PlayerEventHandler implements Listener
     }
 
     //when a player quits...
-    private HashMap<UUID, Integer> heldLogoutMessages = new HashMap<UUID, Integer>();
+    private final HashMap<UUID, Integer> heldLogoutMessages = new HashMap<>();
 
     @EventHandler(priority = EventPriority.HIGHEST)
     void onPlayerQuit(PlayerQuitEvent event)
@@ -1449,8 +1449,8 @@ class PlayerEventHandler implements Listener
     }
 
     //block use of buckets within other players' claims
-    private HashSet<Material> commonAdjacentBlocks_water = new HashSet<Material>(Arrays.asList(Material.WATER, Material.FARMLAND, Material.DIRT, Material.STONE));
-    private HashSet<Material> commonAdjacentBlocks_lava = new HashSet<Material>(Arrays.asList(Material.LAVA, Material.DIRT, Material.STONE));
+    private final Set<Material> commonAdjacentBlocks_water = EnumSet.of(Material.WATER, Material.FARMLAND, Material.DIRT, Material.STONE);
+    private final Set<Material> commonAdjacentBlocks_lava = EnumSet.of(Material.LAVA, Material.DIRT, Material.STONE);
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerBucketEmpty(PlayerBucketEmptyEvent bucketEvent)
@@ -1498,9 +1498,8 @@ class PlayerEventHandler implements Listener
             if (bucketEvent.getBucket() == Material.LAVA_BUCKET)
             {
                 List<Player> players = block.getWorld().getPlayers();
-                for (int i = 0; i < players.size(); i++)
+                for (Player otherPlayer : players)
                 {
-                    Player otherPlayer = players.get(i);
                     Location location = otherPlayer.getLocation();
                     if (!otherPlayer.equals(player) && otherPlayer.getGameMode() == GameMode.SURVIVAL && player.canSee(otherPlayer) && block.getY() >= location.getBlockY() - 1 && location.distanceSquared(block.getLocation()) < minLavaDistance * minLavaDistance)
                     {
@@ -1516,7 +1515,7 @@ class PlayerEventHandler implements Listener
         if (block.getY() >= instance.getSeaLevel(block.getWorld()) - 5 && !player.hasPermission("griefprevention.lava") && block.getWorld().getEnvironment() != Environment.NETHER)
         {
             //if certain blocks are nearby, it's less suspicious and not worth logging
-            HashSet<Material> exclusionAdjacentTypes;
+            Set<Material> exclusionAdjacentTypes;
             if (bucketEvent.getBucket() == Material.WATER_BUCKET)
                 exclusionAdjacentTypes = this.commonAdjacentBlocks_water;
             else
@@ -2145,7 +2144,7 @@ class PlayerEventHandler implements Listener
             //if in restore nature fill mode
             if (playerData.shovelMode == ShovelMode.RestoreNatureFill)
             {
-                ArrayList<Material> allowedFillBlocks = new ArrayList<Material>();
+                ArrayList<Material> allowedFillBlocks = new ArrayList<>();
                 Environment environment = clickedBlock.getWorld().getEnvironment();
                 if (environment == Environment.NETHER)
                 {
@@ -2474,7 +2473,7 @@ class PlayerEventHandler implements Listener
                 instance.sendMessage(player, TextMode.Instr, Messages.ClaimStart);
 
                 //show him where he's working
-                Claim newClaim = new Claim(clickedBlock.getLocation(), clickedBlock.getLocation(), null, new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), null);
+                Claim newClaim = new Claim(clickedBlock.getLocation(), clickedBlock.getLocation(), null, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null);
                 Visualization visualization = Visualization.FromClaim(newClaim, clickedBlock.getY(), VisualizationType.RestoreNature, player.getLocation());
 
                 // alert plugins of a visualization
@@ -2624,7 +2623,7 @@ class PlayerEventHandler implements Listener
     }
 
     //determines whether a block type is an inventory holder.  uses a caching strategy to save cpu time
-    private ConcurrentHashMap<Material, Boolean> inventoryHolderCache = new ConcurrentHashMap<Material, Boolean>();
+    private final ConcurrentHashMap<Material, Boolean> inventoryHolderCache = new ConcurrentHashMap<>();
 
     private boolean isInventoryHolder(Block clickedBlock)
     {

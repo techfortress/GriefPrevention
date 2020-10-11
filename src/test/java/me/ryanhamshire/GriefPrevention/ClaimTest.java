@@ -49,5 +49,24 @@ public class ClaimTest {
 
         assertTrue(claimA.overlaps(claimB));
         assertTrue(claimB.overlaps(claimA));
+
+        // Linear North-South
+        claimA = new Claim(new Location(world, 0, 0, 0), new Location(world, 10, 0, 10), null,
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, 0L);
+        claimB = new Claim(new Location(world, 0, 0, 15), new Location(world, 15, 0, 25), null,
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, 0L);
+
+        assertFalse(claimA.overlaps(claimB));
+        assertFalse(claimB.overlaps(claimA));
+
+        // Linear East-West
+        claimA = new Claim(new Location(world, 0, 0, 0), new Location(world, 10, 0, 10), null,
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, 0L);
+        claimB = new Claim(new Location(world, 15, 0, 0), new Location(world, 25, 0, 15), null,
+                Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), Collections.emptyList(), false, 0L);
+
+        assertFalse(claimA.overlaps(claimB));
+        assertFalse(claimB.overlaps(claimA));
     }
+
 }

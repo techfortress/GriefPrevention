@@ -125,7 +125,7 @@ public class PlayerData
 
     //ignore list
     //true means invisible (admin-forced ignore), false means player-created ignore
-    public ConcurrentHashMap<UUID, Boolean> ignoredPlayers = new ConcurrentHashMap<UUID, Boolean>();
+    public ConcurrentHashMap<UUID, Boolean> ignoredPlayers = new ConcurrentHashMap<>();
     public boolean ignoreListChanged = false;
 
     //profanity warning, once per play session
@@ -247,7 +247,7 @@ public class PlayerData
     {
         if (this.claims == null)
         {
-            this.claims = new Vector<Claim>();
+            this.claims = new Vector<>();
 
             //find all the claims belonging to this player and note them for future reference
             DataStore dataStore = GriefPrevention.instance.dataStore;

@@ -45,9 +45,9 @@ public class DatabaseDataStore extends DataStore
 {
     private Connection databaseConnection = null;
 
-    private String databaseUrl;
-    private String userName;
-    private String password;
+    private final String databaseUrl;
+    private final String userName;
+    private final String password;
 
     private String updateNameSQL;
     private String insertClaimSQL;
@@ -188,9 +188,9 @@ public class DatabaseDataStore extends DataStore
                 results = statement.executeQuery("SELECT * FROM griefprevention_playerdata;");
 
                 //make a list of changes to be made
-                HashMap<String, UUID> changes = new HashMap<String, UUID>();
+                HashMap<String, UUID> changes = new HashMap<>();
 
-                ArrayList<String> namesToConvert = new ArrayList<String>();
+                ArrayList<String> namesToConvert = new ArrayList<>();
                 while (results.next())
                 {
                     //get the id
@@ -272,8 +272,8 @@ public class DatabaseDataStore extends DataStore
 
         results = statement.executeQuery("SELECT * FROM griefprevention_claimdata;");
 
-        ArrayList<Claim> claimsToRemove = new ArrayList<Claim>();
-        ArrayList<Claim> subdivisionsToLoad = new ArrayList<Claim>();
+        ArrayList<Claim> claimsToRemove = new ArrayList<>();
+        ArrayList<Claim> subdivisionsToLoad = new ArrayList<>();
         List<World> validWorlds = Bukkit.getServer().getWorlds();
 
         Long claimID = null;
@@ -442,10 +442,10 @@ public class DatabaseDataStore extends DataStore
         String owner = "";
         if (claim.ownerID != null) owner = claim.ownerID.toString();
 
-        ArrayList<String> builders = new ArrayList<String>();
-        ArrayList<String> containers = new ArrayList<String>();
-        ArrayList<String> accessors = new ArrayList<String>();
-        ArrayList<String> managers = new ArrayList<String>();
+        ArrayList<String> builders = new ArrayList<>();
+        ArrayList<String> containers = new ArrayList<>();
+        ArrayList<String> accessors = new ArrayList<>();
+        ArrayList<String> managers = new ArrayList<>();
 
         claim.getPermissions(builders, containers, accessors, managers);
 

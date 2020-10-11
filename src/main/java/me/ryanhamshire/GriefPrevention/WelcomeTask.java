@@ -9,7 +9,7 @@ import org.bukkit.inventory.meta.BookMeta;
 
 public class WelcomeTask implements Runnable
 {
-    private Player player;
+    private final Player player;
 
     public WelcomeTask(Player player)
     {

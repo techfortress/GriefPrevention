@@ -27,9 +27,9 @@ import java.util.Collections;
 //applies a visualization for a player by sending him block change packets
 class VisualizationReversionTask implements Runnable
 {
-    private Visualization visualization;
-    private Player player;
-    private PlayerData playerData;
+    private final Visualization visualization;
+    private final Player player;
+    private final PlayerData playerData;
 
     public VisualizationReversionTask(Player player, PlayerData playerData, Visualization visualization)
     {

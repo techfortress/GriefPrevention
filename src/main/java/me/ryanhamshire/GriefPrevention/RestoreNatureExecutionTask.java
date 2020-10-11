@@ -36,15 +36,15 @@ class RestoreNatureExecutionTask implements Runnable
 {
     //results from processing thread
     //will be applied to the world
-    private BlockSnapshot[][][] snapshots;
+    private final BlockSnapshot[][][] snapshots;
 
     //boundaries for changes
-    private int miny;
-    private Location lesserCorner;
-    private Location greaterCorner;
+    private final int miny;
+    private final Location lesserCorner;
+    private final Location greaterCorner;
 
     //player who should be notified about the result (will see a visualization when the restoration is complete)
-    private Player player;
+    private final Player player;
 
     public RestoreNatureExecutionTask(BlockSnapshot[][][] snapshots, int miny, Location lesserCorner, Location greaterCorner, Player player)
     {
@@ -97,9 +97,8 @@ class RestoreNatureExecutionTask implements Runnable
         //clean up any entities in the chunk, ensure no players are suffocated
         Chunk chunk = this.lesserCorner.getChunk();
         Entity[] entities = chunk.getEntities();
-        for (int i = 0; i < entities.length; i++)
+        for (Entity entity : entities)
         {
-            Entity entity = entities[i];
             if (!(entity instanceof Player || entity instanceof Animals))
             {
                 //hanging entities (paintings, item frames) are protected when they're in land claims
@@ -122,7 +121,7 @@ class RestoreNatureExecutionTask implements Runnable
         //show visualization to player who started the restoration
         if (player != null)
         {
-            Claim claim = new Claim(lesserCorner, greaterCorner, null, new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), new ArrayList<String>(), null);
+            Claim claim = new Claim(lesserCorner, greaterCorner, null, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null);
             Visualization visualization = Visualization.FromClaim(claim, player.getLocation().getBlockY(), VisualizationType.RestoreNature, player.getLocation());
             Visualization.Apply(player, visualization);
         }

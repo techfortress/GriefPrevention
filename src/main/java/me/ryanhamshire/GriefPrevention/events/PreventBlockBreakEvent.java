@@ -10,7 +10,7 @@ public class PreventBlockBreakEvent extends Event implements Cancellable
 {
     private static final HandlerList handlers = new HandlerList();
     private boolean cancelled = false;
-    private BlockBreakEvent innerEvent;
+    private final BlockBreakEvent innerEvent;
 
     public static HandlerList getHandlerList()
     {
