@@ -529,7 +529,7 @@ public class BlockEventHandler implements Listener
         {
             Block invadedBlock = pistonBlock.getRelative(direction);
             Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false, pistonClaim);
-            if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.ownerID, invadedClaim.ownerID)))
+            if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), invadedClaim.getOwnerID())))
             {
                 event.setCancelled(true);
             }
@@ -614,20 +614,7 @@ public class BlockEventHandler implements Listener
                     continue;
 
                 // If owners are different, cancel.
-                UUID pistonClaimOwner = null;
-                if (pistonClaim != null)
-                {
-                    if (pistonClaim.parent != null)
-                    {
-                        pistonClaimOwner = pistonClaim.parent.ownerID;
-                    }
-                    else
-                    {
-                        pistonClaimOwner = pistonClaim.ownerID;
-                    }
-                }
-
-                if (pistonClaim == null || !Objects.equals(pistonClaimOwner, claim.ownerID))
+                if (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), claim.getOwnerID()))
                 {
                     event.setCancelled(true);
                     return;
@@ -674,7 +661,7 @@ public class BlockEventHandler implements Listener
             lastClaim = claim;
 
             // If pushing this block will change ownership, cancel the event and take away the piston (for performance reasons).
-            if (pistonClaim == null || !Objects.equals(pistonClaim.ownerID, claim.ownerID))
+            if (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), claim.getOwnerID()))
             {
                 event.setCancelled(true);
                 pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
