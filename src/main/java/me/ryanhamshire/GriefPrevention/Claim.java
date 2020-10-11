@@ -100,9 +100,7 @@ public class Claim
     //administrative claims are created and maintained by players with the griefprevention.adminclaims permission.
     public boolean isAdminClaim()
     {
-        if (this.parent != null) return this.parent.isAdminClaim();
-
-        return (this.ownerID == null);
+        return this.getOwnerID() == null;
     }
 
     //accessor for ID
@@ -383,7 +381,7 @@ public class Claim
 
     public boolean hasExplicitPermission(UUID uuid, ClaimPermission level)
     {
-        if (uuid.equals(this.ownerID)) return true;
+        if (uuid.equals(this.getOwnerID())) return true;
 
         if (level == ClaimPermission.Manage) return this.managers.contains(uuid.toString());
 
@@ -513,7 +511,7 @@ public class Claim
         }
 
         // Claim owner and admins in ignoreclaims mode have access.
-        if (uuid.equals(this.ownerID) || GriefPrevention.instance.dataStore.getPlayerData(uuid).ignoreClaims)
+        if (uuid.equals(this.getOwnerID()) || GriefPrevention.instance.dataStore.getPlayerData(uuid).ignoreClaims)
             return null;
 
         // Look for explicit individual permission.
@@ -552,8 +550,6 @@ public class Claim
         // Permission inheritance for subdivisions.
         if (this.parent != null)
         {
-            if (uuid.equals(this.parent.ownerID))
-                return null;
             if (!inheritNothing)
                 return this.parent.getDefaultDenial(player, uuid, permission, event);
         }
@@ -703,6 +699,13 @@ public class Claim
             return GriefPrevention.instance.dataStore.getMessage(Messages.OwnerNameForAdminClaims);
 
         return GriefPrevention.lookupPlayerName(this.ownerID);
+    }
+
+    public UUID getOwnerID()
+    {
+        if (this.parent != null) return this.parent.getOwnerID();
+
+        return this.ownerID;
     }
 
     //whether or not a location is in a claim
