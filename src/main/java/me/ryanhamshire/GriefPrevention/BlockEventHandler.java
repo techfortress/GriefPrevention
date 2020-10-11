@@ -614,7 +614,20 @@ public class BlockEventHandler implements Listener
                     continue;
 
                 // If owners are different, cancel.
-                if (pistonClaim == null || !Objects.equals(pistonClaim.ownerID, claim.ownerID))
+                UUID pistonClaimOwner = null;
+                if (pistonClaim != null)
+                {
+                    if (pistonClaim.parent != null)
+                    {
+                        pistonClaimOwner = pistonClaim.parent.ownerID;
+                    }
+                    else
+                    {
+                        pistonClaimOwner = pistonClaim.ownerID;
+                    }
+                }
+
+                if (pistonClaim == null || !Objects.equals(pistonClaimOwner, claim.ownerID))
                 {
                     event.setCancelled(true);
                     return;
