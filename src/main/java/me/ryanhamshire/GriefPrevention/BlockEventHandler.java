@@ -493,18 +493,18 @@ public class BlockEventHandler implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockPistonExtend(@NotNull BlockPistonExtendEvent event)
     {
-        onPistonEvent(event, event.getBlocks());
+        onPistonEvent(event, event.getBlocks(), false);
     }
 
     // Prevent pistons pulling blocks into or out of claims.
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockPistonRetract(@NotNull BlockPistonRetractEvent event)
     {
-        onPistonEvent(event, event.getBlocks());
+        onPistonEvent(event, event.getBlocks(), true);
     }
 
     // Handle piston push and pulls.
-    private void onPistonEvent(@NotNull BlockPistonEvent event, @NotNull List<Block> blocks)
+    private void onPistonEvent(@NotNull BlockPistonEvent event, @NotNull List<Block> blocks, boolean isRetract)
     {
         PistonMode pistonMode = GriefPrevention.instance.config_pistonMovement;
         // Return if piston movements are ignored.
@@ -514,6 +514,11 @@ public class BlockEventHandler implements Listener
         if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
 
         BlockFace direction = event.getDirection();
+
+        // Direction is always piston facing, correct for retraction.
+        if (isRetract)
+            direction = direction.getOppositeFace();
+
         Block pistonBlock = event.getBlock();
         Claim pistonClaim = this.dataStore.getClaimAt(pistonBlock.getLocation(), false, null);
 
@@ -529,7 +534,7 @@ public class BlockEventHandler implements Listener
         {
             Block invadedBlock = pistonBlock.getRelative(direction);
             Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false, pistonClaim);
-            if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.ownerID, invadedClaim.ownerID)))
+            if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), invadedClaim.getOwnerID())))
             {
                 event.setCancelled(true);
             }
@@ -583,7 +588,7 @@ public class BlockEventHandler implements Listener
         }
 
         // Pushing down or pulling up is safe if all blocks are in line with the piston.
-        if (minX == maxX && minZ == maxZ && direction == (event instanceof BlockPistonExtendEvent ? BlockFace.DOWN : BlockFace.UP)) return;
+        if (minX == maxX && minZ == maxZ && direction == (isRetract ? BlockFace.UP : BlockFace.DOWN)) return;
 
         // Fast mode: Use the intersection of a cuboid containing all blocks instead of individual locations.
         if (pistonMode == PistonMode.EVERYWHERE_SIMPLE)
@@ -614,7 +619,7 @@ public class BlockEventHandler implements Listener
                     continue;
 
                 // If owners are different, cancel.
-                if (pistonClaim == null || !Objects.equals(pistonClaim.ownerID, claim.ownerID))
+                if (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), claim.getOwnerID()))
                 {
                     event.setCancelled(true);
                     return;
@@ -661,10 +666,13 @@ public class BlockEventHandler implements Listener
             lastClaim = claim;
 
             // If pushing this block will change ownership, cancel the event and take away the piston (for performance reasons).
-            if (pistonClaim == null || !Objects.equals(pistonClaim.ownerID, claim.ownerID))
+            if (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), claim.getOwnerID()))
             {
                 event.setCancelled(true);
-                pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
+                if (GriefPrevention.instance.config_pistonExplosionSound)
+                {
+                    pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
+                }
                 pistonBlock.getWorld().dropItem(pistonBlock.getLocation(), new ItemStack(event.isSticky() ? Material.STICKY_PISTON : Material.PISTON));
                 pistonBlock.setType(Material.AIR);
                 return;
