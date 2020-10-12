@@ -54,6 +54,7 @@ import org.bukkit.entity.ThrownPotion;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.WaterMob;
 import org.bukkit.entity.Wolf;
+import org.bukkit.entity.Zombie;
 import org.bukkit.entity.minecart.ExplosiveMinecart;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -990,7 +991,7 @@ public class EntityEventHandler implements Listener
                     if (attacker == null)
                     {
                         //exception case
-                        if (event.getEntityType() == EntityType.VILLAGER && damageSource != null && damageSource.getType() == EntityType.ZOMBIE)
+                        if (event.getEntityType() == EntityType.VILLAGER && damageSource != null && damageSource instanceof Zombie)
                         {
                             return;
                         }

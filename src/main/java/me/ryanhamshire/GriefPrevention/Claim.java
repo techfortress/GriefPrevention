@@ -703,8 +703,10 @@ public class Claim
 
     public UUID getOwnerID()
     {
-        if (this.parent != null) return this.parent.getOwnerID();
-
+        if (this.parent != null)
+        {
+            return this.parent.ownerID;
+        }
         return this.ownerID;
     }
 
