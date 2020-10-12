@@ -209,6 +209,7 @@ public class GriefPrevention extends JavaPlugin
 
     public boolean config_limitTreeGrowth;                          //whether trees should be prevented from growing into a claim from outside
     public PistonMode config_pistonMovement;                            //Setting for piston check options
+    public boolean config_pistonExplosionSound;                     //whether pistons make an explosion sound when they get removed
 
     public boolean config_advanced_fixNegativeClaimblockAmounts;    //whether to attempt to fix negative claim block amounts (some addons cause/assume players can go into negative amounts)
     public int config_advanced_claim_expiration_check_rate;            //How often GP should check for expired claims, amount in seconds
@@ -594,6 +595,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_blockSurfaceOtherExplosions = config.getBoolean("GriefPrevention.BlockSurfaceOtherExplosions", true);
         this.config_blockSkyTrees = config.getBoolean("GriefPrevention.LimitSkyTrees", true);
         this.config_limitTreeGrowth = config.getBoolean("GriefPrevention.LimitTreeGrowth", false);
+        this.config_pistonExplosionSound = config.getBoolean("GriefPrevention.PistonExplosionSound", true);
         this.config_pistonMovement = PistonMode.of(config.getString("GriefPrevention.PistonMovement", "CLAIMS_ONLY"));
         if (config.isBoolean("GriefPrevention.LimitPistonsToLandClaims") && !config.getBoolean("GriefPrevention.LimitPistonsToLandClaims"))
             this.config_pistonMovement = PistonMode.EVERYWHERE_SIMPLE;
@@ -852,6 +854,7 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.PistonMovement", this.config_pistonMovement.name());
         outConfig.set("GriefPrevention.CheckPistonMovement", null);
         outConfig.set("GriefPrevention.LimitPistonsToLandClaims", null);
+        outConfig.set("GriefPrevention.PistonExplosionSound", this.config_pistonExplosionSound);
 
         outConfig.set("GriefPrevention.FireSpreads", this.config_fireSpreads);
         outConfig.set("GriefPrevention.FireDestroys", this.config_fireDestroys);
