@@ -711,6 +711,15 @@ public class Claim
         return GriefPrevention.lookupPlayerName(this.ownerID);
     }
 
+    public UUID getOwnerID()
+    {
+        if (this.parent != null)
+        {
+            return this.parent.ownerID;
+        }
+        return this.ownerID;
+    }
+
     //whether or not a location is in a claim
     //ignoreHeight = true means location UNDER the claim will return TRUE
     //excludeSubdivisions = true means that locations inside subdivisions of the claim will return FALSE
