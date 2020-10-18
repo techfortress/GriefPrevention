@@ -25,6 +25,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.Tag;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
@@ -45,6 +46,7 @@ import org.bukkit.entity.Mob;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Mule;
 import org.bukkit.entity.Panda;
+import org.bukkit.entity.Pillager;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Rabbit;
@@ -86,6 +88,7 @@ import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.weather.LightningStrikeEvent;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -711,7 +714,7 @@ public class EntityEventHandler implements Listener
     private void handleEntityDamageEvent(EntityDamageEvent event, boolean sendErrorMessagesToPlayers)
     {
         //monsters are never protected
-        if (isMonster(event.getEntity())) return;
+        if (isMonster(event.getEntity()) && event.getEntityType() != EntityType.PILLAGER) return;
 
         //horse protections can be disabled
         if (event.getEntity() instanceof Horse && !GriefPrevention.instance.config_claims_protectHorses) return;
@@ -964,18 +967,26 @@ public class EntityEventHandler implements Listener
             if (subEvent.getEntityType() == EntityType.ITEM_FRAME
                     || subEvent.getEntityType() == EntityType.ARMOR_STAND
                     || subEvent.getEntityType() == EntityType.VILLAGER
+                    || subEvent.getEntityType() == EntityType.PILLAGER
                     || subEvent.getEntityType() == EntityType.ENDER_CRYSTAL)
             {
                 //allow for disabling villager protections in the config
                 if (subEvent.getEntityType() == EntityType.VILLAGER && !GriefPrevention.instance.config_claims_protectCreatures)
                     return;
 
+                //don't protect pillagers if they have items in their main and offhand. If they don't, they are passive to players.
+                if (subEvent.getEntityType() == EntityType.PILLAGER && !GriefPrevention.instance.config_claims_protectCreatures) {
+                    Pillager pillager = (Pillager) subEvent.getEntity();
+                    EntityEquipment equipment = pillager.getEquipment();
+                    if (equipment != null && (equipment.getItemInMainHand().getType() != Material.AIR || equipment.getItemInOffHand().getType() != Material.AIR)) return;
+                }
+
                 //don't protect polar bears, they may be aggressive
                 if (subEvent.getEntityType() == EntityType.POLAR_BEAR) return;
 
                 //decide whether it's claimed
                 Claim cachedClaim = null;
-                PlayerData playerData = null;
+                PlayerData playerData;
                 if (attacker != null)
                 {
                     playerData = this.dataStore.getPlayerData(attacker.getUniqueId());
