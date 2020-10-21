@@ -1867,10 +1867,10 @@ class PlayerEventHandler implements Listener
                 Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
                 if (claim != null)
                 {
-                    String noBuildReason = claim.allowBuild(player, Material.OAK_BOAT); // Though only checks OAK_BOAT, permission should be same for all boats. Plus it being a boat doesn't seem to make a difference currently.
-                    if (noBuildReason != null)
+                    String reason = claim.allowContainers(player);
+                    if (reason != null)
                     {
-                        instance.sendMessage(player, TextMode.Err, noBuildReason);
+                        instance.sendMessage(player, TextMode.Err, reason);
                         event.setCancelled(true);
                     }
                 }
