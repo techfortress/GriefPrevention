@@ -35,6 +35,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Levelled;
+import org.bukkit.block.data.Lightable;
 import org.bukkit.block.data.Waterlogged;
 import org.bukkit.command.Command;
 import org.bukkit.entity.AbstractHorse;
@@ -1605,10 +1606,10 @@ class PlayerEventHandler implements Listener
 
         PlayerData playerData = null;
 
-        //Turtle eggs
+        //Turtle eggs and Redstone ore
         if (action == Action.PHYSICAL)
         {
-            if (clickedBlockType != Material.TURTLE_EGG)
+            if (clickedBlockType != Material.TURTLE_EGG && clickedBlockType != Material.REDSTONE_ORE)
                 return;
             playerData = this.dataStore.getPlayerData(player.getUniqueId());
             Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
@@ -1791,7 +1792,7 @@ class PlayerEventHandler implements Listener
             }
         }
 
-        //apply rule for note blocks and repeaters and daylight sensors //RoboMWM: Include flower pots
+        //apply rule for note blocks and repeaters and daylight sensors //RoboMWM: Include flower pots //PR: Include redstone ore
         else if (clickedBlock != null &&
                 (
                         clickedBlockType == Material.NOTE_BLOCK ||
@@ -1800,6 +1801,7 @@ class PlayerEventHandler implements Listener
                                 clickedBlockType == Material.DAYLIGHT_DETECTOR ||
                                 clickedBlockType == Material.COMPARATOR ||
                                 clickedBlockType == Material.REDSTONE_WIRE ||
+                                clickedBlockType == Material.REDSTONE_ORE ||
                                 Tag.FLOWER_POTS.isTagged(clickedBlockType)
                 ))
         {
@@ -2658,6 +2660,7 @@ class PlayerEventHandler implements Listener
             case REPEATER:
             case CAKE:
             case DRAGON_EGG:
+            case REDSTONE_ORE:
                 return true;
             default:
                 return false;
