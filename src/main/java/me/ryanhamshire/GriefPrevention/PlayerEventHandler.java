@@ -1792,7 +1792,7 @@ class PlayerEventHandler implements Listener
             }
         }
 
-        //apply rule for note blocks and repeaters and daylight sensors //RoboMWM: Include flower pots //PR: Include redstone ore
+        //apply rule for note blocks, repeaters, daylight sensors, flower pots and redstone ore.
         else if (clickedBlock != null &&
                 (
                         clickedBlockType == Material.NOTE_BLOCK ||
