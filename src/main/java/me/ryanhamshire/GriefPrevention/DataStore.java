@@ -473,6 +473,9 @@ public abstract class DataStore
 
     private void addToChunkClaimMap(Claim claim)
     {
+        // Subclaims should not be added to chunk claim map.
+        if (claim.parent != null) return;
+
         ArrayList<Long> chunkHashes = claim.getChunkHashes();
         for (Long chunkHash : chunkHashes)
         {
