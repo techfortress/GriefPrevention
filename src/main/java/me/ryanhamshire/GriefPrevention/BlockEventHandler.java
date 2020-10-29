@@ -532,6 +532,9 @@ public class BlockEventHandler implements Listener
         // If no blocks are moving, quickly check if another claim's boundaries are violated.
         if (blocks.isEmpty())
         {
+            // No block and retraction is always safe.
+            if (isRetract) return;
+
             Block invadedBlock = pistonBlock.getRelative(direction);
             Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false, pistonClaim);
             if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), invadedClaim.getOwnerID())))
@@ -586,6 +589,9 @@ public class BlockEventHandler implements Listener
 
             return;
         }
+
+        // Ensure we have top level claim - piston ownership is only checked based on claim owner in everywhere mode.
+        while (pistonClaim != null && pistonClaim.parent != null) pistonClaim = pistonClaim.parent;
 
         // Pushing down or pulling up is safe if all blocks are in line with the piston.
         if (minX == maxX && minZ == maxZ && direction == (isRetract ? BlockFace.UP : BlockFace.DOWN)) return;
