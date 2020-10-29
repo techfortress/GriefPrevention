@@ -25,10 +25,10 @@ public class PlayerKickBanEvent extends Event
         return handlers;
     }
 
-    private Player player;
-    private String reason;
-    private String source;
-    private boolean ban;
+    private final Player player;
+    private final String reason;
+    private final String source;
+    private final boolean ban;
     private boolean cancelled = false;
 
     /**

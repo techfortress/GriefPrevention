@@ -45,9 +45,9 @@ public class DatabaseDataStore extends DataStore
 {
     private Connection databaseConnection = null;
 
-    private String databaseUrl;
-    private String userName;
-    private String password;
+    private final String databaseUrl;
+    private final String userName;
+    private final String password;
 
     private String updateNameSQL;
     private String insertClaimSQL;

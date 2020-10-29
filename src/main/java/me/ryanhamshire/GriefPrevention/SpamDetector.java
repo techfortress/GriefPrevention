@@ -230,7 +230,7 @@ class ChatterData
     public boolean spamWarned = false;              //whether the player has received a warning recently
 
     //all recent message lengths and their total
-    private ConcurrentLinkedQueue<LengthTimestampPair> recentMessageLengths = new ConcurrentLinkedQueue<>();
+    private final ConcurrentLinkedQueue<LengthTimestampPair> recentMessageLengths = new ConcurrentLinkedQueue<>();
     private int recentTotalLength = 0;
 
     public void AddMessage(String message, long timestamp)

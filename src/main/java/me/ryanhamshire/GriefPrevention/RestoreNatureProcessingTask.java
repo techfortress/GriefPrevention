@@ -28,6 +28,9 @@ import org.bukkit.block.data.type.Leaves;
 import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.EnumSet;
+import java.util.Set;
 
 //non-main-thread task which processes world data to repair the unnatural
 //after processing is complete, creates a main thread task to make the necessary changes to the world
@@ -35,23 +38,23 @@ class RestoreNatureProcessingTask implements Runnable
 {
     //world information captured from the main thread
     //will be updated and sent back to main thread to be applied to the world
-    private BlockSnapshot[][][] snapshots;
+    private final BlockSnapshot[][][] snapshots;
 
     //other information collected from the main thread.
     //not to be updated, only to be passed back to main thread to provide some context about the operation
     private int miny;
-    private Environment environment;
-    private Location lesserBoundaryCorner;
-    private Location greaterBoundaryCorner;
-    private Player player;            //absolutely must not be accessed.  not thread safe.
-    private Biome biome;
-    private boolean creativeMode;
-    private int seaLevel;
-    private boolean aggressiveMode;
+    private final Environment environment;
+    private final Location lesserBoundaryCorner;
+    private final Location greaterBoundaryCorner;
+    private final Player player;            //absolutely must not be accessed.  not thread safe.
+    private final Biome biome;
+    private final boolean creativeMode;
+    private final int seaLevel;
+    private final boolean aggressiveMode;
 
     //two lists of materials
-    private ArrayList<Material> notAllowedToHang;    //natural blocks which don't naturally hang in their air
-    private ArrayList<Material> playerBlocks;        //a "complete" list of player-placed blocks.  MUST BE MAINTAINED as patches introduce more
+    private final Set<Material> notAllowedToHang;    //natural blocks which don't naturally hang in their air
+    private final Set<Material> playerBlocks;        //a "complete" list of player-placed blocks.  MUST BE MAINTAINED as patches introduce more
 
 
     public RestoreNatureProcessingTask(BlockSnapshot[][][] snapshots, int miny, Environment environment, Biome biome, Location lesserBoundaryCorner, Location greaterBoundaryCorner, int seaLevel, boolean aggressiveMode, boolean creativeMode, Player player)
@@ -68,7 +71,7 @@ class RestoreNatureProcessingTask implements Runnable
         this.player = player;
         this.creativeMode = creativeMode;
 
-        this.notAllowedToHang = new ArrayList<>();
+        this.notAllowedToHang = EnumSet.noneOf(Material.class);
         this.notAllowedToHang.add(Material.DIRT);
         this.notAllowedToHang.add(Material.GRASS);
         this.notAllowedToHang.add(Material.SNOW);
@@ -85,7 +88,7 @@ class RestoreNatureProcessingTask implements Runnable
             this.notAllowedToHang.add(Material.STONE);
         }
 
-        this.playerBlocks = new ArrayList<>();
+        this.playerBlocks = EnumSet.noneOf(Material.class);
         this.playerBlocks.addAll(RestoreNatureProcessingTask.getPlayerBlocks(this.environment, this.biome));
 
         //in aggressive or creative world mode, also treat these blocks as user placed, to be removed
@@ -390,8 +393,7 @@ class RestoreNatureProcessingTask implements Runnable
                         Material.LILY_PAD
                 };
 
-        ArrayList<Material> excludedBlocks = new ArrayList<>();
-        for (int i = 0; i < excludedBlocksArray.length; i++) excludedBlocks.add(excludedBlocksArray[i]);
+        ArrayList<Material> excludedBlocks = new ArrayList<>(Arrays.asList(excludedBlocksArray));
 
         excludedBlocks.addAll(Tag.SAPLINGS.getValues());
         excludedBlocks.addAll(Tag.LEAVES.getValues());
@@ -609,7 +611,7 @@ class RestoreNatureProcessingTask implements Runnable
         {
             for (int z = 1; z < snapshots[0][0].length - 1; z++)
             {
-                for (int y = this.seaLevel - 1; y < snapshots[0].length - 1; y++)
+                for (int y = this.seaLevel; y < snapshots[0].length - 1; y++)
                 {
                     BlockSnapshot block = snapshots[x][y][z];
                     if (block.typeId == Material.WATER || block.typeId == Material.LAVA)
@@ -642,35 +644,36 @@ class RestoreNatureProcessingTask implements Runnable
     }
 
 
-    static ArrayList<Material> getPlayerBlocks(Environment environment, Biome biome)
+    static Set<Material> getPlayerBlocks(Environment environment, Biome biome)
     {
         //NOTE on this list.  why not make a list of natural blocks?
         //answer: better to leave a few player blocks than to remove too many natural blocks.  remember we're "restoring nature"
         //a few extra player blocks can be manually removed, but it will be impossible to guess exactly which natural materials to use in manual repair of an overzealous block removal
-        ArrayList<Material> playerBlocks = new ArrayList<>();
-        playerBlocks.add(Material.FIRE);
-        playerBlocks.add(Material.WHITE_BED);
-        playerBlocks.add(Material.ORANGE_BED);
-        playerBlocks.add(Material.MAGENTA_BED);
-        playerBlocks.add(Material.LIGHT_BLUE_BED);
-        playerBlocks.add(Material.YELLOW_BED);
-        playerBlocks.add(Material.LIME_BED);
-        playerBlocks.add(Material.PINK_BED);
-        playerBlocks.add(Material.GRAY_BED);
-        playerBlocks.add(Material.LIGHT_GRAY_BED);
-        playerBlocks.add(Material.CYAN_BED);
-        playerBlocks.add(Material.PURPLE_BED);
-        playerBlocks.add(Material.BLUE_BED);
-        playerBlocks.add(Material.BROWN_BED);
-        playerBlocks.add(Material.GREEN_BED);
-        playerBlocks.add(Material.RED_BED);
-        playerBlocks.add(Material.BLACK_BED);
-        playerBlocks.add(Material.OAK_PLANKS);
-        playerBlocks.add(Material.SPRUCE_PLANKS);
-        playerBlocks.add(Material.BIRCH_PLANKS);
-        playerBlocks.add(Material.JUNGLE_PLANKS);
-        playerBlocks.add(Material.ACACIA_PLANKS);
-        playerBlocks.add(Material.DARK_OAK_PLANKS);
+        Set<Material> playerBlocks = EnumSet.noneOf(Material.class);
+        playerBlocks.addAll(Tag.ANVIL.getValues());
+        playerBlocks.addAll(Tag.BANNERS.getValues());
+        playerBlocks.addAll(Tag.BEACON_BASE_BLOCKS.getValues());
+        playerBlocks.addAll(Tag.BEDS.getValues());
+        playerBlocks.addAll(Tag.BUTTONS.getValues());
+        playerBlocks.addAll(Tag.CAMPFIRES.getValues());
+        playerBlocks.addAll(Tag.CARPETS.getValues());
+        playerBlocks.addAll(Tag.DOORS.getValues());
+        playerBlocks.addAll(Tag.FENCES.getValues());
+        playerBlocks.addAll(Tag.FENCE_GATES.getValues());
+        playerBlocks.addAll(Tag.FIRE.getValues());
+        playerBlocks.addAll(Tag.FLOWER_POTS.getValues());
+        playerBlocks.addAll(Tag.LOGS.getValues());
+        playerBlocks.addAll(Tag.PLANKS.getValues());
+        playerBlocks.addAll(Tag.PRESSURE_PLATES.getValues());
+        playerBlocks.addAll(Tag.RAILS.getValues());
+        playerBlocks.addAll(Tag.SHULKER_BOXES.getValues());
+        playerBlocks.addAll(Tag.SIGNS.getValues());
+        playerBlocks.addAll(Tag.SLABS.getValues());
+        playerBlocks.addAll(Tag.STAIRS.getValues());
+        playerBlocks.addAll(Tag.STONE_BRICKS.getValues());
+        playerBlocks.addAll(Tag.TRAPDOORS.getValues());
+        playerBlocks.addAll(Tag.WALLS.getValues());
+        playerBlocks.addAll(Tag.WOOL.getValues());
         playerBlocks.add(Material.BOOKSHELF);
         playerBlocks.add(Material.BREWING_STAND);
         playerBlocks.add(Material.BRICK);
@@ -679,150 +682,52 @@ class RestoreNatureProcessingTask implements Runnable
         playerBlocks.add(Material.LAPIS_BLOCK);
         playerBlocks.add(Material.DISPENSER);
         playerBlocks.add(Material.NOTE_BLOCK);
-        playerBlocks.add(Material.POWERED_RAIL);
-        playerBlocks.add(Material.DETECTOR_RAIL);
         playerBlocks.add(Material.STICKY_PISTON);
         playerBlocks.add(Material.PISTON);
         playerBlocks.add(Material.PISTON_HEAD);
         playerBlocks.add(Material.MOVING_PISTON);
-        playerBlocks.add(Material.WHITE_WOOL);
-        playerBlocks.add(Material.ORANGE_WOOL);
-        playerBlocks.add(Material.MAGENTA_WOOL);
-        playerBlocks.add(Material.LIGHT_BLUE_WOOL);
-        playerBlocks.add(Material.YELLOW_WOOL);
-        playerBlocks.add(Material.LIME_WOOL);
-        playerBlocks.add(Material.PINK_WOOL);
-        playerBlocks.add(Material.GRAY_WOOL);
-        playerBlocks.add(Material.LIGHT_GRAY_WOOL);
-        playerBlocks.add(Material.CYAN_WOOL);
-        playerBlocks.add(Material.PURPLE_WOOL);
-        playerBlocks.add(Material.BLUE_WOOL);
-        playerBlocks.add(Material.BROWN_WOOL);
-        playerBlocks.add(Material.GREEN_WOOL);
-        playerBlocks.add(Material.RED_WOOL);
-        playerBlocks.add(Material.BLACK_WOOL);
-        playerBlocks.add(Material.GOLD_BLOCK);
-        playerBlocks.add(Material.IRON_BLOCK);
-        playerBlocks.add(Material.OAK_SLAB);
-        playerBlocks.add(Material.SPRUCE_SLAB);
-        playerBlocks.add(Material.BIRCH_SLAB);
-        playerBlocks.add(Material.JUNGLE_SLAB);
-        playerBlocks.add(Material.ACACIA_SLAB);
-        playerBlocks.add(Material.DARK_OAK_SLAB);
-        playerBlocks.add(Material.STONE_SLAB);
-        playerBlocks.add(Material.SANDSTONE_SLAB);
-        playerBlocks.add(Material.PETRIFIED_OAK_SLAB);
-        playerBlocks.add(Material.COBBLESTONE_SLAB);
-        playerBlocks.add(Material.BRICK_SLAB);
-        playerBlocks.add(Material.STONE_BRICK_SLAB);
-        playerBlocks.add(Material.NETHER_BRICK_SLAB);
-        playerBlocks.add(Material.QUARTZ_SLAB);
-        playerBlocks.add(Material.RED_SANDSTONE_SLAB);
-        playerBlocks.add(Material.PURPUR_SLAB);
-        playerBlocks.add(Material.PRISMARINE_SLAB);
-        playerBlocks.add(Material.PRISMARINE_BRICK_SLAB);
-        playerBlocks.add(Material.DARK_PRISMARINE_SLAB);
         playerBlocks.add(Material.WHEAT);
         playerBlocks.add(Material.TNT);
         playerBlocks.add(Material.MOSSY_COBBLESTONE);
         playerBlocks.add(Material.TORCH);
-        playerBlocks.add(Material.FIRE);
-        playerBlocks.add(Material.OAK_STAIRS);
-        playerBlocks.add(Material.SPRUCE_STAIRS);
-        playerBlocks.add(Material.BIRCH_STAIRS);
-        playerBlocks.add(Material.JUNGLE_STAIRS);
-        playerBlocks.add(Material.ACACIA_STAIRS);
-        playerBlocks.add(Material.DARK_OAK_STAIRS);
         playerBlocks.add(Material.CHEST);
         playerBlocks.add(Material.REDSTONE_WIRE);
-        playerBlocks.add(Material.DIAMOND_BLOCK);
         playerBlocks.add(Material.CRAFTING_TABLE);
         playerBlocks.add(Material.FURNACE);
-        playerBlocks.add(Material.OAK_DOOR);
-        playerBlocks.add(Material.ACACIA_SIGN);
-        playerBlocks.addAll(Tag.SIGNS.getValues());
-        playerBlocks.addAll(Tag.WALL_SIGNS.getValues());
         playerBlocks.add(Material.LADDER);
-        playerBlocks.add(Material.RAIL);
-        playerBlocks.add(Material.COBBLESTONE_STAIRS);
-        playerBlocks.add(Material.STONE_PRESSURE_PLATE);
+        playerBlocks.add(Material.SCAFFOLDING);
         playerBlocks.add(Material.LEVER);
-        playerBlocks.add(Material.IRON_DOOR);
-        playerBlocks.add(Material.OAK_PRESSURE_PLATE);
-        playerBlocks.add(Material.SPRUCE_PRESSURE_PLATE);
-        playerBlocks.add(Material.BIRCH_PRESSURE_PLATE);
-        playerBlocks.add(Material.JUNGLE_PRESSURE_PLATE);
-        playerBlocks.add(Material.ACACIA_PRESSURE_PLATE);
-        playerBlocks.add(Material.DARK_OAK_PRESSURE_PLATE);
         playerBlocks.add(Material.REDSTONE_TORCH);
-        playerBlocks.add(Material.STONE_BUTTON);
         playerBlocks.add(Material.SNOW_BLOCK);
         playerBlocks.add(Material.JUKEBOX);
-        playerBlocks.add(Material.OAK_FENCE);
-        playerBlocks.add(Material.SPRUCE_FENCE);
-        playerBlocks.add(Material.BIRCH_FENCE);
-        playerBlocks.add(Material.JUNGLE_FENCE);
-        playerBlocks.add(Material.ACACIA_FENCE);
-        playerBlocks.add(Material.DARK_OAK_FENCE);
         playerBlocks.add(Material.NETHER_PORTAL);
         playerBlocks.add(Material.JACK_O_LANTERN);
         playerBlocks.add(Material.CAKE);
         playerBlocks.add(Material.REPEATER);
-        playerBlocks.add(Material.OAK_TRAPDOOR);
-        playerBlocks.add(Material.SPRUCE_TRAPDOOR);
-        playerBlocks.add(Material.BIRCH_TRAPDOOR);
-        playerBlocks.add(Material.JUNGLE_TRAPDOOR);
-        playerBlocks.add(Material.ACACIA_TRAPDOOR);
-        playerBlocks.add(Material.DARK_OAK_TRAPDOOR);
-        playerBlocks.add(Material.STONE_BRICKS);
-        playerBlocks.add(Material.MOSSY_STONE_BRICKS);
-        playerBlocks.add(Material.CRACKED_STONE_BRICKS);
-        playerBlocks.add(Material.CHISELED_STONE_BRICKS);
         playerBlocks.add(Material.MUSHROOM_STEM);
         playerBlocks.add(Material.RED_MUSHROOM_BLOCK);
         playerBlocks.add(Material.BROWN_MUSHROOM_BLOCK);
         playerBlocks.add(Material.IRON_BARS);
         playerBlocks.add(Material.GLASS_PANE);
         playerBlocks.add(Material.MELON_STEM);
-        playerBlocks.add(Material.OAK_FENCE_GATE);
-        playerBlocks.add(Material.SPRUCE_FENCE_GATE);
-        playerBlocks.add(Material.BIRCH_FENCE_GATE);
-        playerBlocks.add(Material.JUNGLE_FENCE_GATE);
-        playerBlocks.add(Material.ACACIA_FENCE_GATE);
-        playerBlocks.add(Material.DARK_OAK_FENCE_GATE);
-        playerBlocks.add(Material.BRICK_STAIRS);
         playerBlocks.add(Material.ENCHANTING_TABLE);
-        playerBlocks.add(Material.BREWING_STAND);
         playerBlocks.add(Material.CAULDRON);
         playerBlocks.add(Material.COBWEB);
-        playerBlocks.add(Material.SPONGE);
         playerBlocks.add(Material.GRAVEL);
-        playerBlocks.add(Material.EMERALD_BLOCK);
         playerBlocks.add(Material.SANDSTONE);
         playerBlocks.add(Material.ENDER_CHEST);
-        playerBlocks.add(Material.SANDSTONE_STAIRS);
         playerBlocks.add(Material.COMMAND_BLOCK);
         playerBlocks.add(Material.REPEATING_COMMAND_BLOCK);
         playerBlocks.add(Material.CHAIN_COMMAND_BLOCK);
         playerBlocks.add(Material.BEACON);
-        playerBlocks.add(Material.COBBLESTONE_WALL);
-        playerBlocks.add(Material.MOSSY_COBBLESTONE_WALL);
-        playerBlocks.add(Material.FLOWER_POT);
         playerBlocks.add(Material.CARROT);
         playerBlocks.add(Material.POTATO);
-        playerBlocks.add(Material.OAK_BUTTON);
-        playerBlocks.add(Material.SPRUCE_BUTTON);
-        playerBlocks.add(Material.BIRCH_BUTTON);
-        playerBlocks.add(Material.JUNGLE_BUTTON);
-        playerBlocks.add(Material.ACACIA_BUTTON);
-        playerBlocks.add(Material.DARK_OAK_BUTTON);
         playerBlocks.add(Material.SKELETON_SKULL);
         playerBlocks.add(Material.WITHER_SKELETON_SKULL);
         playerBlocks.add(Material.CREEPER_HEAD);
         playerBlocks.add(Material.ZOMBIE_HEAD);
         playerBlocks.add(Material.PLAYER_HEAD);
         playerBlocks.add(Material.DRAGON_HEAD);
-        playerBlocks.add(Material.ANVIL);
         playerBlocks.add(Material.SPONGE);
         playerBlocks.add(Material.WHITE_STAINED_GLASS);
         playerBlocks.add(Material.ORANGE_STAINED_GLASS);
@@ -856,89 +761,34 @@ class RestoreNatureProcessingTask implements Runnable
         playerBlocks.add(Material.GREEN_STAINED_GLASS_PANE);
         playerBlocks.add(Material.RED_STAINED_GLASS_PANE);
         playerBlocks.add(Material.BLACK_STAINED_GLASS_PANE);
-        playerBlocks.add(Material.WHITE_BANNER);
-        playerBlocks.add(Material.ORANGE_BANNER);
-        playerBlocks.add(Material.MAGENTA_BANNER);
-        playerBlocks.add(Material.LIGHT_BLUE_BANNER);
-        playerBlocks.add(Material.YELLOW_BANNER);
-        playerBlocks.add(Material.LIME_BANNER);
-        playerBlocks.add(Material.PINK_BANNER);
-        playerBlocks.add(Material.GRAY_BANNER);
-        playerBlocks.add(Material.LIGHT_GRAY_BANNER);
-        playerBlocks.add(Material.CYAN_BANNER);
-        playerBlocks.add(Material.PURPLE_BANNER);
-        playerBlocks.add(Material.BLUE_BANNER);
-        playerBlocks.add(Material.BROWN_BANNER);
-        playerBlocks.add(Material.GREEN_BANNER);
-        playerBlocks.add(Material.RED_BANNER);
-        playerBlocks.add(Material.BLACK_BANNER);
         playerBlocks.add(Material.TRAPPED_CHEST);
-        playerBlocks.add(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-        playerBlocks.add(Material.HEAVY_WEIGHTED_PRESSURE_PLATE);
         playerBlocks.add(Material.COMPARATOR);
         playerBlocks.add(Material.DAYLIGHT_DETECTOR);
         playerBlocks.add(Material.REDSTONE_BLOCK);
         playerBlocks.add(Material.HOPPER);
         playerBlocks.add(Material.QUARTZ_BLOCK);
-        playerBlocks.add(Material.QUARTZ_STAIRS);
         playerBlocks.add(Material.DROPPER);
         playerBlocks.add(Material.SLIME_BLOCK);
-        playerBlocks.add(Material.IRON_TRAPDOOR);
         playerBlocks.add(Material.PRISMARINE);
         playerBlocks.add(Material.HAY_BLOCK);
-        playerBlocks.add(Material.WHITE_CARPET);
-        playerBlocks.add(Material.ORANGE_CARPET);
-        playerBlocks.add(Material.MAGENTA_CARPET);
-        playerBlocks.add(Material.LIGHT_BLUE_CARPET);
-        playerBlocks.add(Material.YELLOW_CARPET);
-        playerBlocks.add(Material.LIME_CARPET);
-        playerBlocks.add(Material.PINK_CARPET);
-        playerBlocks.add(Material.GRAY_CARPET);
-        playerBlocks.add(Material.LIGHT_GRAY_CARPET);
-        playerBlocks.add(Material.CYAN_CARPET);
-        playerBlocks.add(Material.PURPLE_CARPET);
-        playerBlocks.add(Material.BLUE_CARPET);
-        playerBlocks.add(Material.BROWN_CARPET);
-        playerBlocks.add(Material.GREEN_CARPET);
-        playerBlocks.add(Material.RED_CARPET);
-        playerBlocks.add(Material.BLACK_CARPET);
         playerBlocks.add(Material.SEA_LANTERN);
-        playerBlocks.add(Material.RED_SANDSTONE_STAIRS);
-        playerBlocks.add(Material.ACACIA_FENCE);
-        playerBlocks.add(Material.ACACIA_FENCE_GATE);
-        playerBlocks.add(Material.BIRCH_FENCE);
-        playerBlocks.add(Material.BIRCH_FENCE_GATE);
-        playerBlocks.add(Material.DARK_OAK_FENCE);
-        playerBlocks.add(Material.DARK_OAK_FENCE_GATE);
-        playerBlocks.add(Material.JUNGLE_FENCE);
-        playerBlocks.add(Material.JUNGLE_FENCE_GATE);
-        playerBlocks.add(Material.SPRUCE_FENCE);
-        playerBlocks.add(Material.SPRUCE_FENCE_GATE);
-        playerBlocks.add(Material.ACACIA_DOOR);
-        playerBlocks.add(Material.SPRUCE_DOOR);
-        playerBlocks.add(Material.DARK_OAK_DOOR);
-        playerBlocks.add(Material.JUNGLE_DOOR);
-        playerBlocks.add(Material.BIRCH_DOOR);
         playerBlocks.add(Material.COAL_BLOCK);
         playerBlocks.add(Material.REDSTONE_LAMP);
         playerBlocks.add(Material.PURPUR_BLOCK);
-        playerBlocks.add(Material.PURPUR_SLAB);
         playerBlocks.add(Material.PURPUR_PILLAR);
-        playerBlocks.add(Material.PURPUR_STAIRS);
-        playerBlocks.add(Material.NETHER_WART_BLOCK);
         playerBlocks.add(Material.RED_NETHER_BRICKS);
-        playerBlocks.add(Material.BONE_BLOCK);
 
         //these are unnatural in the standard world, but not in the nether
         if (environment != Environment.NETHER)
         {
+            playerBlocks.addAll(Tag.NYLIUM.getValues());
+            playerBlocks.addAll(Tag.WART_BLOCKS.getValues());
+            playerBlocks.add(Material.BONE_BLOCK);
             playerBlocks.add(Material.NETHERRACK);
             playerBlocks.add(Material.SOUL_SAND);
             playerBlocks.add(Material.SOUL_SOIL);
             playerBlocks.add(Material.GLOWSTONE);
             playerBlocks.add(Material.NETHER_BRICK);
-            playerBlocks.add(Material.NETHER_BRICK_FENCE);
-            playerBlocks.add(Material.NETHER_BRICK_STAIRS);
             playerBlocks.add(Material.MAGMA_BLOCK);
             playerBlocks.add(Material.ANCIENT_DEBRIS);
             playerBlocks.add(Material.BASALT);
@@ -949,19 +799,26 @@ class RestoreNatureProcessingTask implements Runnable
             playerBlocks.add(Material.NETHER_GOLD_ORE);
             playerBlocks.add(Material.NETHER_SPROUTS);
             playerBlocks.add(Material.CRIMSON_FUNGUS);
-            playerBlocks.add(Material.CRIMSON_NYLIUM);
             playerBlocks.add(Material.CRIMSON_ROOTS);
-            playerBlocks.add(Material.CRIMSON_STEM);
             playerBlocks.add(Material.NETHER_WART_BLOCK);
             playerBlocks.add(Material.WEEPING_VINES);
             playerBlocks.add(Material.WEEPING_VINES_PLANT);
             playerBlocks.add(Material.WARPED_FUNGUS);
-            playerBlocks.add(Material.WARPED_NYLIUM);
             playerBlocks.add(Material.WARPED_ROOTS);
-            playerBlocks.add(Material.WARPED_STEM);
             playerBlocks.add(Material.WARPED_WART_BLOCK);
             playerBlocks.add(Material.TWISTING_VINES);
             playerBlocks.add(Material.TWISTING_VINES_PLANT);
+        }
+        //blocks from tags that are natural in the nether
+        else
+        {
+            playerBlocks.remove(Material.CRIMSON_STEM);
+            playerBlocks.remove(Material.CRIMSON_HYPHAE);
+            playerBlocks.remove(Material.NETHER_BRICK_FENCE);
+            playerBlocks.remove(Material.NETHER_BRICK_STAIRS);
+            playerBlocks.remove(Material.SOUL_FIRE);
+            playerBlocks.remove(Material.WARPED_STEM);
+            playerBlocks.remove(Material.WARPED_HYPHAE);
         }
 
         //these are unnatural in the standard and nether worlds, but not in the end
@@ -977,18 +834,17 @@ class RestoreNatureProcessingTask implements Runnable
         //these are unnatural in sandy biomes, but not elsewhere
         if (biome == Biome.DESERT || biome == Biome.DESERT_HILLS || biome == Biome.BEACH || environment != Environment.NORMAL)
         {
-            playerBlocks.add(Material.OAK_LEAVES);
-            playerBlocks.add(Material.SPRUCE_LEAVES);
-            playerBlocks.add(Material.BIRCH_LEAVES);
-            playerBlocks.add(Material.JUNGLE_LEAVES);
-            playerBlocks.add(Material.ACACIA_LEAVES);
-            playerBlocks.add(Material.DARK_OAK_LEAVES);
-            playerBlocks.add(Material.OAK_LOG);
-            playerBlocks.add(Material.SPRUCE_LOG);
-            playerBlocks.add(Material.BIRCH_LOG);
-            playerBlocks.add(Material.JUNGLE_LOG);
-            playerBlocks.add(Material.ACACIA_LOG);
-            playerBlocks.add(Material.DARK_OAK_LOG);
+            playerBlocks.addAll(Tag.LEAVES.getValues());
+        }
+        //blocks from tags that are natural in non-sandy normal biomes
+        else
+        {
+            playerBlocks.remove(Material.OAK_LOG);
+            playerBlocks.remove(Material.SPRUCE_LOG);
+            playerBlocks.remove(Material.BIRCH_LOG);
+            playerBlocks.remove(Material.JUNGLE_LOG);
+            playerBlocks.remove(Material.ACACIA_LOG);
+            playerBlocks.remove(Material.DARK_OAK_LOG);
         }
 
         return playerBlocks;

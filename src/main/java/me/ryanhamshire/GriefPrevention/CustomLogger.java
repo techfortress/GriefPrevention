@@ -37,7 +37,7 @@ class CustomLogger
     private final int secondsBetweenWrites = 300;
 
     //stringbuilder is not thread safe, stringbuffer is
-    private StringBuffer queuedEntries = new StringBuffer();
+    private final StringBuffer queuedEntries = new StringBuffer();
 
     CustomLogger()
     {
@@ -75,7 +75,7 @@ class CustomLogger
         Matcher matcher = inlineFormatterPattern.matcher(entry);
         entry = matcher.replaceAll("");
         String timestamp = this.timestampFormat.format(new Date());
-        this.queuedEntries.append(timestamp + " " + entry + "\n");
+        this.queuedEntries.append(timestamp).append(' ').append(entry).append('\n');
     }
 
     private boolean isEnabledType(CustomLogEntryTypes entryType)
@@ -131,9 +131,8 @@ class CustomLogger
             int daysToKeepLogs = GriefPrevention.instance.config_logs_daysToKeep;
             Calendar expirationBoundary = Calendar.getInstance();
             expirationBoundary.add(Calendar.DATE, -daysToKeepLogs);
-            for (int i = 0; i < files.length; i++)
+            for (File file : files)
             {
-                File file = files[i];
                 if (file.isDirectory()) continue;  //skip any folders
 
                 String filename = file.getName().replace(".log", "");

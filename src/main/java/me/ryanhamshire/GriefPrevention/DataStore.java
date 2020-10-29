@@ -348,16 +348,17 @@ public abstract class DataStore
     //this will return 0 when he's offline, and the correct number when online.
     synchronized public int getGroupBonusBlocks(UUID playerID)
     {
+        Player player = GriefPrevention.instance.getServer().getPlayer(playerID);
+
+        if (player == null) return 0;
+
         int bonusBlocks = 0;
-        Set<String> keys = permissionToBonusBlocksMap.keySet();
-        Iterator<String> iterator = keys.iterator();
-        while (iterator.hasNext())
+
+        for (Map.Entry<String, Integer> groupEntry : this.permissionToBonusBlocksMap.entrySet())
         {
-            String groupName = iterator.next();
-            Player player = GriefPrevention.instance.getServer().getPlayer(playerID);
-            if (player != null && player.hasPermission(groupName))
+            if (player.hasPermission(groupEntry.getKey()))
             {
-                bonusBlocks += this.permissionToBonusBlocksMap.get(groupName);
+                bonusBlocks += groupEntry.getValue();
             }
         }
 
@@ -472,6 +473,9 @@ public abstract class DataStore
 
     private void addToChunkClaimMap(Claim claim)
     {
+        // Subclaims should not be added to chunk claim map.
+        if (claim.parent != null) return;
+
         ArrayList<Long> chunkHashes = claim.getChunkHashes();
         for (Long chunkHash : chunkHashes)
         {
@@ -511,7 +515,7 @@ public abstract class DataStore
     }
 
     //turns a location into a string, useful in data storage
-    private String locationStringDelimiter = ";";
+    private final String locationStringDelimiter = ";";
 
     String locationToString(Location location)
     {
@@ -923,10 +927,8 @@ public abstract class DataStore
             claimsToCheck = this.claims;
         }
 
-        for (int i = 0; i < claimsToCheck.size(); i++)
+        for (Claim otherClaim : claimsToCheck)
         {
-            Claim otherClaim = claimsToCheck.get(i);
-
             //if we find an existing claim which will be overlapped
             if (otherClaim.id != newClaim.id && otherClaim.inDataStore && otherClaim.overlaps(newClaim))
             {
@@ -1187,10 +1189,9 @@ public abstract class DataStore
                     //drop any remainder on the ground at his feet
                     Object[] keys = wontFitItems.keySet().toArray();
                     Location winnerLocation = winner.getLocation();
-                    for (int i = 0; i < keys.length; i++)
+                    for (Map.Entry<Integer, ItemStack> wontFitItem : wontFitItems.entrySet())
                     {
-                        Integer key = (Integer) keys[i];
-                        winnerLocation.getWorld().dropItemNaturally(winnerLocation, wontFitItems.get(key));
+                        winner.getWorld().dropItemNaturally(winnerLocation, wontFitItem.getValue());
                     }
                 }
 
@@ -1200,7 +1201,7 @@ public abstract class DataStore
     }
 
     //timestamp for each siege cooldown to end
-    private HashMap<String, Long> siegeCooldownRemaining = new HashMap<>();
+    private final HashMap<String, Long> siegeCooldownRemaining = new HashMap<>();
 
     //whether or not a sieger can siege a particular victim or claim, considering only cooldowns
     synchronized public boolean onCooldown(Player attacker, Player defender, Claim defenderClaim)
@@ -1276,17 +1277,15 @@ public abstract class DataStore
     {
         //make a list of the player's claims
         ArrayList<Claim> claimsToDelete = new ArrayList<>();
-        for (int i = 0; i < this.claims.size(); i++)
+        for (Claim claim : this.claims)
         {
-            Claim claim = this.claims.get(i);
             if ((playerID == claim.ownerID || (playerID != null && playerID.equals(claim.ownerID))))
                 claimsToDelete.add(claim);
         }
 
         //delete them one by one
-        for (int i = 0; i < claimsToDelete.size(); i++)
+        for (Claim claim : claimsToDelete)
         {
-            Claim claim = claimsToDelete.get(i);
             claim.removeSurfaceFluids(null);
 
             this.deleteClaim(claim, releasePets);
@@ -1578,6 +1577,7 @@ public abstract class DataStore
         this.addDefault(defaults, Messages.TooDeepToClaim, "This chest can't be protected because it's too deep underground.  Consider moving it.", null);
         this.addDefault(defaults, Messages.ChestClaimConfirmation, "This chest is protected.", null);
         this.addDefault(defaults, Messages.AutomaticClaimNotification, "This chest and nearby blocks are protected from breakage and theft.", null);
+        this.addDefault(defaults, Messages.AutomaticClaimOtherClaimTooClose, "Cannot create a claim for your chest, there is another claim too close!", null);
         this.addDefault(defaults, Messages.UnprotectedChestWarning, "This chest is NOT protected.  Consider using a golden shovel to expand an existing claim or to create a new one.", null);
         this.addDefault(defaults, Messages.ThatPlayerPvPImmune, "You can't injure defenseless players.", null);
         this.addDefault(defaults, Messages.CantFightWhileImmune, "You can't fight someone while you're protected from PvP.", null);
@@ -1737,10 +1737,9 @@ public abstract class DataStore
         FileConfiguration config = YamlConfiguration.loadConfiguration(new File(messagesFilePath));
 
         //for each message ID
-        for (int i = 0; i < messageIDs.length; i++)
+        for (Messages messageID : messageIDs)
         {
             //get default for this message
-            Messages messageID = messageIDs[i];
             CustomizableMessage messageData = defaults.get(messageID.name());
 
             //if default is missing, log an error and use some fake data for now so that the plugin can run
@@ -1843,8 +1842,8 @@ public abstract class DataStore
 
     private class SavePlayerDataThread extends Thread
     {
-        private UUID playerID;
-        private PlayerData playerData;
+        private final UUID playerID;
+        private final PlayerData playerData;
 
         SavePlayerDataThread(UUID playerID, PlayerData playerData)
         {

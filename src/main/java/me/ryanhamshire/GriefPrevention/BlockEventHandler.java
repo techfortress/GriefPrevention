@@ -57,6 +57,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.InventoryPickupItemEvent;
 import org.bukkit.event.world.StructureGrowEvent;
 import org.bukkit.inventory.InventoryHolder;
@@ -67,6 +68,7 @@ import org.bukkit.projectiles.ProjectileSource;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -76,9 +78,9 @@ import java.util.UUID;
 public class BlockEventHandler implements Listener
 {
     //convenience reference to singleton datastore
-    private DataStore dataStore;
+    private final DataStore dataStore;
 
-    private ArrayList<Material> trashBlocks;
+    private final EnumSet<Material> trashBlocks;
 
     //constructor
     public BlockEventHandler(DataStore dataStore)
@@ -86,7 +88,7 @@ public class BlockEventHandler implements Listener
         this.dataStore = dataStore;
 
         //create the list of blocks which will not trigger a warning when they're placed outside of land claims
-        this.trashBlocks = new ArrayList<>();
+        this.trashBlocks = EnumSet.noneOf(Material.class);
         this.trashBlocks.add(Material.COBBLESTONE);
         this.trashBlocks.add(Material.TORCH);
         this.trashBlocks.add(Material.DIRT);
@@ -147,7 +149,7 @@ public class BlockEventHandler implements Listener
             if (!withoutSpaces.isEmpty())
             {
                 notEmpty = true;
-                lines.append("\n  " + event.getLine(i));
+                lines.append("\n  ").append(event.getLine(i));
             }
         }
 
@@ -233,10 +235,8 @@ public class BlockEventHandler implements Listener
         if (block.getType() == Material.FIRE && !doesAllowFireProximityInWorld(block.getWorld()))
         {
             List<Player> players = block.getWorld().getPlayers();
-            for (int i = 0; i < players.size(); i++)
+            for (Player otherPlayer : players)
             {
-                Player otherPlayer = players.get(i);
-
                 // Ignore players in creative or spectator mode to avoid users from checking if someone is spectating near them
                 if (otherPlayer.getGameMode() == GameMode.CREATIVE || otherPlayer.getGameMode() == GameMode.SPECTATOR)
                 {
@@ -335,7 +335,7 @@ public class BlockEventHandler implements Listener
                 else
                 {
                     //if failure due to insufficient claim blocks available
-                    if (playerData.getRemainingClaimBlocks() < 1)
+                    if (playerData.getRemainingClaimBlocks() < Math.pow(1 + 2 * GriefPrevention.instance.config_claims_automaticClaimsForNewPlayersRadiusMin, 2))
                     {
                         GriefPrevention.sendMessage(player, TextMode.Warn, Messages.NoEnoughBlocksForChestClaim);
                         return;
@@ -344,7 +344,7 @@ public class BlockEventHandler implements Listener
                     //as long as the automatic claim overlaps another existing claim, shrink it
                     //note that since the player had permission to place the chest, at the very least, the automatic claim will include the chest
                     CreateClaimResult result = null;
-                    while (radius >= 0)
+                    while (radius >= GriefPrevention.instance.config_claims_automaticClaimsForNewPlayersRadiusMin)
                     {
                         int area = (radius * 2 + 1) * (radius * 2 + 1);
                         if (playerData.getRemainingClaimBlocks() >= area)
@@ -364,14 +364,26 @@ public class BlockEventHandler implements Listener
                         radius--;
                     }
 
-                    if (result != null && result.succeeded)
+                    if (result != null && result.claim != null)
                     {
-                        //notify and explain to player
-                        GriefPrevention.sendMessage(player, TextMode.Success, Messages.AutomaticClaimNotification);
+                        if (result.succeeded)
+                        {
+                            //notify and explain to player
+                            GriefPrevention.sendMessage(player, TextMode.Success, Messages.AutomaticClaimNotification);
 
-                        //show the player the protected area
-                        Visualization visualization = Visualization.FromClaim(result.claim, block.getY(), VisualizationType.Claim, player.getLocation());
-                        Visualization.Apply(player, visualization);
+                            //show the player the protected area
+                            Visualization visualization = Visualization.FromClaim(result.claim, block.getY(), VisualizationType.Claim, player.getLocation());
+                            Visualization.Apply(player, visualization);
+                        }
+                        else
+                        {
+                            //notify and explain to player
+                            GriefPrevention.sendMessage(player, TextMode.Err, Messages.AutomaticClaimOtherClaimTooClose);
+
+                            //show the player the protected area
+                            Visualization visualization = Visualization.FromClaim(result.claim, block.getY(), VisualizationType.ErrorClaim, player.getLocation());
+                            Visualization.Apply(player, visualization);
+                        }
                     }
                 }
 
@@ -481,18 +493,18 @@ public class BlockEventHandler implements Listener
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockPistonExtend(BlockPistonExtendEvent event)
     {
-        onPistonEvent(event, event.getBlocks());
+        onPistonEvent(event, event.getBlocks(), false);
     }
 
     // Prevent pistons pulling blocks into or out of claims.
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockPistonRetract(BlockPistonRetractEvent event)
     {
-        onPistonEvent(event, event.getBlocks());
+        onPistonEvent(event, event.getBlocks(), true);
     }
 
     // Handle piston push and pulls.
-    private void onPistonEvent(BlockPistonEvent event, List<Block> blocks)
+    private void onPistonEvent(BlockPistonEvent event, List<Block> blocks, boolean isRetract)
     {
         PistonMode pistonMode = GriefPrevention.instance.config_pistonMovement;
         // Return if piston movements are ignored.
@@ -502,6 +514,11 @@ public class BlockEventHandler implements Listener
         if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
 
         BlockFace direction = event.getDirection();
+
+        // Direction is always piston facing, correct for retraction.
+        if (isRetract)
+            direction = direction.getOppositeFace();
+
         Block pistonBlock = event.getBlock();
         Claim pistonClaim = this.dataStore.getClaimAt(pistonBlock.getLocation(), false, null);
 
@@ -515,9 +532,12 @@ public class BlockEventHandler implements Listener
         // If no blocks are moving, quickly check if another claim's boundaries are violated.
         if (blocks.isEmpty())
         {
+            // No block and retraction is always safe.
+            if (isRetract) return;
+
             Block invadedBlock = pistonBlock.getRelative(direction);
             Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false, pistonClaim);
-            if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.ownerID, invadedClaim.ownerID)))
+            if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), invadedClaim.getOwnerID())))
             {
                 event.setCancelled(true);
             }
@@ -570,8 +590,11 @@ public class BlockEventHandler implements Listener
             return;
         }
 
+        // Ensure we have top level claim - piston ownership is only checked based on claim owner in everywhere mode.
+        while (pistonClaim != null && pistonClaim.parent != null) pistonClaim = pistonClaim.parent;
+
         // Pushing down or pulling up is safe if all blocks are in line with the piston.
-        if (minX == maxX && minZ == maxZ && direction == (event instanceof BlockPistonExtendEvent ? BlockFace.DOWN : BlockFace.UP)) return;
+        if (minX == maxX && minZ == maxZ && direction == (isRetract ? BlockFace.UP : BlockFace.DOWN)) return;
 
         // Fast mode: Use the intersection of a cuboid containing all blocks instead of individual locations.
         if (pistonMode == PistonMode.EVERYWHERE_SIMPLE)
@@ -602,7 +625,7 @@ public class BlockEventHandler implements Listener
                     continue;
 
                 // If owners are different, cancel.
-                if (pistonClaim == null || !Objects.equals(pistonClaim.ownerID, claim.ownerID))
+                if (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), claim.getOwnerID()))
                 {
                     event.setCancelled(true);
                     return;
@@ -649,10 +672,13 @@ public class BlockEventHandler implements Listener
             lastClaim = claim;
 
             // If pushing this block will change ownership, cancel the event and take away the piston (for performance reasons).
-            if (pistonClaim == null || !Objects.equals(pistonClaim.ownerID, claim.ownerID))
+            if (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), claim.getOwnerID()))
             {
                 event.setCancelled(true);
-                pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
+                if (GriefPrevention.instance.config_pistonExplosionSound)
+                {
+                    pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
+                }
                 pistonBlock.getWorld().dropItem(pistonBlock.getLocation(), new ItemStack(event.isSticky() ? Material.STICKY_PISTON : Material.PISTON));
                 pistonBlock.setType(Material.AIR);
                 return;
@@ -784,9 +810,8 @@ public class BlockEventHandler implements Listener
                     };
 
             //pro-actively put out any fires adjacent the burning block, to reduce future processing here
-            for (int i = 0; i < adjacentBlocks.length; i++)
+            for (Block adjacentBlock : adjacentBlocks)
             {
-                Block adjacentBlock = adjacentBlocks[i];
                 if (adjacentBlock.getType() == Material.FIRE && adjacentBlock.getRelative(BlockFace.DOWN).getType() != Material.NETHERRACK)
                 {
                     adjacentBlock.setType(Material.AIR);
@@ -1016,6 +1041,23 @@ public class BlockEventHandler implements Listener
                     }
                 }
             }
+        }
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onItemFrameBrokenByBoat(final HangingBreakEvent event)
+    {
+        // Checks if the event is caused by physics - 90% of cases caused by a boat (other 10% would be block,
+        // however since it's in a claim, unless you use a TNT block we don't need to worry about it).
+        if (event.getCause() != HangingBreakEvent.RemoveCause.PHYSICS)
+        {
+            return;
+        }
+
+        // Cancels the event if in a claim, as we can not efficiently retrieve the person/entity who broke the Item Frame/Hangable Item.
+        if (this.dataStore.getClaimAt(event.getEntity().getLocation(), false, null) != null)
+        {
+            event.setCancelled(true);
         }
     }
 }

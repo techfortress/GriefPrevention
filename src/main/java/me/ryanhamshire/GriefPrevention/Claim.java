@@ -33,9 +33,9 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 //represents a player claim
@@ -354,7 +354,7 @@ public class Claim
         return GriefPrevention.instance.dataStore.getMessage(Messages.OnlyOwnersModifyClaims, this.getOwnerName());
     }
 
-    private static final EnumSet<Material> PLACEABLE_FARMING_BLOCKS = EnumSet.of(
+    private static final Set<Material> PLACEABLE_FARMING_BLOCKS = EnumSet.of(
             Material.PUMPKIN_STEM,
             Material.WHEAT,
             Material.MELON_STEM,
@@ -470,18 +470,8 @@ public class Claim
         //if under siege, some blocks will be breakable
         if (this.siegeData != null || this.doorsOpen)
         {
-            boolean breakable = false;
-
             //search for block type in list of breakable blocks
-            for (int i = 0; i < GriefPrevention.instance.config_siege_blocks.size(); i++)
-            {
-                Material breakableMaterial = GriefPrevention.instance.config_siege_blocks.get(i);
-                if (breakableMaterial == material)
-                {
-                    breakable = true;
-                    break;
-                }
-            }
+            boolean breakable = GriefPrevention.instance.config_siege_blocks.contains(material);
 
             //custom error messages for siege mode
             if (!breakable)
@@ -597,15 +587,15 @@ public class Claim
         if (this.allowEdit(player) == null) return null;
 
         //anyone who's in the managers (/PermissionTrust) list can do this
-        for (int i = 0; i < this.managers.size(); i++)
+        for (String managerID : this.managers)
         {
-            String managerID = this.managers.get(i);
+            if (managerID == null) continue;
             if (player.getUniqueId().toString().equals(managerID)) return null;
 
             else if (managerID.startsWith("[") && managerID.endsWith("]"))
             {
                 managerID = managerID.substring(1, managerID.length() - 1);
-                if (managerID == null || managerID.isEmpty()) continue;
+                if (managerID.isEmpty()) continue;
                 if (player.hasPermission(managerID)) return null;
             }
         }
@@ -675,11 +665,8 @@ public class Claim
     public void getPermissions(ArrayList<String> builders, ArrayList<String> containers, ArrayList<String> accessors, ArrayList<String> managers)
     {
         //loop through all the entries in the hash map
-        Iterator<Map.Entry<String, ClaimPermission>> mappingsIterator = this.playerIDToClaimPermissionMap.entrySet().iterator();
-        while (mappingsIterator.hasNext())
+        for (Map.Entry<String, ClaimPermission> entry : this.playerIDToClaimPermissionMap.entrySet())
         {
-            Map.Entry<String, ClaimPermission> entry = mappingsIterator.next();
-
             //build up a list for each permission level
             if (entry.getValue() == ClaimPermission.Build)
             {
@@ -696,10 +683,7 @@ public class Claim
         }
 
         //managers are handled a little differently
-        for (int i = 0; i < this.managers.size(); i++)
-        {
-            managers.add(this.managers.get(i));
-        }
+        managers.addAll(this.managers);
     }
 
     //returns a copy of the location representing lower x, y, z limits
@@ -725,6 +709,15 @@ public class Claim
             return GriefPrevention.instance.dataStore.getMessage(Messages.OwnerNameForAdminClaims);
 
         return GriefPrevention.lookupPlayerName(this.ownerID);
+    }
+
+    public UUID getOwnerID()
+    {
+        if (this.parent != null)
+        {
+            return this.parent.ownerID;
+        }
+        return this.ownerID;
     }
 
     //whether or not a location is in a claim
@@ -761,10 +754,10 @@ public class Claim
         else if (excludeSubdivisions)
         {
             //search all subdivisions to see if the location is in any of them
-            for (int i = 0; i < this.children.size(); i++)
+            for (Claim child : this.children)
             {
                 //if we find such a subdivision, return false
-                if (this.children.get(i).contains(location, ignoreHeight, true))
+                if (child.contains(location, ignoreHeight, true))
                 {
                     return false;
                 }
@@ -814,9 +807,8 @@ public class Claim
         for (Chunk chunk : chunks)
         {
             Entity[] entities = chunk.getEntities();
-            for (int i = 0; i < entities.length; i++)
+            for (Entity entity : entities)
             {
-                Entity entity = entities[i];
                 if (!(entity instanceof Player) && this.contains(entity.getLocation(), false, false))
                 {
                     totalEntities++;
@@ -846,9 +838,8 @@ public class Claim
         for (Chunk chunk : chunks)
         {
             BlockState[] actives = chunk.getTileEntities();
-            for (int i = 0; i < actives.length; i++)
+            for (BlockState active : actives)
             {
-                BlockState active = actives[i];
                 if (BlockEventHandler.isActiveBlock(active))
                 {
                     if (this.contains(active.getLocation(), false, false))
@@ -887,7 +878,7 @@ public class Claim
     {
         //decide which blocks will be considered player placed
         Location lesserBoundaryCorner = this.getLesserBoundaryCorner();
-        ArrayList<Material> playerBlocks = RestoreNatureProcessingTask.getPlayerBlocks(lesserBoundaryCorner.getWorld().getEnvironment(), lesserBoundaryCorner.getBlock().getBiome());
+        Set<Material> playerBlocks = RestoreNatureProcessingTask.getPlayerBlocks(lesserBoundaryCorner.getWorld().getEnvironment(), lesserBoundaryCorner.getBlock().getBiome());
 
         //scan the claim for player placed blocks
         double score = 0;

@@ -17,7 +17,7 @@ class WordFinder
         {
             if (!word.isEmpty() && !word.trim().isEmpty())
             {
-                patternBuilder.append("|(([^\\w]|^)" + Pattern.quote(word) + "([^\\w]|$))");
+                patternBuilder.append("|(([^\\w]|^)").append(Pattern.quote(word)).append("([^\\w]|$))");
             }
         }
 
@@ -27,6 +27,8 @@ class WordFinder
             //trim extraneous leading pipe (|)
             patternString = patternString.substring(1);
         }
+        // No words are defined, match nothing.
+        else return;
 
         this.pattern = Pattern.compile(patternString, Pattern.CASE_INSENSITIVE | Pattern.UNICODE_CASE);
     }

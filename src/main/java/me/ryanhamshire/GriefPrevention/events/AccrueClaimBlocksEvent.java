@@ -26,7 +26,7 @@ public class AccrueClaimBlocksEvent extends Event
         return handlers;
     }
 
-    private Player player;
+    private final Player player;
     private int blocksToAccrue;
     private boolean isIdle = false;
     private boolean cancelled = false;

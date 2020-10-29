@@ -35,7 +35,7 @@ import java.util.List;
 class EntityCleanupTask implements Runnable
 {
     //where to start cleaning in the list of entities
-    private double percentageStart;
+    private final double percentageStart;
 
     public EntityCleanupTask(double percentageStart)
     {
@@ -54,10 +54,8 @@ class EntityCleanupTask implements Runnable
             }
         }
 
-        for (int i = 0; i < worlds.size(); i++)
+        for (World world : worlds)
         {
-            World world = worlds.get(i);
-
             List<Entity> entities = world.getEntities();
 
             //starting and stopping point.  each execution of the task scans 10% of the server's (loaded) entities

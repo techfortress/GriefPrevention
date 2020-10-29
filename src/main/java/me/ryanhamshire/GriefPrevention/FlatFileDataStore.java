@@ -39,6 +39,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
@@ -85,9 +86,8 @@ public class FlatFileDataStore extends DataStore
 
         //load group data into memory
         File[] files = playerDataFolder.listFiles();
-        for (int i = 0; i < files.length; i++)
+        for (File file : files)
         {
-            File file = files[i];
             if (!file.isFile()) continue;  //avoids folders
 
             //all group data files start with a dollar sign.  ignoring the rest, which are player data files.
@@ -801,9 +801,8 @@ public class FlatFileDataStore extends DataStore
     synchronized void migrateData(DatabaseDataStore databaseStore)
     {
         //migrate claims
-        for (int i = 0; i < this.claims.size(); i++)
+        for (Claim claim : this.claims)
         {
-            Claim claim = this.claims.get(i);
             databaseStore.addClaim(claim, true);
             for (Claim child : claim.children)
             {
@@ -812,19 +811,16 @@ public class FlatFileDataStore extends DataStore
         }
 
         //migrate groups
-        Iterator<String> groupNamesEnumerator = this.permissionToBonusBlocksMap.keySet().iterator();
-        while (groupNamesEnumerator.hasNext())
+        for (Map.Entry<String, Integer> groupEntry : this.permissionToBonusBlocksMap.entrySet())
         {
-            String groupName = groupNamesEnumerator.next();
-            databaseStore.saveGroupBonusBlocks(groupName, this.permissionToBonusBlocksMap.get(groupName));
+            databaseStore.saveGroupBonusBlocks(groupEntry.getKey(), groupEntry.getValue());
         }
 
         //migrate players
         File playerDataFolder = new File(playerDataFolderPath);
         File[] files = playerDataFolder.listFiles();
-        for (int i = 0; i < files.length; i++)
+        for (File file : files)
         {
-            File file = files[i];
             if (!file.isFile()) continue;  //avoids folders
             if (file.isHidden()) continue; //avoid hidden files, which are likely not created by GriefPrevention
 

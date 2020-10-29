@@ -54,6 +54,7 @@ import org.bukkit.entity.ThrownPotion;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.WaterMob;
 import org.bukkit.entity.Wolf;
+import org.bukkit.entity.Zombie;
 import org.bukkit.entity.minecart.ExplosiveMinecart;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -106,8 +107,8 @@ import java.util.UUID;
 public class EntityEventHandler implements Listener
 {
     //convenience reference for the singleton datastore
-    private DataStore dataStore;
-    GriefPrevention instance;
+    private final DataStore dataStore;
+    private final GriefPrevention instance;
     private final NamespacedKey luredByPlayer;
 
     public EntityEventHandler(DataStore dataStore, GriefPrevention plugin)
@@ -344,10 +345,8 @@ public class EntityEventHandler implements Listener
         //make a list of blocks which were allowed to explode
         List<Block> explodedBlocks = new ArrayList<>();
         Claim cachedClaim = null;
-        for (int i = 0; i < blocks.size(); i++)
+        for (Block block : blocks)
         {
-            Block block = blocks.get(i);
-
             //always ignore air blocks
             if (block.getType() == Material.AIR) continue;
 
@@ -369,17 +368,7 @@ public class EntityEventHandler implements Listener
             if (claim != null && claim.siegeData != null)
             {
                 Material material = block.getType();
-                boolean breakable = false;
-                for (int j = 0; j < GriefPrevention.instance.config_siege_blocks.size(); j++)
-                {
-                    Material breakableMaterial = GriefPrevention.instance.config_siege_blocks.get(j);
-                    if (breakableMaterial == material)
-                    {
-                        breakable = true;
-                        explodedBlocks.add(block);
-                        break;
-                    }
-                }
+                boolean breakable = GriefPrevention.instance.config_siege_blocks.contains(material);
 
                 if (breakable) continue;
             }
@@ -1002,7 +991,7 @@ public class EntityEventHandler implements Listener
                     if (attacker == null)
                     {
                         //exception case
-                        if (event.getEntityType() == EntityType.VILLAGER && damageSource != null && damageSource.getType() == EntityType.ZOMBIE)
+                        if (event.getEntityType() == EntityType.VILLAGER && damageSource != null && damageSource instanceof Zombie)
                         {
                             return;
                         }

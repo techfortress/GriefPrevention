@@ -30,6 +30,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -38,7 +39,6 @@ import org.bukkit.Statistic;
 import org.bukkit.World;
 import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
@@ -49,24 +49,25 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.plugin.PluginManager;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
-import org.bukkit.util.BlockIterator;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
+import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class GriefPrevention extends JavaPlugin
 {
@@ -118,7 +119,8 @@ public class GriefPrevention extends JavaPlugin
     public int config_claims_expirationExemptionTotalBlocks;        //total claim blocks amount which will exempt a player from claim expiration
     public int config_claims_expirationExemptionBonusBlocks;        //bonus claim blocks amount which will exempt a player from claim expiration
 
-    public int config_claims_automaticClaimsForNewPlayersRadius;    //how big automatic new player claims (when they place a chest) should be.  0 to disable
+    public int config_claims_automaticClaimsForNewPlayersRadius;    //how big automatic new player claims (when they place a chest) should be.  -1 to disable
+    public int config_claims_automaticClaimsForNewPlayersRadiusMin; //how big automatic new player claims must be. 0 to disable
     public int config_claims_claimsExtendIntoGroundDistance;        //how far below the shoveled block a new claim will reach
     public int config_claims_minWidth;                                //minimum width for non-admin claims
     public int config_claims_minArea;                               //minimum area for non-admin claims
@@ -141,7 +143,7 @@ public class GriefPrevention extends JavaPlugin
     public boolean config_claims_lecternReadingRequiresAccessTrust;                    //reading lecterns requires access trust
 
     public ArrayList<World> config_siege_enabledWorlds;                //whether or not /siege is enabled on this server
-    public ArrayList<Material> config_siege_blocks;                    //which blocks will be breakable in siege mode
+    public Set<Material> config_siege_blocks;                    //which blocks will be breakable in siege mode
     public int config_siege_doorsOpenSeconds;  // how before claim is re-secured after siege win
     public int config_siege_cooldownEndInMinutes;
     public boolean config_spam_enabled;                                //whether or not to monitor for spam
@@ -173,6 +175,7 @@ public class GriefPrevention extends JavaPlugin
     public boolean config_lockDeathDropsInPvpWorlds;                //whether players' dropped on death items are protected in pvp worlds
     public boolean config_lockDeathDropsInNonPvpWorlds;             //whether players' dropped on death items are protected in non-pvp worlds
 
+    private EconomyHandler economyHandler;
     public int config_economy_claimBlocksMaxBonus;                  //max "bonus" blocks a player can buy.  set to zero for no limit.
     public double config_economy_claimBlocksPurchaseCost;            //cost to purchase a claim block.  set to zero to disable purchase.
     public double config_economy_claimBlocksSellValue;                //return on a sold claim block.  set to zero to disable sale.
@@ -206,6 +209,7 @@ public class GriefPrevention extends JavaPlugin
 
     public boolean config_limitTreeGrowth;                          //whether trees should be prevented from growing into a claim from outside
     public PistonMode config_pistonMovement;                            //Setting for piston check options
+    public boolean config_pistonExplosionSound;                     //whether pistons make an explosion sound when they get removed
 
     public boolean config_advanced_fixNegativeClaimblockAmounts;    //whether to attempt to fix negative claim block amounts (some addons cause/assume players can go into negative amounts)
     public int config_advanced_claim_expiration_check_rate;            //How often GP should check for expired claims, amount in seconds
@@ -227,9 +231,6 @@ public class GriefPrevention extends JavaPlugin
     private String databaseUserName;
     private String databasePassword;
 
-
-    //reference to the economy plugin, if economy integration is enabled
-    public static Economy economy = null;
 
     //how far away to search from a tree trunk for its branch blocks
     public static final int TREE_RADIUS = 5;
@@ -358,41 +359,9 @@ public class GriefPrevention extends JavaPlugin
         EntityEventHandler entityEventHandler = new EntityEventHandler(this.dataStore, this);
         pluginManager.registerEvents(entityEventHandler, this);
 
-        //if economy is enabled
-        if (this.config_economy_claimBlocksPurchaseCost > 0 || this.config_economy_claimBlocksSellValue > 0)
-        {
-            //try to load Vault
-            GriefPrevention.AddLogEntry("GriefPrevention requires Vault for economy integration.");
-            GriefPrevention.AddLogEntry("Attempting to load Vault...");
-            RegisteredServiceProvider<Economy> economyProvider = getServer().getServicesManager().getRegistration(net.milkbowl.vault.economy.Economy.class);
-            GriefPrevention.AddLogEntry("Vault loaded successfully!");
-
-            //ask Vault to hook into an economy plugin
-            GriefPrevention.AddLogEntry("Looking for a Vault-compatible economy plugin...");
-            if (economyProvider != null)
-            {
-                GriefPrevention.economy = economyProvider.getProvider();
-
-                //on success, display success message
-                if (GriefPrevention.economy != null)
-                {
-                    GriefPrevention.AddLogEntry("Hooked into economy: " + GriefPrevention.economy.getName() + ".");
-                    GriefPrevention.AddLogEntry("Ready to buy/sell claim blocks!");
-                }
-
-                //otherwise error message
-                else
-                {
-                    GriefPrevention.AddLogEntry("ERROR: Vault was unable to find a supported economy plugin.  Either install a Vault-compatible economy plugin, or set both of the economy config variables to zero.");
-                }
-            }
-
-            //another error case
-            else
-            {
-                GriefPrevention.AddLogEntry("ERROR: Vault was unable to find a supported economy plugin.  Either install a Vault-compatible economy plugin, or set both of the economy config variables to zero.");
-            }
-        }
+        //vault-based economy integration
+        economyHandler = new EconomyHandler(this);
+        pluginManager.registerEvents(economyHandler, this);
 
         //cache offline players
         OfflinePlayer[] offlinePlayers = this.getServer().getOfflinePlayers();
@@ -541,11 +510,11 @@ public class GriefPrevention extends JavaPlugin
 
         //sea level
         this.config_seaLevelOverride = new HashMap<>();
-        for (int i = 0; i < worlds.size(); i++)
+        for (World world : worlds)
         {
-            int seaLevelOverride = config.getInt("GriefPrevention.SeaLevelOverrides." + worlds.get(i).getName(), -1);
-            outConfig.set("GriefPrevention.SeaLevelOverrides." + worlds.get(i).getName(), seaLevelOverride);
-            this.config_seaLevelOverride.put(worlds.get(i).getName(), seaLevelOverride);
+            int seaLevelOverride = config.getInt("GriefPrevention.SeaLevelOverrides." + world.getName(), -1);
+            outConfig.set("GriefPrevention.SeaLevelOverrides." + world.getName(), seaLevelOverride);
+            this.config_seaLevelOverride.put(world.getName(), seaLevelOverride);
         }
 
         this.config_claims_preventGlobalMonsterEggs = config.getBoolean("GriefPrevention.Claims.PreventGlobalMonsterEggs", true);
@@ -570,6 +539,8 @@ public class GriefPrevention extends JavaPlugin
         this.config_claims_accruedIdlePercent = config.getInt("GriefPrevention.Claims.AccruedIdlePercent", 0);
         this.config_claims_abandonReturnRatio = config.getDouble("GriefPrevention.Claims.AbandonReturnRatio", 1.0D);
         this.config_claims_automaticClaimsForNewPlayersRadius = config.getInt("GriefPrevention.Claims.AutomaticNewPlayerClaimsRadius", 4);
+        this.config_claims_automaticClaimsForNewPlayersRadiusMin = Math.max(0, Math.min(this.config_claims_automaticClaimsForNewPlayersRadius,
+                config.getInt("GriefPrevention.Claims.AutomaticNewPlayerClaimsRadiusMinimum", 0)));
         this.config_claims_claimsExtendIntoGroundDistance = Math.abs(config.getInt("GriefPrevention.Claims.ExtendIntoGroundDistance", 5));
         this.config_claims_minWidth = config.getInt("GriefPrevention.Claims.MinimumWidth", 5);
         this.config_claims_minArea = config.getInt("GriefPrevention.Claims.MinimumArea", 100);
@@ -624,6 +595,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_blockSurfaceOtherExplosions = config.getBoolean("GriefPrevention.BlockSurfaceOtherExplosions", true);
         this.config_blockSkyTrees = config.getBoolean("GriefPrevention.LimitSkyTrees", true);
         this.config_limitTreeGrowth = config.getBoolean("GriefPrevention.LimitTreeGrowth", false);
+        this.config_pistonExplosionSound = config.getBoolean("GriefPrevention.PistonExplosionSound", true);
         this.config_pistonMovement = PistonMode.of(config.getString("GriefPrevention.PistonMovement", "CLAIMS_ONLY"));
         if (config.isBoolean("GriefPrevention.LimitPistonsToLandClaims") && !config.getBoolean("GriefPrevention.LimitPistonsToLandClaims"))
             this.config_pistonMovement = PistonMode.EVERYWHERE_SIMPLE;
@@ -690,9 +662,8 @@ public class GriefPrevention extends JavaPlugin
 
         //validate that list
         this.config_siege_enabledWorlds = new ArrayList<>();
-        for (int i = 0; i < siegeEnabledWorldNames.size(); i++)
+        for (String worldName : siegeEnabledWorldNames)
         {
-            String worldName = siegeEnabledWorldNames.get(i);
             World world = this.getServer().getWorld(worldName);
             if (world == null)
             {
@@ -705,7 +676,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //default siege blocks
-        this.config_siege_blocks = new ArrayList<>();
+        this.config_siege_blocks = EnumSet.noneOf(Material.class);
         this.config_siege_blocks.add(Material.DIRT);
         this.config_siege_blocks.add(Material.GRASS_BLOCK);
         this.config_siege_blocks.add(Material.GRASS);
@@ -740,36 +711,20 @@ public class GriefPrevention extends JavaPlugin
         this.config_siege_blocks.add(Material.BLACK_WOOL);
         this.config_siege_blocks.add(Material.SNOW);
 
-        //build a default config entry
-        ArrayList<String> defaultBreakableBlocksList = new ArrayList<>();
-        for (int i = 0; i < this.config_siege_blocks.size(); i++)
-        {
-            defaultBreakableBlocksList.add(this.config_siege_blocks.get(i).name());
-        }
+        List<String> breakableBlocksList;
 
         //try to load the list from the config file
-        List<String> breakableBlocksList = config.getStringList("GriefPrevention.Siege.BreakableBlocks");
-
-        //if it fails, use default list instead
-        if (breakableBlocksList == null || breakableBlocksList.size() == 0)
+        if (config.isList("GriefPrevention.Siege.BreakableBlocks"))
         {
-            breakableBlocksList = defaultBreakableBlocksList;
+            breakableBlocksList = config.getStringList("GriefPrevention.Siege.BreakableBlocks");
+
+            //load materials
+            this.config_siege_blocks = parseMaterialListFromConfig(breakableBlocksList);
         }
-
-        //parse the list of siege-breakable blocks
-        this.config_siege_blocks = new ArrayList<>();
-        for (int i = 0; i < breakableBlocksList.size(); i++)
+        //if it fails, use default siege block list instead
+        else
         {
-            String blockName = breakableBlocksList.get(i);
-            Material material = Material.getMaterial(blockName);
-            if (material == null)
-            {
-                GriefPrevention.AddLogEntry("Siege Configuration: Material not found: " + blockName + ".");
-            }
-            else
-            {
-                this.config_siege_blocks.add(material);
-            }
+            breakableBlocksList = this.config_siege_blocks.stream().map(Material::name).collect(Collectors.toList());
         }
 
         this.config_siege_doorsOpenSeconds = config.getInt("GriefPrevention.Siege.DoorsOpenDelayInSeconds", 5 * 60);
@@ -828,6 +783,7 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.Claims.AccruedIdlePercent", this.config_claims_accruedIdlePercent);
         outConfig.set("GriefPrevention.Claims.AbandonReturnRatio", this.config_claims_abandonReturnRatio);
         outConfig.set("GriefPrevention.Claims.AutomaticNewPlayerClaimsRadius", this.config_claims_automaticClaimsForNewPlayersRadius);
+        outConfig.set("GriefPrevention.Claims.AutomaticNewPlayerClaimsRadiusMinimum", this.config_claims_automaticClaimsForNewPlayersRadiusMin);
         outConfig.set("GriefPrevention.Claims.ExtendIntoGroundDistance", this.config_claims_claimsExtendIntoGroundDistance);
         outConfig.set("GriefPrevention.Claims.MinimumWidth", this.config_claims_minWidth);
         outConfig.set("GriefPrevention.Claims.MinimumArea", this.config_claims_minArea);
@@ -898,6 +854,7 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.PistonMovement", this.config_pistonMovement.name());
         outConfig.set("GriefPrevention.CheckPistonMovement", null);
         outConfig.set("GriefPrevention.LimitPistonsToLandClaims", null);
+        outConfig.set("GriefPrevention.PistonExplosionSound", this.config_pistonExplosionSound);
 
         outConfig.set("GriefPrevention.FireSpreads", this.config_fireSpreads);
         outConfig.set("GriefPrevention.FireDestroys", this.config_fireDestroys);
@@ -950,36 +907,36 @@ public class GriefPrevention extends JavaPlugin
         //try to parse the list of commands requiring access trust in land claims
         this.config_claims_commandsRequiringAccessTrust = new ArrayList<>();
         String[] commands = accessTrustSlashCommands.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            if (!commands[i].isEmpty())
+            if (!command.isEmpty())
             {
-                this.config_claims_commandsRequiringAccessTrust.add(commands[i].trim().toLowerCase());
+                this.config_claims_commandsRequiringAccessTrust.add(command.trim().toLowerCase());
             }
         }
 
         //try to parse the list of commands which should be monitored for spam
         this.config_spam_monitorSlashCommands = new ArrayList<>();
         commands = slashCommandsToMonitor.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            this.config_spam_monitorSlashCommands.add(commands[i].trim().toLowerCase());
+            this.config_spam_monitorSlashCommands.add(command.trim().toLowerCase());
         }
 
         //try to parse the list of commands which should be included in eavesdropping
         this.config_eavesdrop_whisperCommands = new ArrayList<>();
         commands = whisperCommandsToMonitor.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            this.config_eavesdrop_whisperCommands.add(commands[i].trim().toLowerCase());
+            this.config_eavesdrop_whisperCommands.add(command.trim().toLowerCase());
         }
 
         //try to parse the list of commands which should be banned during pvp combat
         this.config_pvp_blockedCommands = new ArrayList<>();
         commands = bannedPvPCommandsList.split(";");
-        for (int i = 0; i < commands.length; i++)
+        for (String command : commands)
         {
-            this.config_pvp_blockedCommands.add(commands[i].trim().toLowerCase());
+            this.config_pvp_blockedCommands.add(command.trim().toLowerCase());
         }
     }
 
@@ -1497,42 +1454,42 @@ public class GriefPrevention extends JavaPlugin
             GriefPrevention.sendMessage(player, TextMode.Info, Messages.TrustListHeader);
 
             StringBuilder permissions = new StringBuilder();
-            permissions.append(ChatColor.GOLD + ">");
+            permissions.append(ChatColor.GOLD).append('>');
 
             if (managers.size() > 0)
             {
-                for (int i = 0; i < managers.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(managers.get(i)) + " ");
+                for (String manager : managers)
+                    permissions.append(this.trustEntryToPlayerName(manager)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
             permissions = new StringBuilder();
-            permissions.append(ChatColor.YELLOW + ">");
+            permissions.append(ChatColor.YELLOW).append('>');
 
             if (builders.size() > 0)
             {
-                for (int i = 0; i < builders.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(builders.get(i)) + " ");
+                for (String builder : builders)
+                    permissions.append(this.trustEntryToPlayerName(builder)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
             permissions = new StringBuilder();
-            permissions.append(ChatColor.GREEN + ">");
+            permissions.append(ChatColor.GREEN).append('>');
 
             if (containers.size() > 0)
             {
-                for (int i = 0; i < containers.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(containers.get(i)) + " ");
+                for (String container : containers)
+                    permissions.append(this.trustEntryToPlayerName(container)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
             permissions = new StringBuilder();
-            permissions.append(ChatColor.BLUE + ">");
+            permissions.append(ChatColor.BLUE).append('>');
 
             if (accessors.size() > 0)
             {
-                for (int i = 0; i < accessors.size(); i++)
-                    permissions.append(this.trustEntryToPlayerName(accessors.get(i)) + " ");
+                for (String accessor : accessors)
+                    permissions.append(this.trustEntryToPlayerName(accessor)).append(' ');
             }
 
             player.sendMessage(permissions.toString());
@@ -1805,7 +1762,8 @@ public class GriefPrevention extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("buyclaimblocks") && player != null)
         {
             //if economy is disabled, don't do anything
-            if (GriefPrevention.economy == null)
+            EconomyHandler.EconomyWrapper economyWrapper = economyHandler.getWrapper();
+            if (economyWrapper == null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.BuySellNotConfigured);
                 return true;
@@ -1824,10 +1782,12 @@ public class GriefPrevention extends JavaPlugin
                 return true;
             }
 
+            Economy economy = economyWrapper.getEconomy();
+
             //if no parameter, just tell player cost per block and balance
             if (args.length != 1)
             {
-                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, String.valueOf(GriefPrevention.instance.config_economy_claimBlocksPurchaseCost), String.valueOf(GriefPrevention.economy.getBalance(player.getName())));
+                GriefPrevention.sendMessage(player, TextMode.Info, Messages.BlockPurchaseCost, String.valueOf(GriefPrevention.instance.config_economy_claimBlocksPurchaseCost), String.valueOf(economy.getBalance(player)));
                 return false;
             }
             else
@@ -1851,7 +1811,7 @@ public class GriefPrevention extends JavaPlugin
                 }
 
                 //if the player can't afford his purchase, send error message
-                double balance = economy.getBalance(player.getName());
+                double balance = economy.getBalance(player);
                 double totalCost = blockCount * GriefPrevention.instance.config_economy_claimBlocksPurchaseCost;
                 if (totalCost > balance)
                 {
@@ -1872,7 +1832,7 @@ public class GriefPrevention extends JavaPlugin
                     }
 
                     //withdraw cost
-                    economy.withdrawPlayer(player.getName(), totalCost);
+                    economy.withdrawPlayer(player, totalCost);
 
                     //add blocks
                     playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() + blockCount);
@@ -1890,7 +1850,8 @@ public class GriefPrevention extends JavaPlugin
         else if (cmd.getName().equalsIgnoreCase("sellclaimblocks") && player != null)
         {
             //if economy is disabled, don't do anything
-            if (GriefPrevention.economy == null)
+            EconomyHandler.EconomyWrapper economyWrapper = economyHandler.getWrapper();
+            if (economyWrapper == null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.BuySellNotConfigured);
                 return true;
@@ -1947,7 +1908,7 @@ public class GriefPrevention extends JavaPlugin
             {
                 //compute value and deposit it
                 double totalValue = blockCount * GriefPrevention.instance.config_economy_claimBlocksSellValue;
-                economy.depositPlayer(player.getName(), totalValue);
+                economyWrapper.getEconomy().depositPlayer(player, totalValue);
 
                 //subtract blocks
                 playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() - blockCount);
@@ -2252,9 +2213,8 @@ public class GriefPrevention extends JavaPlugin
             if (claims.size() > 0)
             {
                 GriefPrevention.sendMessage(player, TextMode.Instr, Messages.ClaimsListHeader);
-                for (int i = 0; i < claims.size(); i++)
+                for (Claim claim : claims)
                 {
-                    Claim claim = claims.get(i);
                     GriefPrevention.sendMessage(player, TextMode.Instr, getfriendlyLocationString(claim.getLesserBoundaryCorner()));
                 }
             }
@@ -2402,7 +2362,7 @@ public class GriefPrevention extends JavaPlugin
                 PlayerData playerData = this.dataStore.getPlayerData(playerID);
                 playerData.setBonusClaimBlocks(playerData.getBonusClaimBlocks() + adjustment);
                 this.dataStore.savePlayerData(playerID, playerData);
-                builder.append(onlinePlayer.getName() + " ");
+                builder.append(onlinePlayer.getName()).append(' ');
             }
 
             GriefPrevention.sendMessage(player, TextMode.Success, Messages.AdjustBlocksAllSuccess, String.valueOf(adjustment));
@@ -2714,11 +2674,12 @@ public class GriefPrevention extends JavaPlugin
         //gpblockinfo
         else if (cmd.getName().equalsIgnoreCase("gpblockinfo") && player != null)
         {
-            ItemStack inHand = player.getItemInHand();
-            player.sendMessage("In Hand: " + String.format("%s(dValue:%s)", inHand.getType().name(), inHand.getData().getData()));
+            ItemStack inHand = player.getInventory().getItemInMainHand();
+            player.sendMessage("In Hand: " + inHand.getType().name());
 
-            Block inWorld = GriefPrevention.getTargetNonAirBlock(player, 300);
-            player.sendMessage("In World: " + String.format("%s(dValue:%s)", inWorld.getType().name(), inWorld.getData()));
+            Block inWorld = player.getTargetBlockExact(300, FluidCollisionMode.ALWAYS);
+            if (inWorld == null) inWorld = player.getEyeLocation().getBlock();
+            player.sendMessage("In World: " + inWorld.getType().name());
 
             return true;
         }
@@ -3008,10 +2969,7 @@ public class GriefPrevention extends JavaPlugin
         if (claim == null)
         {
             PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-            for (int i = 0; i < playerData.getClaims().size(); i++)
-            {
-                targetClaims.add(playerData.getClaims().get(i));
-            }
+            targetClaims.addAll(playerData.getClaims());
         }
         else
         {
@@ -3088,10 +3046,8 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //apply changes
-        for (int i = 0; i < targetClaims.size(); i++)
+        for (Claim currentClaim : targetClaims)
         {
-            Claim currentClaim = targetClaims.get(i);
-
             if (permissionLevel == null)
             {
                 if (!currentClaim.managers.contains(identifierToAdd))
@@ -3145,8 +3101,8 @@ public class GriefPrevention extends JavaPlugin
     //thread to build the above cache
     private class CacheOfflinePlayerNamesThread extends Thread
     {
-        private OfflinePlayer[] offlinePlayers;
-        private ConcurrentHashMap<String, UUID> playerNameToIDMap;
+        private final OfflinePlayer[] offlinePlayers;
+        private final ConcurrentHashMap<String, UUID> playerNameToIDMap;
 
         CacheOfflinePlayerNamesThread(OfflinePlayer[] offlinePlayers, ConcurrentHashMap<String, UUID> playerNameToIDMap)
         {
@@ -3310,16 +3266,16 @@ public class GriefPrevention extends JavaPlugin
         ItemStack[] armorStacks = inventory.getArmorContents();
 
         //check armor slots, stop if any items are found
-        for (int i = 0; i < armorStacks.length; i++)
+        for (ItemStack armorStack : armorStacks)
         {
-            if (!(armorStacks[i] == null || armorStacks[i].getType() == Material.AIR)) return false;
+            if (!(armorStack == null || armorStack.getType() == Material.AIR)) return false;
         }
 
         //check other slots, stop if any items are found
         ItemStack[] generalStacks = inventory.getContents();
-        for (int i = 0; i < generalStacks.length; i++)
+        for (ItemStack generalStack : generalStacks)
         {
-            if (!(generalStacks[i] == null || generalStacks[i].getType() == Material.AIR)) return false;
+            if (!(generalStack == null || generalStack.getType() == Material.AIR)) return false;
         }
 
         return true;
@@ -3582,35 +3538,43 @@ public class GriefPrevention extends JavaPlugin
         GriefPrevention.instance.getServer().getScheduler().runTaskLaterAsynchronously(GriefPrevention.instance, task, delayInTicks);
     }
 
-    private void parseMaterialListFromConfig(List<String> stringsToParse, MaterialCollection materialCollection)
+    private Set<Material> parseMaterialListFromConfig(List<String> stringsToParse)
     {
-        materialCollection.clear();
+        Set<Material> materials = EnumSet.noneOf(Material.class);
 
         //for each string in the list
         for (int i = 0; i < stringsToParse.size(); i++)
         {
-            //try to parse the string value into a material info
-            MaterialInfo materialInfo = MaterialInfo.fromString(stringsToParse.get(i));
+            String string = stringsToParse.get(i);
+
+            //defensive coding
+            if (string == null) continue;
+
+            //try to parse the string value into a material
+            Material material = Material.getMaterial(string.toUpperCase());
 
             //null value returned indicates an error parsing the string from the config file
-            if (materialInfo == null)
+            if (material == null)
             {
-                //show error in log
-                GriefPrevention.AddLogEntry("ERROR: Unable to read a material entry from the config file.  Please update your config.yml.");
-
-                //update string, which will go out to config file to help user find the error entry
-                if (!stringsToParse.get(i).contains("can't"))
+                //check if string has failed validity before
+                if (!string.contains("can't"))
                 {
-                    stringsToParse.set(i, stringsToParse.get(i) + "     <-- can't understand this entry, see BukkitDev documentation");
+                    //update string, which will go out to config file to help user find the error entry
+                    stringsToParse.set(i, string + "     <-- can't understand this entry, see BukkitDev documentation");
+
+                    //warn about invalid material in log
+                    GriefPrevention.AddLogEntry(String.format("ERROR: Invalid material %s.  Please update your config.yml.", string));
                 }
             }
 
-            //otherwise store the valid entry in config data
+            //otherwise material is valid, add it
             else
             {
-                materialCollection.Add(materialInfo);
+                materials.add(material);
             }
         }
+
+        return materials;
     }
 
     public int getSeaLevel(World world)
@@ -3624,19 +3588,6 @@ public class GriefPrevention extends JavaPlugin
         {
             return overrideValue;
         }
-    }
-
-    private static Block getTargetNonAirBlock(Player player, int maxDistance) throws IllegalStateException
-    {
-        BlockIterator iterator = new BlockIterator(player.getLocation(), player.getEyeHeight(), maxDistance);
-        Block result = player.getLocation().getBlock().getRelative(BlockFace.UP);
-        while (iterator.hasNext())
-        {
-            result = iterator.next();
-            if (result.getType() != Material.AIR) return result;
-        }
-
-        return result;
     }
 
     public boolean containsBlockedIP(String message)

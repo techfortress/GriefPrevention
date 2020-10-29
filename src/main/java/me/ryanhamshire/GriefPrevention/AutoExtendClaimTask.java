@@ -7,13 +7,14 @@ import org.bukkit.World.Environment;
 import org.bukkit.block.Biome;
 
 import java.util.ArrayList;
+import java.util.Set;
 
 //automatically extends a claim downward based on block types detected
 class AutoExtendClaimTask implements Runnable
 {
-    private Claim claim;
-    private ArrayList<ChunkSnapshot> chunks;
-    private Environment worldType;
+    private final Claim claim;
+    private final ArrayList<ChunkSnapshot> chunks;
+    private final Environment worldType;
 
     public AutoExtendClaimTask(Claim claim, ArrayList<ChunkSnapshot> chunks, Environment worldType)
     {
@@ -43,7 +44,7 @@ class AutoExtendClaimTask implements Runnable
             for (ChunkSnapshot chunk : this.chunks)
             {
                 Biome biome = chunk.getBiome(0, 0);
-                ArrayList<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
+                Set<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
 
                 boolean ychanged = true;
                 while (!this.yTooSmall(y) && ychanged)
@@ -74,7 +75,7 @@ class AutoExtendClaimTask implements Runnable
             for (ChunkSnapshot chunk : this.chunks)
             {
                 Biome biome = chunk.getBiome(0, 0);
-                ArrayList<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
+                Set<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
 
                 boolean ychanged = true;
                 while (!this.yTooSmall(y) && ychanged)
@@ -113,8 +114,8 @@ class AutoExtendClaimTask implements Runnable
     //runs in the main execution thread, where it can safely change claims and save those changes
     private class ExecuteExtendClaimTask implements Runnable
     {
-        private Claim claim;
-        private int newY;
+        private final Claim claim;
+        private final int newY;
 
         public ExecuteExtendClaimTask(Claim claim, int newY)
         {
