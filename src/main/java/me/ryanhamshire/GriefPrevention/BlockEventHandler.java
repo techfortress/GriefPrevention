@@ -514,11 +514,6 @@ public class BlockEventHandler implements Listener
         if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
 
         BlockFace direction = event.getDirection();
-
-        // Direction is always piston facing, correct for retraction.
-        if (isRetract)
-            direction = direction.getOppositeFace();
-
         Block pistonBlock = event.getBlock();
         Claim pistonClaim = this.dataStore.getClaimAt(pistonBlock.getLocation(), false, null);
 
@@ -545,20 +540,23 @@ public class BlockEventHandler implements Listener
             return;
         }
 
+        // Initialize bounding box for moved blocks with first in list.
         int minX, maxX, minY, maxY, minZ, maxZ;
-        minX = maxX = pistonBlock.getX();
-        minY = maxY = pistonBlock.getY();
-        minZ = maxZ = pistonBlock.getZ();
+        Block movedBlock = blocks.get(0);
+        minX = maxX = movedBlock.getX();
+        minY = maxY = movedBlock.getY();
+        minZ = maxZ = movedBlock.getZ();
 
-        // Find min and max values for faster claim lookups and bounding box-based fast mode.
-        for (Block block : blocks)
+        // Fill in rest of bounding box with remaining blocks.
+        for (int count = 1; count < blocks.size(); ++count)
         {
-            minX = Math.min(minX, block.getX());
-            minY = Math.min(minY, block.getY());
-            minZ = Math.min(minZ, block.getZ());
-            maxX = Math.max(maxX, block.getX());
-            maxY = Math.max(maxY, block.getY());
-            maxZ = Math.max(maxZ, block.getZ());
+            movedBlock = blocks.get(count);
+            minX = Math.min(minX, movedBlock.getX());
+            minY = Math.min(minY, movedBlock.getY());
+            minZ = Math.min(minZ, movedBlock.getZ());
+            maxX = Math.max(maxX, movedBlock.getX());
+            maxY = Math.max(maxY, movedBlock.getY());
+            maxZ = Math.max(maxZ, movedBlock.getZ());
         }
 
         // Add direction to include invaded zone.
