@@ -16,6 +16,7 @@ import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -96,6 +97,8 @@ class UUIDFetcher
             }
         }
 
+        names.removeIf(Objects::isNull);
+
         //for online mode, call Mojang to resolve the rest
         if (GriefPrevention.instance.getServer().getOnlineMode())
         {
@@ -104,7 +107,7 @@ class UUIDFetcher
             // Don't bother requesting UUIDs for invalid names from Mojang.
             names.removeIf(name ->
             {
-                if (name != null && name.length() >= 3 && name.length() <= 16 && validNamePattern.matcher(name).find())
+                if (name.length() >= 3 && name.length() <= 16 && validNamePattern.matcher(name).find())
                     return false;
 
                 GriefPrevention.AddLogEntry(String.format("Cannot convert invalid name: %s", name));
