@@ -514,11 +514,6 @@ public class BlockEventHandler implements Listener
         if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
 
         BlockFace direction = event.getDirection();
-
-        // Direction is always piston facing, correct for retraction.
-        if (isRetract)
-            direction = direction.getOppositeFace();
-
         Block pistonBlock = event.getBlock();
         Claim pistonClaim = this.dataStore.getClaimAt(pistonBlock.getLocation(), false, null);
 
@@ -532,6 +527,9 @@ public class BlockEventHandler implements Listener
         // If no blocks are moving, quickly check if another claim's boundaries are violated.
         if (blocks.isEmpty())
         {
+            // No block and retraction is always safe.
+            if (isRetract) return;
+
             Block invadedBlock = pistonBlock.getRelative(direction);
             Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false, pistonClaim);
             if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), invadedClaim.getOwnerID())))
@@ -542,20 +540,23 @@ public class BlockEventHandler implements Listener
             return;
         }
 
+        // Initialize bounding box for moved blocks with first in list.
         int minX, maxX, minY, maxY, minZ, maxZ;
-        minX = maxX = pistonBlock.getX();
-        minY = maxY = pistonBlock.getY();
-        minZ = maxZ = pistonBlock.getZ();
+        Block movedBlock = blocks.get(0);
+        minX = maxX = movedBlock.getX();
+        minY = maxY = movedBlock.getY();
+        minZ = maxZ = movedBlock.getZ();
 
-        // Find min and max values for faster claim lookups and bounding box-based fast mode.
-        for (Block block : blocks)
+        // Fill in rest of bounding box with remaining blocks.
+        for (int count = 1; count < blocks.size(); ++count)
         {
-            minX = Math.min(minX, block.getX());
-            minY = Math.min(minY, block.getY());
-            minZ = Math.min(minZ, block.getZ());
-            maxX = Math.max(maxX, block.getX());
-            maxY = Math.max(maxY, block.getY());
-            maxZ = Math.max(maxZ, block.getZ());
+            movedBlock = blocks.get(count);
+            minX = Math.min(minX, movedBlock.getX());
+            minY = Math.min(minY, movedBlock.getY());
+            minZ = Math.min(minZ, movedBlock.getZ());
+            maxX = Math.max(maxX, movedBlock.getX());
+            maxY = Math.max(maxY, movedBlock.getY());
+            maxZ = Math.max(maxZ, movedBlock.getZ());
         }
 
         // Add direction to include invaded zone.
@@ -587,6 +588,9 @@ public class BlockEventHandler implements Listener
             return;
         }
 
+        // Ensure we have top level claim - piston ownership is only checked based on claim owner in everywhere mode.
+        while (pistonClaim != null && pistonClaim.parent != null) pistonClaim = pistonClaim.parent;
+
         // Pushing down or pulling up is safe if all blocks are in line with the piston.
         if (minX == maxX && minZ == maxZ && direction == (isRetract ? BlockFace.UP : BlockFace.DOWN)) return;
 
@@ -602,8 +606,13 @@ public class BlockEventHandler implements Listener
                 for (int chunkZ = minZ >> 4; chunkZ <= chunkZMax; ++chunkZ)
                 {
                     ArrayList<Claim> chunkClaims = dataStore.chunksToClaimsMap.get(DataStore.getChunkHash(chunkX, chunkZ));
-                    if (chunkClaims != null)
-                        intersectable.addAll(chunkClaims);
+                    if (chunkClaims == null) continue;
+
+                    for (Claim claim : chunkClaims)
+                    {
+                        if (pistonBlock.getWorld().equals(claim.getLesserBoundaryCorner().getWorld()))
+                            intersectable.add(claim);
+                    }
                 }
             }
 
