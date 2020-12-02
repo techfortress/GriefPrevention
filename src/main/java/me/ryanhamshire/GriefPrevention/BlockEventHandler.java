@@ -962,13 +962,6 @@ public class BlockEventHandler implements Listener
             return;
         }
 
-        //check if egg hatching is disabled
-        if (materialDispensed == Material.EGG && GriefPrevention.instance.config_claims_eggHatchingRequireContainerTrust)
-        {
-            dispenseEvent.setCancelled(true);
-            return;
-        }
-
         //wilderness to wilderness is OK
         if (fromClaim == null && toClaim == null) return;
 
