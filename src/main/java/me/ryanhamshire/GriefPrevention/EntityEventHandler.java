@@ -735,6 +735,7 @@ public class EntityEventHandler implements Listener
             {
                 DamageCause cause = event.getCause();
                 if (cause != null && (
+                        cause == DamageCause.BLOCK_EXPLOSION ||
                         cause == DamageCause.ENTITY_EXPLOSION ||
                                 cause == DamageCause.FALLING_BLOCK ||
                                 cause == DamageCause.FIRE ||
@@ -749,6 +750,8 @@ public class EntityEventHandler implements Listener
                 }
             }
         }
+
+        if (handleBlockExplosionDamage(event)) return;
 
         //the rest is only interested in entities damaging entities (ignoring environmental damage)
         if (!(event instanceof EntityDamageByEntityEvent)) return;
@@ -1167,6 +1170,31 @@ public class EntityEventHandler implements Listener
                 }
             }
         }
+    }
+
+    /**
+     * Handles entity damage caused by block explosions.
+     *
+     * @param event the EntityDamageEvent
+     * @return true if the damage has been handled
+     */
+    private boolean handleBlockExplosionDamage(EntityDamageEvent event)
+    {
+        if (event.getCause() != DamageCause.BLOCK_EXPLOSION) return false;
+
+        Entity entity = event.getEntity();
+
+        // Skip players - does allow players to use block explosions to bypass PVP protections,
+        // but also doesn't disable self-damage.
+        if (entity instanceof Player) return false;
+
+        Claim claim = GriefPrevention.instance.dataStore.getClaimAt(entity.getLocation(), false, null);
+
+        // Only block explosion damage inside claims.
+        if (claim == null) return false;
+
+        event.setCancelled(true);
+        return true;
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)

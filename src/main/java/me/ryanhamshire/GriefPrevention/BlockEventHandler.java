@@ -606,8 +606,13 @@ public class BlockEventHandler implements Listener
                 for (int chunkZ = minZ >> 4; chunkZ <= chunkZMax; ++chunkZ)
                 {
                     ArrayList<Claim> chunkClaims = dataStore.chunksToClaimsMap.get(DataStore.getChunkHash(chunkX, chunkZ));
-                    if (chunkClaims != null)
-                        intersectable.addAll(chunkClaims);
+                    if (chunkClaims == null) continue;
+
+                    for (Claim claim : chunkClaims)
+                    {
+                        if (pistonBlock.getWorld().equals(claim.getLesserBoundaryCorner().getWorld()))
+                            intersectable.add(claim);
+                    }
                 }
             }
 

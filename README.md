@@ -11,29 +11,33 @@ from administrators, and with very little (self service) effort from players.
 Solve all your grief problems with a single anti grief download, no database,
 and (for most servers) no configuration customization.
 
-Want to get started?  Downloads are at: [![Downloads](https://img.shields.io/github/downloads/TechFortress/GriefPrevention/total.svg)](https://github.com/TechFortress/GriefPrevention/releases)
+## Downloads
 
-Found a problem?  Use the issues tab above to raise an issue.  Please include
-all the information requested in the issue template, unless you're certain it's
-not relevant.
+- [Downloads](https://dev.bukkit.org/projects/grief-prevention/files)
+- [Release Notes](https://github.com/TechFortress/GriefPrevention/releases)
 
-### Wiki
+## Help+Support
 
-The [GriefPrevention wiki here on GitHub](https://github.com/TechFortress/GriefPrevention/wiki)
-contains documentation on using Grief Prevention, its range of commands and
-permissions, etc.
+- **[Documentation](https://docs.griefprevention.com)** - Information on using Grief Prevention, its range of commands and permissions, configuration parameters, etc.
+- [FAQ](https://github.com/TechFortress/GriefPrevention/issues/752) - Frequently Asked Questions about GriefPrevention.
+- [Issue Tracker (GitHub Issues)](https://github.com/TechFortress/GriefPrevention/issues) - The place to file bug reports or request features.
 
-### See also
+### Community
 
-[Grief Prevention on spigotmc.org](https://www.spigotmc.org/resources/griefprevention.1884/)
+Discussion and community support for GriefPrevention can be found at these sites:
+
+[#GriefPrevention IRC channel on irc.spi.gt](https://griefprevention.com/chat) (dumcord also available)
 
 [Grief Prevention on dev.bukkit.org](https://dev.bukkit.org/projects/grief-prevention)
 
+[GriefPrevention on spigotmc.org](https://www.spigotmc.org/resources/griefprevention.1884/)
 
-### Adding GriefPrevention as a gradle/maven/sbt/leiningen dependency
+---
 
-Apparently there's this neat thing called JitPack [![](https://jitpack.io/v/TechFortress/GriefPrevention.svg)](https://jitpack.io/#TechFortress/GriefPrevention) that makes a public maven repo for public Github repos on the fly.
-According to it, this is all you need to do to add this to your maven project:
+### Adding GriefPrevention as a maven/gradle/etc. dependency
+
+GriefPrevention will be added to maven central soon - in the meantime, there's this neat thing called JitPack [![](https://jitpack.io/v/TechFortress/GriefPrevention.svg)](https://jitpack.io/#TechFortress/GriefPrevention) that makes a public maven repo for public Github repos on the fly.
+According to it, this is all you need to do to add to your pom.xml:
 ```xml
 	<repositories>
 		<repository>
@@ -53,6 +57,8 @@ Replace `<version>` number with this number: [![](https://jitpack.io/v/TechFortr
 ```
 
 You can also add it to gradle/sbt/leiningen projects: https://jitpack.io/#TechFortress/GriefPrevention/
+
+---
 
 [![Weird flex but ok](https://bstats.org/signatures/bukkit/GriefPrevention-legacy.svg)](https://bstats.org/plugin/bukkit/GriefPrevention-legacy)
 (Plugin usage stats since version 16.11 - actual use across all versions is larger)
