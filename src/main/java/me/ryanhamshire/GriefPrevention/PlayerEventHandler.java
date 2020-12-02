@@ -63,6 +63,7 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerEggThrowEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
@@ -1424,6 +1425,29 @@ class PlayerEventHandler implements Listener
                 //otherwise take away his immunity. he may be armed now.  at least, he's worth killing for some loot
                 playerData.pvpImmune = false;
                 instance.sendMessage(player, TextMode.Warn, Messages.PvPImmunityEnd);
+            }
+        }
+    }
+
+    //when a player throws a chicken egg
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerThrowEgg(PlayerEggThrowEvent event)
+    {
+        Player player = event.getPlayer();
+        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+
+        if (instance.config_claims_eggHatchingRequireContainerTrust)
+        {
+            Claim toClaim = this.dataStore.getClaimAt(event.getEgg().getLocation(), false, playerData.lastClaim);
+            if (toClaim != null)
+            {
+                playerData.lastClaim = toClaim;
+                String noContainersReason = toClaim.allowContainers(player);
+                if (noContainersReason != null)
+                {
+                    instance.sendMessage(player, TextMode.Err, noContainersReason);
+                    event.setHatching(false);
+                }
             }
         }
     }
