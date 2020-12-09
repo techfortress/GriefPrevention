@@ -18,6 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import me.ryanhamshire.GriefPrevention.util.BoundingBox;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -540,36 +541,10 @@ public class BlockEventHandler implements Listener
             return;
         }
 
-        // Initialize bounding box for moved blocks with first in list.
-        int minX, maxX, minY, maxY, minZ, maxZ;
-        Block movedBlock = blocks.get(0);
-        minX = maxX = movedBlock.getX();
-        minY = maxY = movedBlock.getY();
-        minZ = maxZ = movedBlock.getZ();
-
-        // Fill in rest of bounding box with remaining blocks.
-        for (int count = 1; count < blocks.size(); ++count)
-        {
-            movedBlock = blocks.get(count);
-            minX = Math.min(minX, movedBlock.getX());
-            minY = Math.min(minY, movedBlock.getY());
-            minZ = Math.min(minZ, movedBlock.getZ());
-            maxX = Math.max(maxX, movedBlock.getX());
-            maxY = Math.max(maxY, movedBlock.getY());
-            maxZ = Math.max(maxZ, movedBlock.getZ());
-        }
-
-        // Add direction to include invaded zone.
-        if (direction.getModX() > 0)
-            maxX += direction.getModX();
-        else
-            minX += direction.getModX();
-        if (direction.getModY() > 0)
-            maxY += direction.getModY();
-        if (direction.getModZ() > 0)
-            maxZ += direction.getModZ();
-        else
-            minZ += direction.getModZ();
+        // Create bounding box for moved blocks.
+        BoundingBox movedBlocks = BoundingBox.ofBlocks(blocks);
+        // Expand to include invaded zone.
+        movedBlocks.resize(direction, 1);
 
         /*
          * Claims-only mode. All moved blocks must be inside of the owning claim.
@@ -579,10 +554,7 @@ public class BlockEventHandler implements Listener
          */
         if (pistonMode == PistonMode.CLAIMS_ONLY)
         {
-            Location minLoc = pistonClaim.getLesserBoundaryCorner();
-            Location maxLoc = pistonClaim.getGreaterBoundaryCorner();
-
-            if (minY < minLoc.getY() || minX < minLoc.getBlockX() || maxX > maxLoc.getBlockX() || minZ < minLoc.getBlockZ() || maxZ > maxLoc.getBlockZ())
+            if (!new BoundingBox(pistonClaim).contains(movedBlocks))
                 event.setCancelled(true);
 
             return;
@@ -591,19 +563,26 @@ public class BlockEventHandler implements Listener
         // Ensure we have top level claim - piston ownership is only checked based on claim owner in everywhere mode.
         while (pistonClaim != null && pistonClaim.parent != null) pistonClaim = pistonClaim.parent;
 
-        // Pushing down or pulling up is safe if all blocks are in line with the piston.
-        if (minX == maxX && minZ == maxZ && direction == (isRetract ? BlockFace.UP : BlockFace.DOWN)) return;
+        // Check if blocks are in line vertically.
+        if (movedBlocks.getLength() == 1 && movedBlocks.getWidth() == 1)
+        {
+            // Pulling up is always safe. The claim may not contain the area pulled from, but claims cannot stack.
+            if (isRetract && direction == BlockFace.UP) return;
+
+            // Pushing down is always safe. The claim may not contain the area pushed into, but claims cannot stack.
+            if (!isRetract && direction == BlockFace.DOWN) return;
+        }
 
         // Fast mode: Use the intersection of a cuboid containing all blocks instead of individual locations.
         if (pistonMode == PistonMode.EVERYWHERE_SIMPLE)
         {
             ArrayList<Claim> intersectable = new ArrayList<>();
-            int chunkXMax = maxX >> 4;
-            int chunkZMax = maxZ >> 4;
+            int chunkXMax = movedBlocks.getMaxX() >> 4;
+            int chunkZMax = movedBlocks.getMaxZ() >> 4;
 
-            for (int chunkX = minX >> 4; chunkX <= chunkXMax; ++chunkX)
+            for (int chunkX = movedBlocks.getMinX() >> 4; chunkX <= chunkXMax; ++chunkX)
             {
-                for (int chunkZ = minZ >> 4; chunkZ <= chunkZMax; ++chunkZ)
+                for (int chunkZ = movedBlocks.getMinZ() >> 4; chunkZ <= chunkZMax; ++chunkZ)
                 {
                     ArrayList<Claim> chunkClaims = dataStore.chunksToClaimsMap.get(DataStore.getChunkHash(chunkX, chunkZ));
                     if (chunkClaims == null) continue;
@@ -620,12 +599,8 @@ public class BlockEventHandler implements Listener
             {
                 if (claim == pistonClaim) continue;
 
-                Location minLoc = claim.getLesserBoundaryCorner();
-                Location maxLoc = claim.getGreaterBoundaryCorner();
-
                 // Ensure claim intersects with bounding box.
-                if (maxY < minLoc.getBlockY() || minX > maxLoc.getBlockX() || maxX < minLoc.getBlockX() || minZ > maxLoc.getBlockZ() || maxZ < minLoc.getBlockZ())
-                    continue;
+                if (!new BoundingBox(claim).intersects(movedBlocks)) continue;
 
                 // If owners are different, cancel.
                 if (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), claim.getOwnerID()))
