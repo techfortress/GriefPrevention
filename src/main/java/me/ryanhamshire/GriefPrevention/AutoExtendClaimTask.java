@@ -7,6 +7,8 @@ import org.bukkit.World.Environment;
 import org.bukkit.block.Biome;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 
 //automatically extends a claim downward based on block types detected
@@ -15,6 +17,7 @@ class AutoExtendClaimTask implements Runnable
     private final Claim claim;
     private final ArrayList<ChunkSnapshot> chunks;
     private final Environment worldType;
+    private final Map<Biome, Set<Material>> biomeMaterials = new HashMap<>();
 
     public AutoExtendClaimTask(Claim claim, ArrayList<ChunkSnapshot> chunks, Environment worldType)
     {
@@ -39,71 +42,40 @@ class AutoExtendClaimTask implements Runnable
 
         if (this.yTooSmall(y)) return y;
 
-        try
+        for (ChunkSnapshot chunk : this.chunks)
         {
-            for (ChunkSnapshot chunk : this.chunks)
+            boolean ychanged = true;
+            while (!this.yTooSmall(y) && ychanged)
             {
-                Biome biome = chunk.getBiome(0, 0);
-                Set<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
-
-                boolean ychanged = true;
-                while (!this.yTooSmall(y) && ychanged)
+                ychanged = false;
+                for (int x = 0; x < 16; x++)
                 {
-                    ychanged = false;
-                    for (int x = 0; x < 16; x++)
+                    for (int z = 0; z < 16; z++)
                     {
-                        for (int z = 0; z < 16; z++)
+                        Material blockType = chunk.getBlockType(x, y, z);
+                        Biome biome = chunk.getBiome(x, y, z);
+                        while (!this.yTooSmall(y) && this.getBiomeBlocks(biome).contains(blockType))
                         {
-                            Material blockType = chunk.getBlockType(x, y, z);
-                            while (!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
-                            {
-                                ychanged = true;
-                                blockType = chunk.getBlockType(x, --y, z);
-                            }
-
-                            if (this.yTooSmall(y)) return y;
+                            ychanged = true;
+                            blockType = chunk.getBlockType(x, --y, z);
+                            biome = chunk.getBiome(x, y, z);
                         }
+
+                        if (this.yTooSmall(y)) return y;
                     }
                 }
-
-                if (this.yTooSmall(y)) return y;
-            }
-        }
-        catch (NoSuchMethodError e)
-        {
-            GriefPrevention.instance.getLogger().severe("You are running an outdated build of Craftbukkit/Spigot/Paper. Please update.");
-            for (ChunkSnapshot chunk : this.chunks)
-            {
-                Biome biome = chunk.getBiome(0, 0);
-                Set<Material> playerBlockIDs = RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, biome);
-
-                boolean ychanged = true;
-                while (!this.yTooSmall(y) && ychanged)
-                {
-                    ychanged = false;
-                    for (int x = 0; x < 16; x++)
-                    {
-                        for (int z = 0; z < 16; z++)
-                        {
-                            Material blockType = chunk.getBlockType(x, y, z);
-                            while (!this.yTooSmall(y) && playerBlockIDs.contains(blockType))
-                            {
-                                ychanged = true;
-                                blockType = chunk.getBlockType(x, --y, z);
-                            }
-
-                            if (this.yTooSmall(y)) return y;
-                        }
-                    }
-                }
-
-                if (this.yTooSmall(y)) return y;
             }
 
+            if (this.yTooSmall(y)) return y;
         }
 
 
         return y;
+    }
+
+    private Set<Material> getBiomeBlocks(Biome biome)
+    {
+        return biomeMaterials.computeIfAbsent(biome, newBiome -> RestoreNatureProcessingTask.getPlayerBlocks(this.worldType, newBiome));
     }
 
     private boolean yTooSmall(int y)
