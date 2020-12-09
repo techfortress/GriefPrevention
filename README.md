@@ -18,15 +18,17 @@ and (for most servers) no configuration customization.
 
 ## Help+Support
 
-- **[Documentation](https://docs.griefprevention.com)** - Information on using Grief Prevention, its range of commands and permissions, configuration parameters, etc.
-- [FAQ](https://github.com/TechFortress/GriefPrevention/issues/752) - Frequently Asked Questions about GriefPrevention.
-- [Issue Tracker (GitHub Issues)](https://github.com/TechFortress/GriefPrevention/issues) - The place to file bug reports or request features.
+- **[Documentation (The Manual)](https://docs.griefprevention.com)** - Information on using Grief Prevention, its range of commands and permissions, configuration parameters, and where you'll find answers to common questions.
+- [Issue Tracker](https://github.com/TechFortress/GriefPrevention/issues) - The place to file bug reports
+- [Discussions](https://github.com/TechFortress/GriefPrevention/discussions) - The place to ask questions and suggest ideas/features
 
 ### Community
 
 Discussion and community support for GriefPrevention can be found at these sites:
 
-[#GriefPrevention IRC channel on irc.spi.gt](https://griefprevention.com/chat) (dumcord also available)
+[GitHub Discussions](https://github.com/TechFortress/GriefPrevention/discussions)
+
+[#GriefPrevention IRC chatroom on irc.spi.gt](https://griefprevention.com/chat) (dumcord also available)
 
 [Grief Prevention on dev.bukkit.org](https://dev.bukkit.org/projects/grief-prevention)
 
