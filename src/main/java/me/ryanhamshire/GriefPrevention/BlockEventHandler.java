@@ -517,20 +517,14 @@ public class BlockEventHandler implements Listener
 
         BlockFace direction = event.getDirection();
         Block pistonBlock = event.getBlock();
-        Claim pistonClaim = this.dataStore.getClaimAt(pistonBlock.getLocation(), false, null);
+        Claim pistonClaim = this.dataStore.getClaimAt(pistonBlock.getLocation(), false,
+                pistonMode != PistonMode.CLAIMS_ONLY, null);
 
         // A claim is required, but the piston is not inside a claim.
         if (pistonClaim == null && pistonMode == PistonMode.CLAIMS_ONLY)
         {
             event.setCancelled(true);
             return;
-        }
-
-        // Ensure we have top level claim for other modes - piston ownership is only checked based on claim owner.
-        if (pistonClaim != null && pistonMode != PistonMode.CLAIMS_ONLY)
-        {
-            // TODO would be more efficient to add an ignoreSubclaims override for DataStore#getClaimAt
-            while (pistonClaim.parent != null) pistonClaim = pistonClaim.parent;
         }
 
         // If no blocks are moving, quickly check if another claim's boundaries are violated.
@@ -540,7 +534,8 @@ public class BlockEventHandler implements Listener
             if (isRetract) return;
 
             Block invadedBlock = pistonBlock.getRelative(direction);
-            Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false, pistonClaim);
+            Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false,
+                    pistonMode != PistonMode.CLAIMS_ONLY, pistonClaim);
             if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), invadedClaim.getOwnerID())))
             {
                 event.setCancelled(true);
