@@ -74,6 +74,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.BiPredicate;
 
 //event handlers related to blocks
 public class BlockEventHandler implements Listener
@@ -516,7 +517,8 @@ public class BlockEventHandler implements Listener
 
         BlockFace direction = event.getDirection();
         Block pistonBlock = event.getBlock();
-        Claim pistonClaim = this.dataStore.getClaimAt(pistonBlock.getLocation(), false, null);
+        Claim pistonClaim = this.dataStore.getClaimAt(pistonBlock.getLocation(), false,
+                pistonMode != PistonMode.CLAIMS_ONLY, null);
 
         // A claim is required, but the piston is not inside a claim.
         if (pistonClaim == null && pistonMode == PistonMode.CLAIMS_ONLY)
@@ -532,7 +534,8 @@ public class BlockEventHandler implements Listener
             if (isRetract) return;
 
             Block invadedBlock = pistonBlock.getRelative(direction);
-            Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false, pistonClaim);
+            Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false,
+                    pistonMode != PistonMode.CLAIMS_ONLY, pistonClaim);
             if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), invadedClaim.getOwnerID())))
             {
                 event.setCancelled(true);
@@ -546,22 +549,23 @@ public class BlockEventHandler implements Listener
         // Expand to include invaded zone.
         movedBlocks.resize(direction, 1);
 
-        /*
-         * Claims-only mode. All moved blocks must be inside of the owning claim.
-         * From BigScary:
-         *  - Could push into another land claim, don't want to spend CPU checking for that
-         *  - Push ice out, place torch, get water outside the claim
-         */
-        if (pistonMode == PistonMode.CLAIMS_ONLY)
+        if (pistonClaim != null)
         {
-            if (!new BoundingBox(pistonClaim).contains(movedBlocks))
+            // If blocks are all inside the same claim as the piston, allow.
+            if (new BoundingBox(pistonClaim).contains(movedBlocks)) return;
+
+            /*
+             * In claims-only mode, all moved blocks must be inside of the owning claim.
+             * From BigScary:
+             *  - Could push into another land claim, don't want to spend CPU checking for that
+             *  - Push ice out, place torch, get water outside the claim
+             */
+            if (pistonMode == PistonMode.CLAIMS_ONLY)
+            {
                 event.setCancelled(true);
-
-            return;
+                return;
+            }
         }
-
-        // Ensure we have top level claim - piston ownership is only checked based on claim owner in everywhere mode.
-        while (pistonClaim != null && pistonClaim.parent != null) pistonClaim = pistonClaim.parent;
 
         // Check if blocks are in line vertically.
         if (movedBlocks.getLength() == 1 && movedBlocks.getWidth() == 1)
@@ -573,94 +577,89 @@ public class BlockEventHandler implements Listener
             if (!isRetract && direction == BlockFace.DOWN) return;
         }
 
-        // Fast mode: Use the intersection of a cuboid containing all blocks instead of individual locations.
-        if (pistonMode == PistonMode.EVERYWHERE_SIMPLE)
+        // Assemble list of potentially intersecting claims from chunks interacted with.
+        ArrayList<Claim> intersectable = new ArrayList<>();
+        int chunkXMax = movedBlocks.getMaxX() >> 4;
+        int chunkZMax = movedBlocks.getMaxZ() >> 4;
+
+        for (int chunkX = movedBlocks.getMinX() >> 4; chunkX <= chunkXMax; ++chunkX)
         {
-            ArrayList<Claim> intersectable = new ArrayList<>();
-            int chunkXMax = movedBlocks.getMaxX() >> 4;
-            int chunkZMax = movedBlocks.getMaxZ() >> 4;
-
-            for (int chunkX = movedBlocks.getMinX() >> 4; chunkX <= chunkXMax; ++chunkX)
+            for (int chunkZ = movedBlocks.getMinZ() >> 4; chunkZ <= chunkZMax; ++chunkZ)
             {
-                for (int chunkZ = movedBlocks.getMinZ() >> 4; chunkZ <= chunkZMax; ++chunkZ)
-                {
-                    ArrayList<Claim> chunkClaims = dataStore.chunksToClaimsMap.get(DataStore.getChunkHash(chunkX, chunkZ));
-                    if (chunkClaims == null) continue;
+                ArrayList<Claim> chunkClaims = dataStore.chunksToClaimsMap.get(DataStore.getChunkHash(chunkX, chunkZ));
+                if (chunkClaims == null) continue;
 
-                    for (Claim claim : chunkClaims)
-                    {
-                        if (pistonBlock.getWorld().equals(claim.getLesserBoundaryCorner().getWorld()))
-                            intersectable.add(claim);
-                    }
+                for (Claim claim : chunkClaims)
+                {
+                    // Ensure claim is not piston claim and is in same world.
+                    if (pistonClaim != claim && pistonBlock.getWorld().equals(claim.getLesserBoundaryCorner().getWorld()))
+                        intersectable.add(claim);
                 }
             }
-
-            for (Claim claim : intersectable)
-            {
-                if (claim == pistonClaim) continue;
-
-                // Ensure claim intersects with bounding box.
-                if (!new BoundingBox(claim).intersects(movedBlocks)) continue;
-
-                // If owners are different, cancel.
-                if (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), claim.getOwnerID()))
-                {
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-
-            return;
         }
 
-        // Precise mode: Each block must be considered individually.
-        Claim lastClaim = pistonClaim;
-        HashSet<Block> checkBlocks = new HashSet<>(blocks);
+        BiPredicate<Claim, BoundingBox> intersectionHandler;
+        final Claim finalPistonClaim = pistonClaim;
 
-        // Add all blocks that will be occupied after the shift.
-        for (Block block : blocks)
-            if (block.getPistonMoveReaction() != PistonMoveReaction.BREAK)
-                checkBlocks.add(block.getRelative(direction));
-
-        for (Block block : checkBlocks)
+        // Fast mode: Bounding box intersection always causes a conflict, even if blocks do not conflict.
+        if (pistonMode == PistonMode.EVERYWHERE_SIMPLE)
         {
-            // Reimplement DataStore#getClaimAt to ignore subclaims to maximize performance.
-            Location location = block.getLocation();
-            Claim claim = null;
-            if (lastClaim != null && lastClaim.inDataStore && lastClaim.contains(location, false, true))
-                claim = lastClaim;
-            else
+            intersectionHandler = (claim, claimBoundingBox) ->
             {
-                ArrayList<Claim> chunkClaims = dataStore.chunksToClaimsMap.get(DataStore.getChunkHash(location));
-                if (chunkClaims != null)
+                // If owners are different, cancel.
+                if (finalPistonClaim == null || !Objects.equals(finalPistonClaim.getOwnerID(), claim.getOwnerID()))
                 {
-                    for (Claim chunkClaim : chunkClaims)
+                    event.setCancelled(true);
+                    return true;
+                }
+
+                // Otherwise, proceed to next claim.
+                return false;
+            };
+        }
+        // Precise mode: Bounding box intersection may not yield a conflict. Individual blocks must be considered.
+        else
+        {
+            // Set up list of affected blocks.
+            HashSet<Block> checkBlocks = new HashSet<>(blocks);
+
+            // Add all blocks that will be occupied after the shift.
+            for (Block block : blocks)
+                if (block.getPistonMoveReaction() != PistonMoveReaction.BREAK)
+                    checkBlocks.add(block.getRelative(direction));
+
+            intersectionHandler = (claim, claimBoundingBox) ->
+            {
+                // Ensure that the claim contains an affected block.
+                if (checkBlocks.stream().noneMatch(claimBoundingBox::contains)) return false;
+
+                // If pushing this block will change ownership, cancel the event and take away the piston (for performance reasons).
+                if (finalPistonClaim == null || !Objects.equals(finalPistonClaim.getOwnerID(), claim.getOwnerID()))
+                {
+                    event.setCancelled(true);
+                    if (GriefPrevention.instance.config_pistonExplosionSound)
                     {
-                        if (chunkClaim.contains(location, false, true))
-                        {
-                            claim = chunkClaim;
-                            break;
-                        }
+                        pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
                     }
+                    pistonBlock.getWorld().dropItem(pistonBlock.getLocation(), new ItemStack(event.isSticky() ? Material.STICKY_PISTON : Material.PISTON));
+                    pistonBlock.setType(Material.AIR);
+                    return true;
                 }
-            }
 
-            if (claim == null) continue;
+                // Otherwise, proceed to next claim.
+                return false;
+            };
+        }
 
-            lastClaim = claim;
+        for (Claim claim : intersectable)
+        {
+            BoundingBox claimBoundingBox = new BoundingBox(claim);
 
-            // If pushing this block will change ownership, cancel the event and take away the piston (for performance reasons).
-            if (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), claim.getOwnerID()))
-            {
-                event.setCancelled(true);
-                if (GriefPrevention.instance.config_pistonExplosionSound)
-                {
-                    pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
-                }
-                pistonBlock.getWorld().dropItem(pistonBlock.getLocation(), new ItemStack(event.isSticky() ? Material.STICKY_PISTON : Material.PISTON));
-                pistonBlock.setType(Material.AIR);
-                return;
-            }
+            // Ensure claim intersects with block bounding box.
+            if (!claimBoundingBox.intersects(movedBlocks)) continue;
+
+            // Do additional mode-based handling.
+            if (intersectionHandler.test(claim, claimBoundingBox)) return;
         }
     }
 
