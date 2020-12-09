@@ -731,8 +731,13 @@ public class Claim
         if (!Objects.equals(location.getWorld(), this.lesserBoundaryCorner.getWorld())) return false;
 
         int x = (int) location.getX();
-        int y = (int) (ignoreHeight ? getLesserBoundaryCorner().getY() : location.getY());
         int z = (int) location.getZ();
+        int y;
+        if (ignoreHeight) {
+            y = location.getBlockY();
+        } else {
+            y = getLesserBoundaryCorner().getBlockY();
+        }
 
         //main check
         if (!new BoundingBox(this).contains(x, y, z)) return false;
