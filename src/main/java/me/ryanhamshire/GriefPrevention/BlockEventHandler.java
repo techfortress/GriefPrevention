@@ -83,13 +83,6 @@ public class BlockEventHandler implements Listener
 
     private final EnumSet<Material> trashBlocks;
 
-    private static final BlockFace[] HORIZONTAL_DIRECTIONS = new BlockFace[] {
-            BlockFace.NORTH,
-            BlockFace.EAST,
-            BlockFace.SOUTH,
-            BlockFace.WEST
-    };
-
     //constructor
     public BlockEventHandler(DataStore dataStore)
     {
@@ -293,37 +286,10 @@ public class BlockEventHandler implements Listener
         //if the block is being placed within or under an existing claim
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         Claim claim = this.dataStore.getClaimAt(block.getLocation(), true, playerData.lastClaim);
-        UUID claimOwner = claim == null ? null : claim.getOwnerID();
 
-        // Check for double chests placed just outside the claim boundary
-        if (block.getBlockData() instanceof Chest)
-        {
-            for (BlockFace face : HORIZONTAL_DIRECTIONS)
-            {
-                Block relative = block.getRelative(face);
-                if (!(relative.getBlockData() instanceof Chest)) continue;
+        //If block is a chest, don't allow a DoubleChest to form across a claim boundary
+        denyConnectingDoubleChestsAcrossClaimBoundary(claim, block, player);
 
-                Claim relativeClaim = this.dataStore.getClaimAt(relative.getLocation(), true, claim);
-                UUID relativeClaimOwner = relativeClaim == null ? null : relativeClaim.getOwnerID();
-
-                // Chests outside claims should connect (both null)
-                // and chests inside the same claim should connect (equal)
-                if (Objects.equals(claimOwner, relativeClaimOwner)) break;
-
-                // Change both chests to singular chests
-                Chest chest = (Chest) block.getBlockData();
-                chest.setType(Chest.Type.SINGLE);
-                block.setBlockData(chest);
-
-                Chest relativeChest = (Chest) relative.getBlockData();
-                relativeChest.setType(Chest.Type.SINGLE);
-                relative.setBlockData(relativeChest);
-
-                // Resend relative chest block to prevent visual bug
-                player.sendBlockChange(relative.getLocation(), relativeChest);
-                break;
-            }
-        }
 
         if (claim != null)
         {
@@ -527,6 +493,47 @@ public class BlockEventHandler implements Listener
     {
         if (type == Material.HOPPER || type == Material.BEACON || type == Material.SPAWNER) return true;
         return false;
+    }
+
+    private static final BlockFace[] HORIZONTAL_DIRECTIONS = new BlockFace[] {
+            BlockFace.NORTH,
+            BlockFace.EAST,
+            BlockFace.SOUTH,
+            BlockFace.WEST
+    };
+    private void denyConnectingDoubleChestsAcrossClaimBoundary(Claim claim, Block block, Player player)
+    {
+        UUID claimOwner = claim == null ? null : claim.getOwnerID();
+
+        // Check for double chests placed just outside the claim boundary
+        if (block.getBlockData() instanceof Chest)
+        {
+            for (BlockFace face : HORIZONTAL_DIRECTIONS)
+            {
+                Block relative = block.getRelative(face);
+                if (!(relative.getBlockData() instanceof Chest)) continue;
+
+                Claim relativeClaim = this.dataStore.getClaimAt(relative.getLocation(), true, claim);
+                UUID relativeClaimOwner = relativeClaim == null ? null : relativeClaim.getOwnerID();
+
+                // Chests outside claims should connect (both null)
+                // and chests inside the same claim should connect (equal)
+                if (Objects.equals(claimOwner, relativeClaimOwner)) break;
+
+                // Change both chests to singular chests
+                Chest chest = (Chest) block.getBlockData();
+                chest.setType(Chest.Type.SINGLE);
+                block.setBlockData(chest);
+
+                Chest relativeChest = (Chest) relative.getBlockData();
+                relativeChest.setType(Chest.Type.SINGLE);
+                relative.setBlockData(relativeChest);
+
+                // Resend relative chest block to prevent visual bug
+                player.sendBlockChange(relative.getLocation(), relativeChest);
+                break;
+            }
+        }
     }
 
     // Prevent pistons pushing blocks into or out of claims.
