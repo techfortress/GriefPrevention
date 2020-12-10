@@ -143,7 +143,7 @@ public class BoundingBox implements Cloneable
      */
     public BoundingBox(Claim claim)
     {
-        this(claim.getLesserBoundaryCorner(), claim.getGreaterBoundaryCorner(), false);
+        this(claim.getLesserBoundaryCorner(), claim.getGreaterBoundaryCorner().clone().add(0, 255, 0), false);
     }
 
     /**
