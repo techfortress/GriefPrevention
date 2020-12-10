@@ -289,8 +289,7 @@ public class BlockEventHandler implements Listener
 
         //If block is a chest, don't allow a DoubleChest to form across a claim boundary
         denyConnectingDoubleChestsAcrossClaimBoundary(claim, block, player);
-
-
+        
         if (claim != null)
         {
             playerData.lastClaim = claim;
@@ -503,7 +502,9 @@ public class BlockEventHandler implements Listener
     };
     private void denyConnectingDoubleChestsAcrossClaimBoundary(Claim claim, Block block, Player player)
     {
-        UUID claimOwner = claim == null ? null : claim.getOwnerID();
+        UUID claimOwner = null;
+        if (claim != null)
+            claimOwner = claim.getOwnerID();
 
         // Check for double chests placed just outside the claim boundary
         if (block.getBlockData() instanceof Chest)
