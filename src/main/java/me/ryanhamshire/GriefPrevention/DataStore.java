@@ -473,6 +473,9 @@ public abstract class DataStore
 
     private void addToChunkClaimMap(Claim claim)
     {
+        // Subclaims should not be added to chunk claim map.
+        if (claim.parent != null) return;
+
         ArrayList<Long> chunkHashes = claim.getChunkHashes();
         for (Long chunkHash : chunkHashes)
         {
@@ -724,8 +727,25 @@ public abstract class DataStore
     //cachedClaim can be NULL, but will help performance if you have a reasonable guess about which claim the location is in
     synchronized public Claim getClaimAt(Location location, boolean ignoreHeight, Claim cachedClaim)
     {
+        return getClaimAt(location, ignoreHeight, false, cachedClaim);
+    }
+
+    /**
+     * Get the claim at a specific location.
+     *
+     * <p>The cached claim may be null, but will increase performance if you have a reasonable idea
+     * of which claim is correct.
+     *
+     * @param location the location
+     * @param ignoreHeight whether or not to check containment vertically
+     * @param ignoreSubclaims whether or not subclaims should be returned over claims
+     * @param cachedClaim the cached claim, if any
+     * @return the claim containing the location or null if no claim exists there
+     */
+    synchronized public Claim getClaimAt(Location location, boolean ignoreHeight, boolean ignoreSubclaims, Claim cachedClaim)
+    {
         //check cachedClaim guess first.  if it's in the datastore and the location is inside it, we're done
-        if (cachedClaim != null && cachedClaim.inDataStore && cachedClaim.contains(location, ignoreHeight, true))
+        if (cachedClaim != null && cachedClaim.inDataStore && cachedClaim.contains(location, ignoreHeight, !ignoreSubclaims))
             return cachedClaim;
 
         //find a top level claim
@@ -737,6 +757,9 @@ public abstract class DataStore
         {
             if (claim.inDataStore && claim.contains(location, ignoreHeight, false))
             {
+                // If ignoring subclaims, claim is a match.
+                if (ignoreSubclaims) return claim;
+
                 //when we find a top level claim, if the location is in one of its subdivisions,
                 //return the SUBDIVISION, not the top level claim
                 for (int j = 0; j < claim.children.size(); j++)
