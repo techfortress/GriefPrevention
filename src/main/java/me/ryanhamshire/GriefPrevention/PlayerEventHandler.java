@@ -2285,37 +2285,23 @@ class PlayerEventHandler implements Listener
                 if (playerData.lastShovelLocation.getBlockX() == playerData.claimResizing.getLesserBoundaryCorner().getBlockX())
                 {
                     newx1 = clickedBlock.getX();
+                    newx2 = playerData.claimResizing.getGreaterBoundaryCorner().getBlockX();
                 }
                 else
                 {
                     newx1 = playerData.claimResizing.getLesserBoundaryCorner().getBlockX();
-                }
-
-                if (playerData.lastShovelLocation.getBlockX() == playerData.claimResizing.getGreaterBoundaryCorner().getBlockX())
-                {
                     newx2 = clickedBlock.getX();
-                }
-                else
-                {
-                    newx2 = playerData.claimResizing.getGreaterBoundaryCorner().getBlockX();
                 }
 
                 if (playerData.lastShovelLocation.getBlockZ() == playerData.claimResizing.getLesserBoundaryCorner().getBlockZ())
                 {
                     newz1 = clickedBlock.getZ();
+                    newz2 = playerData.claimResizing.getGreaterBoundaryCorner().getBlockZ();
                 }
                 else
                 {
                     newz1 = playerData.claimResizing.getLesserBoundaryCorner().getBlockZ();
-                }
-
-                if (playerData.lastShovelLocation.getBlockZ() == playerData.claimResizing.getGreaterBoundaryCorner().getBlockZ())
-                {
                     newz2 = clickedBlock.getZ();
-                }
-                else
-                {
-                    newz2 = playerData.claimResizing.getGreaterBoundaryCorner().getBlockZ();
                 }
 
                 newy1 = playerData.claimResizing.getLesserBoundaryCorner().getBlockY();
