@@ -730,8 +730,8 @@ public class Claim
         //not in the same world implies false
         if (!Objects.equals(location.getWorld(), this.lesserBoundaryCorner.getWorld())) return false;
 
-        int x = (int) location.getX();
-        int z = (int) location.getZ();
+        int x = location.getBlockX();
+        int z = location.getBlockZ();
         int y;
         if (ignoreHeight) {
             y = location.getBlockY();
