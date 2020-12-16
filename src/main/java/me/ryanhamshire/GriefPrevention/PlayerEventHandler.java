@@ -1512,16 +1512,16 @@ class PlayerEventHandler implements Listener
         if (!instance.claimsEnabledForWorld(bucketEvent.getBlockClicked().getWorld())) return;
 
         Player player = bucketEvent.getPlayer();
-        Block block = bucketEvent.getBlockClicked();
+        Block block = bucketEvent.getBlockClicked().getRelative(bucketEvent.getBlockFace());
         int minLavaDistance = 10;
 
         // Fixes #1155:
         // Prevents waterlogging blocks placed on a claim's edge.
         // Waterlogging a block affects the clicked block, and NOT the adjacent location relative to it.
         if (bucketEvent.getBucket() == Material.WATER_BUCKET
-                && !NON_RELATIVE_ADJACENT_WATERLOGGABLE_BLOCKS.contains(block.getType()))
+                && NON_RELATIVE_ADJACENT_WATERLOGGABLE_BLOCKS.contains(bucketEvent.getBlockClicked().getType()))
         {
-            block = block.getRelative(bucketEvent.getBlockFace());
+            block = bucketEvent.getBlockClicked();
         }
 
         //make sure the player is allowed to build at the location
