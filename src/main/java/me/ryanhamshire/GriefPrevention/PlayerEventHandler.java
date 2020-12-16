@@ -1452,60 +1452,6 @@ class PlayerEventHandler implements Listener
     private final Set<Material> commonAdjacentBlocks_water = EnumSet.of(Material.WATER, Material.FARMLAND, Material.DIRT, Material.STONE);
     private final Set<Material> commonAdjacentBlocks_lava = EnumSet.of(Material.LAVA, Material.DIRT, Material.STONE);
 
-    /**
-     * All waterloggable blocks, where PlayerBucketEmptyEvent should check the clicked location,
-     * rather than the relative adjacent location.
-     */
-    private static final Set<Material> NON_RELATIVE_ADJACENT_WATERLOGGABLE_BLOCKS;
-    static
-    {
-        // Does NOT include chests, ender chests, or trapped chests, as these are attempted
-        // opened, rather than waterlogged. To waterlog a chest, you would have to target the block
-        // below, so that the relative check will then be at the correct location, representing the chest.
-        Set<Material> types = EnumSet.noneOf(Material.class);
-        types.addAll(Tag.FENCES.getValues());
-        types.addAll(Tag.STAIRS.getValues());
-        types.addAll(Tag.SLABS.getValues());
-        types.addAll(Tag.WALLS.getValues());
-        types.addAll(Tag.CORAL_PLANTS.getValues());
-        types.addAll(Tag.TRAPDOORS.getValues());
-        types.add(Material.SEA_PICKLE);
-        types.add(Material.CONDUIT);
-        types.add(Material.LADDER);
-        types.add(Material.CHAIN);
-        types.add(Material.IRON_BARS);
-        types.add(Material.SCAFFOLDING);
-        types.add(Material.CAMPFIRE);
-        types.add(Material.SOUL_CAMPFIRE);
-        types.add(Material.LANTERN);
-        types.add(Material.SOUL_LANTERN);
-        // All dead coral, no such tag unfortunately.
-        types.add(Material.DEAD_TUBE_CORAL);
-        types.add(Material.DEAD_BRAIN_CORAL);
-        types.add(Material.DEAD_BUBBLE_CORAL);
-        types.add(Material.DEAD_FIRE_CORAL);
-        types.add(Material.DEAD_HORN_CORAL);
-        // All glass panes, no such tag unfortunately.
-        types.add(Material.GLASS_PANE);
-        types.add(Material.WHITE_STAINED_GLASS_PANE);
-        types.add(Material.ORANGE_STAINED_GLASS_PANE);
-        types.add(Material.MAGENTA_STAINED_GLASS_PANE);
-        types.add(Material.LIGHT_BLUE_STAINED_GLASS_PANE);
-        types.add(Material.YELLOW_STAINED_GLASS_PANE);
-        types.add(Material.LIME_STAINED_GLASS_PANE);
-        types.add(Material.PINK_STAINED_GLASS_PANE);
-        types.add(Material.GRAY_STAINED_GLASS_PANE);
-        types.add(Material.LIGHT_GRAY_STAINED_GLASS_PANE);
-        types.add(Material.CYAN_STAINED_GLASS_PANE);
-        types.add(Material.PURPLE_STAINED_GLASS_PANE);
-        types.add(Material.BLUE_STAINED_GLASS_PANE);
-        types.add(Material.BROWN_STAINED_GLASS_PANE);
-        types.add(Material.GREEN_STAINED_GLASS_PANE);
-        types.add(Material.RED_STAINED_GLASS_PANE);
-        types.add(Material.BLACK_STAINED_GLASS_PANE);
-        NON_RELATIVE_ADJACENT_WATERLOGGABLE_BLOCKS = types;
-    }
-
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerBucketEmpty(PlayerBucketEmptyEvent bucketEvent)
     {
@@ -1519,7 +1465,7 @@ class PlayerEventHandler implements Listener
         // Prevents waterlogging blocks placed on a claim's edge.
         // Waterlogging a block affects the clicked block, and NOT the adjacent location relative to it.
         if (bucketEvent.getBucket() == Material.WATER_BUCKET
-                && NON_RELATIVE_ADJACENT_WATERLOGGABLE_BLOCKS.contains(bucketEvent.getBlockClicked().getType()))
+                && bucketEvent.getBlockClicked().getBlockData() instanceof Waterlogged)
         {
             block = bucketEvent.getBlockClicked();
         }
