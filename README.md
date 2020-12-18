@@ -49,7 +49,7 @@ Replace `<version>` number with this number: [![](https://jitpack.io/v/TechFortr
 	<dependency>
 	    <groupId>com.github.TechFortress</groupId>
 	    <artifactId>GriefPrevention</artifactId>
-	    <version>16.16.0</version>
+	    <version>16.17.1</version>
 	</dependency>
 ```
 
