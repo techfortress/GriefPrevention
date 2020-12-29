@@ -1374,6 +1374,7 @@ class PlayerEventHandler implements Listener
                 }
 
                 GriefPrevention.sendMessage(player, TextMode.Err, message);
+                event.getEntity().remove();
                 player.getInventory().addItem(((Egg) event.getEntity()).getItem());
                 return;
             }
