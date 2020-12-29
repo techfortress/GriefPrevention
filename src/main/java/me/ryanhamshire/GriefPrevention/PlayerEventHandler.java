@@ -41,6 +41,7 @@ import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Donkey;
+import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fish;
@@ -50,6 +51,7 @@ import org.bukkit.entity.Llama;
 import org.bukkit.entity.Mule;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Tameable;
+import org.bukkit.entity.ThrowableProjectile;
 import org.bukkit.entity.Vehicle;
 import org.bukkit.entity.minecart.PoweredMinecart;
 import org.bukkit.entity.minecart.StorageMinecart;
@@ -58,6 +60,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
@@ -1336,6 +1339,47 @@ class PlayerEventHandler implements Listener
         }
     }
 
+    //when a thrown projectile hit its target
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onProjectileHit(ProjectileHitEvent event)
+    {
+        //if the projectile is an egg and the thrower is a player
+        if (event.getEntity() instanceof Egg && event.getEntity().getShooter() instanceof Player)
+        {
+            Player player = (Player) event.getEntity().getShooter();
+            PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+            Claim claim = null;
+
+            //allow egg hit if player is in ignore claims mode
+            if (playerData.ignoreClaims) return;
+
+            //if the egg hit a block
+            if (event.getHitBlock() != null)
+            {
+                claim = this.dataStore.getClaimAt(event.getHitBlock().getLocation(), false, playerData.lastClaim);
+            }
+            //if the egg hit an entity
+            else if (event.getHitEntity() != null)
+            {
+                claim = this.dataStore.getClaimAt(event.getHitEntity().getLocation(), false, playerData.lastClaim);
+            }
+
+            if (claim != null && claim.allowContainers(player) != null)
+            {
+                String message = this.instance.dataStore.getMessage(Messages.NoContainersPermission, claim.getOwnerName());
+
+                if (player.hasPermission("griefprevention.ignoreclaims"))
+                {
+                    message += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                }
+
+                GriefPrevention.sendMessage(player, TextMode.Err, message);
+                player.getInventory().addItem(((Egg) event.getEntity()).getItem());
+                return;
+            }
+        }
+    }
+
     //when a player reels in his fishing rod
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onPlayerFish(PlayerFishEvent event)
@@ -1425,29 +1469,6 @@ class PlayerEventHandler implements Listener
                 //otherwise take away his immunity. he may be armed now.  at least, he's worth killing for some loot
                 playerData.pvpImmune = false;
                 GriefPrevention.sendMessage(player, TextMode.Warn, Messages.PvPImmunityEnd);
-            }
-        }
-    }
-
-    //when a player throws a chicken egg
-    @EventHandler(priority = EventPriority.LOWEST)
-    public void onPlayerThrowEgg(PlayerEggThrowEvent event)
-    {
-        Player player = event.getPlayer();
-        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-
-        if (instance.config_claims_eggHatchingRequireContainerTrust)
-        {
-            Claim toClaim = this.dataStore.getClaimAt(event.getEgg().getLocation(), false, playerData.lastClaim);
-            if (toClaim != null)
-            {
-                playerData.lastClaim = toClaim;
-                String noContainersReason = toClaim.allowContainers(player);
-                if (noContainersReason != null)
-                {
-                    instance.sendMessage(player, TextMode.Err, noContainersReason);
-                    event.setHatching(false);
-                }
             }
         }
     }
