@@ -1,4 +1,4 @@
-# GriefPrevention - Minecraft anti-griefing plugin
+# GriefPrevention - The self-service anti-griefing Bukkit plugin for Minecraft servers since 2011.
 
 Stop responding to grief and prevent it instead. Grief Prevention will solve
 your grief problems without a roster of trained administrators, without 10
@@ -18,19 +18,16 @@ and (for most servers) no configuration customization.
 
 ## Help+Support
 
-- **[Documentation](https://docs.griefprevention.com)** - Information on using Grief Prevention, its range of commands and permissions, configuration parameters, etc.
-- [FAQ](https://github.com/TechFortress/GriefPrevention/issues/752) - Frequently Asked Questions about GriefPrevention.
-- [Issue Tracker (GitHub Issues)](https://github.com/TechFortress/GriefPrevention/issues) - The place to file bug reports or request features.
+- **[Documentation (The Manual)](https://docs.griefprevention.com)** - Where you'll find answers to common questions and information on (nearly) everything about GriefPrevention such as its range of commands and permissions, configuration parameters, etc.
+- [Issue Tracker](https://github.com/TechFortress/GriefPrevention/issues) - The place to file bug reports
+- [Discussions](https://github.com/TechFortress/GriefPrevention/discussions) - The place to ask questions and suggest ideas/features
 
-### Community
+Community support and general discussion on GriefPrevention can be found at these sites:
 
-Discussion and community support for GriefPrevention can be found at these sites:
-
-[#GriefPrevention IRC channel on irc.spi.gt](https://griefprevention.com/chat) (dumcord also available)
-
-[Grief Prevention on dev.bukkit.org](https://dev.bukkit.org/projects/grief-prevention)
-
-[GriefPrevention on spigotmc.org](https://www.spigotmc.org/resources/griefprevention.1884/)
+- [GitHub Discussions](https://github.com/TechFortress/GriefPrevention/discussions)
+- [#GriefPrevention chat channel on IRC or discord](https://griefprevention.com/chat)
+- [Grief Prevention on dev.bukkit.org](https://dev.bukkit.org/projects/grief-prevention)
+- [GriefPrevention on spigotmc.org](https://www.spigotmc.org/resources/griefprevention.1884/)
 
 ---
 
