@@ -41,7 +41,6 @@ import org.bukkit.entity.AbstractHorse;
 import org.bukkit.entity.Animals;
 import org.bukkit.entity.Creature;
 import org.bukkit.entity.Donkey;
-import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Fish;
@@ -59,12 +58,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerEggThrowEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
@@ -1337,45 +1336,38 @@ class PlayerEventHandler implements Listener
         }
     }
 
-    //when a thrown projectile hit its target
+    //when a player throws an egg
     @EventHandler(priority = EventPriority.LOWEST)
-    public void onProjectileHit(ProjectileHitEvent event)
+    public void onPlayerThrowEgg(PlayerEggThrowEvent event)
     {
-        //if the projectile is an egg and the thrower is a player
-        if (event.getEntity() instanceof Egg && event.getEntity().getShooter() instanceof Player)
+        Player player = event.getPlayer();
+        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+        Claim claim = this.dataStore.getClaimAt(event.getEgg().getLocation(), false, playerData.lastClaim);
+
+        //allow throw egg if player is in ignore claims mode
+        if (playerData.ignoreClaims) return;
+
+        if (claim != null && claim.allowContainers(player) != null)
         {
-            Player player = (Player) event.getEntity().getShooter();
-            PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
-            Claim claim = null;
+            String message = this.instance.dataStore.getMessage(Messages.NoContainersPermission, claim.getOwnerName());
 
-            //allow egg hit if player is in ignore claims mode
-            if (playerData.ignoreClaims) return;
-
-            //if the egg hit a block
-            if (event.getHitBlock() != null)
+            if (player.hasPermission("griefprevention.ignoreclaims"))
             {
-                claim = this.dataStore.getClaimAt(event.getHitBlock().getLocation(), false, playerData.lastClaim);
-            }
-            //if the egg hit an entity
-            else if (event.getHitEntity() != null)
-            {
-                claim = this.dataStore.getClaimAt(event.getHitEntity().getLocation(), false, playerData.lastClaim);
+                message += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
             }
 
-            if (claim != null && claim.allowContainers(player) != null)
+            GriefPrevention.sendMessage(player, TextMode.Err, message);
+
+            //cancel the event by preventing hatching
+            event.setHatching(false);
+
+            //only give the egg back if player is in survival or adventure
+            if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE)
             {
-                String message = this.instance.dataStore.getMessage(Messages.NoContainersPermission, claim.getOwnerName());
-
-                if (player.hasPermission("griefprevention.ignoreclaims"))
-                {
-                    message += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                }
-
-                GriefPrevention.sendMessage(player, TextMode.Err, message);
-                event.getEntity().remove();
-                player.getInventory().addItem(((Egg) event.getEntity()).getItem());
-                return;
+                player.getInventory().addItem(event.getEgg().getItem());
             }
+
+            return;
         }
     }
 
