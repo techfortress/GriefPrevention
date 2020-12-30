@@ -1366,8 +1366,6 @@ class PlayerEventHandler implements Listener
             {
                 player.getInventory().addItem(event.getEgg().getItem());
             }
-
-            return;
         }
     }
 
