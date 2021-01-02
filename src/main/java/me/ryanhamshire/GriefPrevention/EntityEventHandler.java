@@ -345,6 +345,9 @@ public class EntityEventHandler implements Listener
         //make a list of blocks which were allowed to explode
         List<Block> explodedBlocks = new ArrayList<>();
         Claim cachedClaim = null;
+
+        int seaLevel = GriefPrevention.instance.getSeaLevel(world);
+
         for (Block block : blocks)
         {
             //always ignore air blocks
@@ -376,7 +379,10 @@ public class EntityEventHandler implements Listener
             //if no, then also consider surface rules
             if (claim == null)
             {
-                if (!applySurfaceRules || block.getLocation().getBlockY() < GriefPrevention.instance.getSeaLevel(world) - 7)
+                //if the explosion happens above sea level, don't explode the block.
+                if (location.getBlockY() >= seaLevel) continue;
+
+                if (!applySurfaceRules || block.getLocation().getBlockY() < seaLevel)
                 {
                     explodedBlocks.add(block);
                 }
