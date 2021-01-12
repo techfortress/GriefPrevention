@@ -107,6 +107,7 @@ public class GriefPrevention extends JavaPlugin
     public int config_claims_maxClaimsPerPlayer;                    //maximum number of claims per player
     public boolean config_claims_respectWorldGuard;                 //whether claim creations requires WG build permission in creation area
     public boolean config_claims_villagerTradingRequiresTrust;      //whether trading with a claimed villager requires permission
+    public boolean config_claims_shopkeeperTradingRequiresTrust;    //whether trading with a claimed shopkeeper requires permission (from the Shopkeepers plugin)
 
     public int config_claims_initialBlocks;                            //the number of claim blocks a new player starts with
     public double config_claims_abandonReturnRatio;                 //the portion of claim blocks returned to a player when a claim is abandoned
@@ -556,6 +557,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_claims_maxClaimsPerPlayer = config.getInt("GriefPrevention.Claims.MaximumNumberOfClaimsPerPlayer", 0);
         this.config_claims_respectWorldGuard = config.getBoolean("GriefPrevention.Claims.CreationRequiresWorldGuardBuildPermission", true);
         this.config_claims_villagerTradingRequiresTrust = config.getBoolean("GriefPrevention.Claims.VillagerTradingRequiresPermission", true);
+        this.config_claims_shopkeeperTradingRequiresTrust = config.getBoolean("GriefPrevention.Claims.ShopkeeperTradingRequiresPermission", false);
         String accessTrustSlashCommands = config.getString("GriefPrevention.Claims.CommandsRequiringAccessTrust", "/sethome");
         this.config_claims_supplyPlayerManual = config.getBoolean("GriefPrevention.Claims.DeliverManuals", true);
         this.config_claims_manualDeliveryDelaySeconds = config.getInt("GriefPrevention.Claims.ManualDeliveryDelaySeconds", 30);
@@ -800,6 +802,7 @@ public class GriefPrevention extends JavaPlugin
         outConfig.set("GriefPrevention.Claims.MaximumNumberOfClaimsPerPlayer", this.config_claims_maxClaimsPerPlayer);
         outConfig.set("GriefPrevention.Claims.CreationRequiresWorldGuardBuildPermission", this.config_claims_respectWorldGuard);
         outConfig.set("GriefPrevention.Claims.VillagerTradingRequiresPermission", this.config_claims_villagerTradingRequiresTrust);
+        outConfig.set("GriefPrevention.Claims.ShopkeeperTradingRequiresPermission", this.config_claims_shopkeeperTradingRequiresTrust);
         outConfig.set("GriefPrevention.Claims.CommandsRequiringAccessTrust", accessTrustSlashCommands);
         outConfig.set("GriefPrevention.Claims.DeliverManuals", config_claims_supplyPlayerManual);
         outConfig.set("GriefPrevention.Claims.ManualDeliveryDelaySeconds", config_claims_manualDeliveryDelaySeconds);

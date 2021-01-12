@@ -1175,6 +1175,7 @@ class PlayerEventHandler implements Listener
         if (!instance.config_claims_protectDonkeys && entity instanceof Donkey) return;
         if (!instance.config_claims_protectDonkeys && entity instanceof Mule) return;
         if (!instance.config_claims_protectLlamas && entity instanceof Llama) return;
+        if (!instance.config_claims_shopkeeperTradingRequiresTrust && entity.hasMetadata("shopkeeper")) return;
 
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
 
