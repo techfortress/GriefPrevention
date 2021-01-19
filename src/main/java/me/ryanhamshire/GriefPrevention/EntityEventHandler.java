@@ -380,7 +380,7 @@ public class EntityEventHandler implements Listener
             if (claim == null)
             {
                 //if the explosion happens above sea level, don't explode the block.
-                if (location.getBlockY() >= seaLevel) continue;
+                if (applySurfaceRules && location.getBlockY() >= seaLevel) continue;
 
                 if (!applySurfaceRules || block.getLocation().getBlockY() < seaLevel)
                 {
