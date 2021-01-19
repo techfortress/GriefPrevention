@@ -51,3 +51,5 @@ Paste the config.yml right here inside these backticks. Please do not use a past
   - [ ] Issue still occurs even if GriefPrevention is the only plugin running
 - [ ] I attempted testing for the issue on a new server
   - [ ] Issue still occurs even after testing on a new server
+- [ ] I attempted testing for the issue with the vanilla client (no mods)
+  - [ ] Issue still occurs even after testing with the vanilla Minecraft client

@@ -63,6 +63,7 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerEggThrowEvent;
 import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
@@ -1331,6 +1332,39 @@ class PlayerEventHandler implements Listener
                     GriefPrevention.sendMessage(player, TextMode.Err, failureReason);
                     return;
                 }
+            }
+        }
+    }
+
+    //when a player throws an egg
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onPlayerThrowEgg(PlayerEggThrowEvent event)
+    {
+        Player player = event.getPlayer();
+        PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
+        Claim claim = this.dataStore.getClaimAt(event.getEgg().getLocation(), false, playerData.lastClaim);
+
+        //allow throw egg if player is in ignore claims mode
+        if (playerData.ignoreClaims) return;
+
+        if (claim != null && claim.allowContainers(player) != null)
+        {
+            String message = this.instance.dataStore.getMessage(Messages.NoContainersPermission, claim.getOwnerName());
+
+            if (player.hasPermission("griefprevention.ignoreclaims"))
+            {
+                message += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+            }
+
+            GriefPrevention.sendMessage(player, TextMode.Err, message);
+
+            //cancel the event by preventing hatching
+            event.setHatching(false);
+
+            //only give the egg back if player is in survival or adventure
+            if (player.getGameMode() == GameMode.SURVIVAL || player.getGameMode() == GameMode.ADVENTURE)
+            {
+                player.getInventory().addItem(event.getEgg().getItem());
             }
         }
     }
