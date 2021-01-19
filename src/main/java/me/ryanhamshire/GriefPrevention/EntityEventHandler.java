@@ -825,7 +825,7 @@ public class EntityEventHandler implements Listener
                         damagedData.lastClaim = damagedClaim;
                         if (GriefPrevention.instance.claimIsPvPSafeZone(damagedClaim))
                         {
-                            PreventPvPEvent pvpEvent = new PreventPvPEvent(damagedClaim);
+                            PreventPvPEvent pvpEvent = new PreventPvPEvent(damagedClaim, attacker, damaged);
                             Bukkit.getPluginManager().callEvent(pvpEvent);
                             if (!pvpEvent.isCancelled())
                             {
@@ -893,7 +893,7 @@ public class EntityEventHandler implements Listener
                                 GriefPrevention.instance.claimIsPvPSafeZone(attackerClaim))
                         {
                             attackerData.lastClaim = attackerClaim;
-                            PreventPvPEvent pvpEvent = new PreventPvPEvent(attackerClaim);
+                            PreventPvPEvent pvpEvent = new PreventPvPEvent(attackerClaim, attacker, defender);
                             Bukkit.getPluginManager().callEvent(pvpEvent);
                             if (!pvpEvent.isCancelled())
                             {
@@ -910,7 +910,7 @@ public class EntityEventHandler implements Listener
                                 GriefPrevention.instance.claimIsPvPSafeZone(defenderClaim))
                         {
                             defenderData.lastClaim = defenderClaim;
-                            PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim);
+                            PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim, attacker, defender);
                             Bukkit.getPluginManager().callEvent(pvpEvent);
                             if (!pvpEvent.isCancelled())
                             {
@@ -953,7 +953,7 @@ public class EntityEventHandler implements Listener
                                     GriefPrevention.instance.claimIsPvPSafeZone(defenderClaim))
                             {
                                 defenderData.lastClaim = defenderClaim;
-                                PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim);
+                                PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim, attacker, defender);
                                 Bukkit.getPluginManager().callEvent(pvpEvent);
 
                                 //if other plugins aren't making an exception to the rule 
@@ -1053,7 +1053,7 @@ public class EntityEventHandler implements Listener
                                     message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
                                 if (sendErrorMessagesToPlayers)
                                     GriefPrevention.sendMessage(attacker, TextMode.Err, message);
-                                PreventPvPEvent pvpEvent = new PreventPvPEvent(new Claim(subEvent.getEntity().getLocation(), subEvent.getEntity().getLocation(), null, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null));
+                                PreventPvPEvent pvpEvent = new PreventPvPEvent(new Claim(subEvent.getEntity().getLocation(), subEvent.getEntity().getLocation(), null, new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), new ArrayList<>(), null), attacker, tameable);
                                 Bukkit.getPluginManager().callEvent(pvpEvent);
                                 if (!pvpEvent.isCancelled())
                                 {
@@ -1447,7 +1447,7 @@ public class EntityEventHandler implements Listener
                     if (attackerClaim != null && GriefPrevention.instance.claimIsPvPSafeZone(attackerClaim))
                     {
                         attackerData.lastClaim = attackerClaim;
-                        PreventPvPEvent pvpEvent = new PreventPvPEvent(attackerClaim);
+                        PreventPvPEvent pvpEvent = new PreventPvPEvent(attackerClaim, thrower, effectedPlayer);
                         Bukkit.getPluginManager().callEvent(pvpEvent);
                         if (!pvpEvent.isCancelled())
                         {
@@ -1461,7 +1461,7 @@ public class EntityEventHandler implements Listener
                     if (defenderClaim != null && GriefPrevention.instance.claimIsPvPSafeZone(defenderClaim))
                     {
                         defenderData.lastClaim = defenderClaim;
-                        PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim);
+                        PreventPvPEvent pvpEvent = new PreventPvPEvent(defenderClaim, thrower, effectedPlayer);
                         Bukkit.getPluginManager().callEvent(pvpEvent);
                         if (!pvpEvent.isCancelled())
                         {
