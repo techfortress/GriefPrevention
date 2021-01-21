@@ -346,7 +346,7 @@ public class EntityEventHandler implements Listener
         List<Block> explodedBlocks = new ArrayList<>();
         Claim cachedClaim = null;
 
-        int seaLevel = GriefPrevention.instance.getSeaLevel(world);
+        int seaLevel = GriefPrevention.instance.getTNTSeaLevel(world);
 
         for (Block block : blocks)
         {
