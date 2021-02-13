@@ -73,7 +73,7 @@ public class BoundingBoxTest
             assertEquals(boxB, boxA);
         }
     }
-    
+
     private interface TriConsumer<T, U, V> {
         void apply(T t, U u, V v);
     }
@@ -123,7 +123,7 @@ public class BoundingBoxTest
         assertFalse(boxB.intersects(boxC));
         assertFalse(boxC.intersects(boxB));
     }
-    
+
     @Test
     public void testIntersectCenter()
     {
@@ -162,7 +162,18 @@ public class BoundingBoxTest
         assertTrue(boxA.intersects(boxC));
         assertTrue(boxC.intersects(boxA));
     }
-    
+
+    @Test
+    void testContainment2d() {
+        // Vertical
+        BoundingBox boxA = new BoundingBox(0, 0, 0, 20, 10, 20);
+        BoundingBox boxB = boxA.clone();
+        boxB.move(BlockFace.UP, 20);
+
+        assertFalse(boxA.contains(boxB));
+        assertTrue(boxA.contains2d(boxB));
+    }
+
     @Test
     public void testContainment()
     {

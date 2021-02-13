@@ -143,7 +143,7 @@ public class BoundingBox implements Cloneable
      */
     public BoundingBox(Claim claim)
     {
-        this(claim.getLesserBoundaryCorner(), claim.getGreaterBoundaryCorner().clone().add(0, 255, 0), false);
+        this(claim.getLesserBoundaryCorner(), claim.getGreaterBoundaryCorner().clone().add(0, 319, 0), false);
     }
 
     /**
@@ -559,6 +559,109 @@ public class BoundingBox implements Cloneable
     }
 
     /**
+     * Internal containment check ignoring vertical differences.
+     *
+     * @param minX the minimum X value to check for containment
+     * @param minZ the minimum Z value to check for containment
+     * @param maxX the maximum X value to check for containment
+     * @param maxZ the maximum X value to check for containment
+     * @return true if the specified values are inside the bounding box
+     */
+    private boolean contains2dInternal(int minX, int minZ, int maxX, int maxZ) {
+        return minX >= this.minX && maxX <= this.maxX
+                && minZ >= this.minZ && maxZ <= this.maxZ;
+    }
+
+    /**
+     * Checks if the bounding box contains the position specified.
+     *
+     * @param x the X coordinate of the position
+     * @param z the Z coordinate of the position
+     * @return true if the specified position is inside the bounding box
+     */
+    public boolean contains2d(int x, int z)
+    {
+        return contains2dInternal(x, z, x, z);
+    }
+
+    /**
+     * Checks if the bounding box contains the position specified.
+     *
+     * @param position the position
+     * @return true if the specified position is inside the bounding box
+     */
+    public boolean contains2d(Vector position)
+    {
+        return contains2d(position.getBlockX(), position.getBlockZ());
+    }
+
+    /**
+     * Checks if the bounding box contains the position specified.
+     *
+     * @param position the position
+     * @return true if the specified position is inside the bounding box
+     */
+    public boolean contains2d(Location position)
+    {
+        return contains2d(position.getBlockX(), position.getBlockZ());
+    }
+
+    /**
+     * Checks if the bounding box contains the position specified.
+     *
+     * @param position the position
+     * @return true if the specified position is inside the bounding box
+     */
+    public boolean contains2d(Block position)
+    {
+        return contains2d(position.getX(), position.getZ());
+    }
+
+    /**
+     * Checks if the bounding box contains another bounding box consisting of the positions specified.
+     *
+     * @param x1 the X coordinate of the first position
+     * @param z1 the Z coordinate of the first position
+     * @param x2 the X coordinate of the second position
+     * @param z2 the Z coordinate of the second position
+     * @return true if the specified positions are inside the bounding box
+     */
+    public boolean contains2d(int x1, int z1, int x2, int z2)
+    {
+        int minX;
+        int maxX;
+        if (x1 < x2) {
+            minX = x1;
+            maxX = x2;
+        } else {
+            minX = x2;
+            maxX = x1;
+        }
+        int minZ;
+        int maxZ;
+        if (z1 < z2) {
+            minZ = z1;
+            maxZ = z2;
+        } else {
+            minZ = z2;
+            maxZ = z1;
+        }
+
+        return contains2dInternal(minX, minZ, maxX, maxZ);
+    }
+
+    /**
+     * Checks if the bounding box contains another bounding box.
+     *
+     * @param other the other bounding box
+     * @return true if the specified positions are inside the bounding box
+     */
+    public boolean contains2d(BoundingBox other)
+    {
+        return contains2dInternal(other.minX, other.minZ, other.maxX, other.maxZ);
+    }
+
+    /**
      * Internal containment check.
      *
      * @param minX the minimum X value to check for containment
@@ -571,9 +674,8 @@ public class BoundingBox implements Cloneable
      */
     private boolean containsInternal(int minX, int minY, int minZ, int maxX, int maxY, int maxZ)
     {
-        return minX >= this.minX && maxX <= this.maxX
-                && minY >= this.minY && maxY <= this.maxY
-                && minZ >= this.minZ && maxZ <= this.maxZ;
+        return contains2dInternal(minX, minZ, maxX, maxZ)
+                && minY >= this.minY && maxY <= this.maxY;
     }
 
     /**
