@@ -76,6 +76,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiPredicate;
+import java.util.stream.Collectors;
 
 //event handlers related to blocks
 public class BlockEventHandler implements Listener
@@ -575,19 +576,29 @@ public class BlockEventHandler implements Listener
             return;
         }
 
+        Block invadedBlock = pistonBlock.getRelative(direction);
+        Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false,
+                pistonMode != PistonMode.CLAIMS_ONLY, pistonClaim);
+
         // If no blocks are moving, quickly check if another claim's boundaries are violated.
         if (blocks.isEmpty())
         {
             // No block and retraction is always safe.
             if (isRetract) return;
 
-            Block invadedBlock = pistonBlock.getRelative(direction);
-            Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false,
-                    pistonMode != PistonMode.CLAIMS_ONLY, pistonClaim);
-            if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), invadedClaim.getOwnerID())))
+            ClaimPermission invadedPermission = null;
+            if(pistonClaim != null && pistonClaim.getOwnerID() != null && invadedClaim != null
+                    && GriefPrevention.instance.config_pistonAllowIntersectionTrustedClaims)
+                invadedPermission = invadedClaim.getPermission(pistonClaim.getOwnerID().toString());
+
+            if (invadedClaim != null && (pistonClaim == null
+                    || !Objects.equals(pistonClaim.getOwnerID(), invadedClaim.getOwnerID())
+                        && (invadedPermission != ClaimPermission.Build)))
             {
+
                 event.setCancelled(true);
             }
+
 
             return;
         }
@@ -599,8 +610,10 @@ public class BlockEventHandler implements Listener
 
         if (pistonClaim != null)
         {
+            BoundingBox boundingBox = new BoundingBox(pistonClaim);
+
             // If blocks are all inside the same claim as the piston, allow.
-            if (new BoundingBox(pistonClaim).contains(movedBlocks)) return;
+            if (boundingBox.contains(movedBlocks)) return;
 
             /*
              * In claims-only mode, all moved blocks must be inside of the owning claim.
@@ -610,7 +623,35 @@ public class BlockEventHandler implements Listener
              */
             if (pistonMode == PistonMode.CLAIMS_ONLY)
             {
-                event.setCancelled(true);
+
+                if (GriefPrevention.instance.config_pistonAllowIntersectionTrustedClaims)
+                {
+                    List<Block> notContainingBlocks = blocks.stream()
+                            .filter(block -> !boundingBox.contains(block))
+                            .collect(Collectors.toList());
+
+                    for (Block notContainingBlock : notContainingBlocks)
+                    {
+                        Claim targetClaim = this.dataStore.getClaimAt(notContainingBlock.getLocation(), false,
+                                false, null);
+
+                        ClaimPermission invadedPermission = null;
+                        if(targetClaim != null && pistonClaim.getOwnerID() != null && invadedClaim != null)
+                            invadedPermission = targetClaim.getPermission(pistonClaim.getOwnerID().toString());
+
+                        if(invadedPermission != ClaimPermission.Build)
+                        {
+                            event.setCancelled(true);
+                            break;
+                        }
+                    }
+
+                }
+                else
+                {
+                    event.setCancelled(true);
+                }
+
                 return;
             }
         }
@@ -654,8 +695,13 @@ public class BlockEventHandler implements Listener
         {
             intersectionHandler = (claim, claimBoundingBox) ->
             {
-                // If owners are different, cancel.
-                if (finalPistonClaim == null || !Objects.equals(finalPistonClaim.getOwnerID(), claim.getOwnerID()))
+                ClaimPermission invadedPermission = null;
+                if(pistonClaim != null && pistonClaim.getOwnerID() != null)
+                    invadedPermission = finalPistonClaim.getPermission(pistonClaim.getOwnerID().toString());
+
+                // If owners are different, cancel. (Or if doesn't have permission)
+                if (finalPistonClaim == null || !Objects.equals(finalPistonClaim.getOwnerID(), claim.getOwnerID())
+                        && invadedPermission != ClaimPermission.Build && GriefPrevention.instance.config_pistonAllowIntersectionTrustedClaims)
                 {
                     event.setCancelled(true);
                     return true;
@@ -681,8 +727,13 @@ public class BlockEventHandler implements Listener
                 // Ensure that the claim contains an affected block.
                 if (checkBlocks.stream().noneMatch(claimBoundingBox::contains)) return false;
 
+                ClaimPermission invadedPermission = null;
+                if(pistonClaim != null && pistonClaim.getOwnerID() != null)
+                    invadedPermission = finalPistonClaim.getPermission(pistonClaim.getOwnerID().toString());
+
                 // If pushing this block will change ownership, cancel the event and take away the piston (for performance reasons).
-                if (finalPistonClaim == null || !Objects.equals(finalPistonClaim.getOwnerID(), claim.getOwnerID()))
+                if (finalPistonClaim == null || !Objects.equals(finalPistonClaim.getOwnerID(), claim.getOwnerID())
+                        && invadedPermission != ClaimPermission.Build && GriefPrevention.instance.config_pistonAllowIntersectionTrustedClaims)
                 {
                     event.setCancelled(true);
                     if (GriefPrevention.instance.config_pistonExplosionSound)
