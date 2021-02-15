@@ -37,7 +37,6 @@ import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Statistic;
 import org.bukkit.World;
-import org.bukkit.World.Environment;
 import org.bukkit.block.Block;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -598,7 +597,7 @@ public class GriefPrevention extends JavaPlugin
         this.config_limitTreeGrowth = config.getBoolean("GriefPrevention.LimitTreeGrowth", false);
         this.config_pistonExplosionSound = config.getBoolean("GriefPrevention.PistonExplosionSound", true);
         this.config_pistonMovement = PistonMode.of(config.getString("GriefPrevention.PistonMovement", "CLAIMS_ONLY"));
-        this.config_pistonAllowIntersectionTrustedClaims = config.getBoolean("GriefPrevention.Piston", true);
+        this.config_pistonAllowIntersectionTrustedClaims = config.getBoolean("GriefPrevention.AllowPistonsIntersectionTrustedClaims", true);
         if (config.isBoolean("GriefPrevention.LimitPistonsToLandClaims") && !config.getBoolean("GriefPrevention.LimitPistonsToLandClaims"))
             this.config_pistonMovement = PistonMode.EVERYWHERE_SIMPLE;
         if (config.isBoolean("GriefPrevention.CheckPistonMovement") && !config.getBoolean("GriefPrevention.CheckPistonMovement"))
