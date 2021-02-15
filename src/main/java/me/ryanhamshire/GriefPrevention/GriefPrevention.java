@@ -481,7 +481,7 @@ public class GriefPrevention extends JavaPlugin
                 this.config_claims_worldModes.put(world, ClaimsMode.Creative);
                 this.config_creativeWorldsExist = true;
             }
-            else if (world.getEnvironment() == Environment.NORMAL)
+            else if (world.getEnvironment() == World.Environment.NORMAL)
             {
                 this.config_claims_worldModes.put(world, ClaimsMode.Survival);
             }
@@ -2435,7 +2435,7 @@ public class GriefPrevention extends JavaPlugin
             Bukkit.getPluginManager().callEvent(event);
 
             //if the player is in the nether or end, he's screwed (there's no way to programmatically find a safe place for him)
-            if (player.getWorld().getEnvironment() != Environment.NORMAL && event.getDestination() == null)
+            if (player.getWorld().getEnvironment() != World.Environment.NORMAL && event.getDestination() == null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.TrappedWontWorkHere);
                 return true;
