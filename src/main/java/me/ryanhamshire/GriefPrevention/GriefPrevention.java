@@ -86,6 +86,8 @@ public class GriefPrevention extends JavaPlugin
     //log entry manager for GP's custom log files
     CustomLogger customLogger;
 
+    // Player event handler
+    PlayerEventHandler playerEventHandler;
     //configuration variables, loaded/saved from a config.yml
 
     //claim mode for each world
@@ -348,7 +350,7 @@ public class GriefPrevention extends JavaPlugin
         PluginManager pluginManager = this.getServer().getPluginManager();
 
         //player events
-        PlayerEventHandler playerEventHandler = new PlayerEventHandler(this.dataStore, this);
+        playerEventHandler = new PlayerEventHandler(this.dataStore, this);
         pluginManager.registerEvents(playerEventHandler, this);
 
         //block events
@@ -2627,6 +2629,7 @@ public class GriefPrevention extends JavaPlugin
         {
             this.loadConfig();
 			this.dataStore.loadMessages();
+            playerEventHandler.resetPattern();
             if (player != null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Success, "Configuration updated.  If you have updated your Grief Prevention JAR, you still need to /reload or reboot your server.");
