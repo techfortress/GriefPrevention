@@ -1506,7 +1506,7 @@ public abstract class DataStore
         }
     }
 
-    public void loadMessages()
+    protected void loadMessages()
     {
         Messages[] messageIDs = Messages.values();
         this.messages = new String[Messages.values().length];

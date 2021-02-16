@@ -137,7 +137,8 @@ class PlayerEventHandler implements Listener
         bannedWordFinder = new WordFinder(instance.dataStore.loadBannedWords());
     }
 
-    public void resetPattern(){
+    protected void resetPattern()
+    {
         this.howToClaimPattern = null;
     }
 
