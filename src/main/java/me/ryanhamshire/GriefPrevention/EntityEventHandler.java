@@ -659,7 +659,7 @@ public class EntityEventHandler implements Listener
         if (type == EntityType.PANDA)
             return ((Panda) entity).getMainGene() == Panda.Gene.AGGRESSIVE;
 
-        if (type == EntityType.HOGLIN || type == EntityType.POLAR_BEAR)
+        if ((type == EntityType.HOGLIN || type == EntityType.POLAR_BEAR) && entity instanceof Mob)
             return !entity.getPersistentDataContainer().has(luredByPlayer, PersistentDataType.BYTE) && ((Mob) entity).getTarget() != null;
 
         return false;
