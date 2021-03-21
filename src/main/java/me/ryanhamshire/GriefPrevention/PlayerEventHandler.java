@@ -1722,7 +1722,8 @@ class PlayerEventHandler implements Listener
                                 clickedBlockType == Material.GRINDSTONE ||
                                 clickedBlockType == Material.CARTOGRAPHY_TABLE ||
                                 clickedBlockType == Material.LOOM ||
-                                clickedBlockType == Material.RESPAWN_ANCHOR
+                                clickedBlockType == Material.RESPAWN_ANCHOR ||
+                                clickedBlockType == Material.SPAWNER
                         )))
         {
             if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
