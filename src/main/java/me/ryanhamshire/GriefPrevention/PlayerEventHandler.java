@@ -57,6 +57,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -1319,8 +1321,10 @@ class PlayerEventHandler implements Listener
             }
         }
 
+        ItemStack itemInHand = instance.getItemInHand(player, event.getHand());
+
         //if preventing theft, prevent leashing claimed creatures
-        if (instance.config_claims_preventTheft && entity instanceof Creature && instance.getItemInHand(player, event.getHand()).getType() == Material.LEAD)
+        if (instance.config_claims_preventTheft && entity instanceof Creature && itemInHand.getType() == Material.LEAD)
         {
             Claim claim = this.dataStore.getClaimAt(entity.getLocation(), false, playerData.lastClaim);
             if (claim != null)
@@ -1332,6 +1336,19 @@ class PlayerEventHandler implements Listener
                     GriefPrevention.sendMessage(player, TextMode.Err, failureReason);
                     return;
                 }
+            }
+        }
+
+        // Name tags may only be used on entities that the player is allowed to kill.
+        if (itemInHand.getType() == Material.NAME_TAG)
+        {
+            EntityDamageByEntityEvent damageEvent = new EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.CUSTOM, 0);
+            instance.getServer().getPluginManager().callEvent(damageEvent);
+            if (damageEvent.isCancelled())
+            {
+                event.setCancelled(true);
+                // Don't print message - damage event handler should have handled it.
+                return;
             }
         }
     }
