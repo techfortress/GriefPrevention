@@ -1969,6 +1969,7 @@ class PlayerEventHandler implements Listener
                     materialInHand == Material.TNT_MINECART ||
                     materialInHand == Material.ARMOR_STAND ||
                     materialInHand == Material.ITEM_FRAME ||
+                    materialInHand == Material.GLOW_ITEM_FRAME ||
                     spawn_eggs.contains(materialInHand) ||
                     materialInHand == Material.INFESTED_STONE ||
                     materialInHand == Material.INFESTED_COBBLESTONE ||
