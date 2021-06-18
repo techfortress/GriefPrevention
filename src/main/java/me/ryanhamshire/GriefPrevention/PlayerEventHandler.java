@@ -1363,18 +1363,17 @@ class PlayerEventHandler implements Listener
         Claim claim = this.dataStore.getClaimAt(event.getEgg().getLocation(), false, playerData.lastClaim);
 
         //allow throw egg if player is in ignore claims mode
-        if (playerData.ignoreClaims) return;
+        if (playerData.ignoreClaims || claim == null) return;
 
-        if (claim != null && claim.allowContainers(player) != null)
+        String failureReason = claim.checkPermission(player, ClaimPermission.Inventory, event);
+        if (failureReason != null)
         {
-            String message = this.instance.dataStore.getMessage(Messages.NoContainersPermission, claim.getOwnerName());
-
             if (player.hasPermission("griefprevention.ignoreclaims"))
             {
-                message += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                failureReason += "  " + instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
             }
 
-            GriefPrevention.sendMessage(player, TextMode.Err, message);
+            GriefPrevention.sendMessage(player, TextMode.Err, failureReason);
 
             //cancel the event by preventing hatching
             event.setHatching(false);
