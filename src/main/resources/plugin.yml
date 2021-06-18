@@ -3,7 +3,7 @@ main: me.ryanhamshire.GriefPrevention.GriefPrevention
 softdepend: [Vault, Multiverse-Core, My_Worlds, MystCraft, Transporter, TheUnderground, WorldGuard, WorldEdit, RoyalCommands, MultiWorld, Denizen]
 dev-url: https://dev.bukkit.org/projects/grief-prevention
 loadbefore: [TheUnderground]
-version: '${project.version}-${git.commit.id.abbrev}'
+version: '${git.commit.id.describe}'
 api-version: '1.16'
 commands:
     abandonclaim:

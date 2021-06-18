@@ -18,6 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import me.ryanhamshire.GriefPrevention.util.BoundingBox;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -33,6 +34,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.Hopper;
 import org.bukkit.block.PistonMoveReaction;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Chest;
 import org.bukkit.block.data.type.Dispenser;
 import org.bukkit.entity.Fireball;
 import org.bukkit.entity.Item;
@@ -73,6 +75,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.BiPredicate;
 
 //event handlers related to blocks
 public class BlockEventHandler implements Listener
@@ -285,6 +288,10 @@ public class BlockEventHandler implements Listener
         //if the block is being placed within or under an existing claim
         PlayerData playerData = this.dataStore.getPlayerData(player.getUniqueId());
         Claim claim = this.dataStore.getClaimAt(block.getLocation(), true, playerData.lastClaim);
+
+        //If block is a chest, don't allow a DoubleChest to form across a claim boundary
+        denyConnectingDoubleChestsAcrossClaimBoundary(claim, block, player);
+        
         if (claim != null)
         {
             playerData.lastClaim = claim;
@@ -489,6 +496,49 @@ public class BlockEventHandler implements Listener
         return false;
     }
 
+    private static final BlockFace[] HORIZONTAL_DIRECTIONS = new BlockFace[] {
+            BlockFace.NORTH,
+            BlockFace.EAST,
+            BlockFace.SOUTH,
+            BlockFace.WEST
+    };
+    private void denyConnectingDoubleChestsAcrossClaimBoundary(Claim claim, Block block, Player player)
+    {
+        UUID claimOwner = null;
+        if (claim != null)
+            claimOwner = claim.getOwnerID();
+
+        // Check for double chests placed just outside the claim boundary
+        if (block.getBlockData() instanceof Chest)
+        {
+            for (BlockFace face : HORIZONTAL_DIRECTIONS)
+            {
+                Block relative = block.getRelative(face);
+                if (!(relative.getBlockData() instanceof Chest)) continue;
+
+                Claim relativeClaim = this.dataStore.getClaimAt(relative.getLocation(), true, claim);
+                UUID relativeClaimOwner = relativeClaim == null ? null : relativeClaim.getOwnerID();
+
+                // Chests outside claims should connect (both null)
+                // and chests inside the same claim should connect (equal)
+                if (Objects.equals(claimOwner, relativeClaimOwner)) break;
+
+                // Change both chests to singular chests
+                Chest chest = (Chest) block.getBlockData();
+                chest.setType(Chest.Type.SINGLE);
+                block.setBlockData(chest);
+
+                Chest relativeChest = (Chest) relative.getBlockData();
+                relativeChest.setType(Chest.Type.SINGLE);
+                relative.setBlockData(relativeChest);
+
+                // Resend relative chest block to prevent visual bug
+                player.sendBlockChange(relative.getLocation(), relativeChest);
+                break;
+            }
+        }
+    }
+
     // Prevent pistons pushing blocks into or out of claims.
     @EventHandler(ignoreCancelled = true, priority = EventPriority.LOWEST)
     public void onBlockPistonExtend(BlockPistonExtendEvent event)
@@ -514,13 +564,9 @@ public class BlockEventHandler implements Listener
         if (!GriefPrevention.instance.claimsEnabledForWorld(event.getBlock().getWorld())) return;
 
         BlockFace direction = event.getDirection();
-
-        // Direction is always piston facing, correct for retraction.
-        if (isRetract)
-            direction = direction.getOppositeFace();
-
         Block pistonBlock = event.getBlock();
-        Claim pistonClaim = this.dataStore.getClaimAt(pistonBlock.getLocation(), false, null);
+        Claim pistonClaim = this.dataStore.getClaimAt(pistonBlock.getLocation(), false,
+                pistonMode != PistonMode.CLAIMS_ONLY, null);
 
         // A claim is required, but the piston is not inside a claim.
         if (pistonClaim == null && pistonMode == PistonMode.CLAIMS_ONLY)
@@ -536,7 +582,8 @@ public class BlockEventHandler implements Listener
             if (isRetract) return;
 
             Block invadedBlock = pistonBlock.getRelative(direction);
-            Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false, pistonClaim);
+            Claim invadedClaim = this.dataStore.getClaimAt(invadedBlock.getLocation(), false,
+                    pistonMode != PistonMode.CLAIMS_ONLY, pistonClaim);
             if (invadedClaim != null && (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), invadedClaim.getOwnerID())))
             {
                 event.setCancelled(true);
@@ -545,144 +592,122 @@ public class BlockEventHandler implements Listener
             return;
         }
 
-        int minX, maxX, minY, maxY, minZ, maxZ;
-        minX = maxX = pistonBlock.getX();
-        minY = maxY = pistonBlock.getY();
-        minZ = maxZ = pistonBlock.getZ();
+        // Create bounding box for moved blocks.
+        BoundingBox movedBlocks = BoundingBox.ofBlocks(blocks);
+        // Expand to include invaded zone.
+        movedBlocks.resize(direction, 1);
 
-        // Find min and max values for faster claim lookups and bounding box-based fast mode.
-        for (Block block : blocks)
+        if (pistonClaim != null)
         {
-            minX = Math.min(minX, block.getX());
-            minY = Math.min(minY, block.getY());
-            minZ = Math.min(minZ, block.getZ());
-            maxX = Math.max(maxX, block.getX());
-            maxY = Math.max(maxY, block.getY());
-            maxZ = Math.max(maxZ, block.getZ());
-        }
+            // If blocks are all inside the same claim as the piston, allow.
+            if (new BoundingBox(pistonClaim).contains(movedBlocks)) return;
 
-        // Add direction to include invaded zone.
-        if (direction.getModX() > 0)
-            maxX += direction.getModX();
-        else
-            minX += direction.getModX();
-        if (direction.getModY() > 0)
-            maxY += direction.getModY();
-        if (direction.getModZ() > 0)
-            maxZ += direction.getModZ();
-        else
-            minZ += direction.getModZ();
-
-        /*
-         * Claims-only mode. All moved blocks must be inside of the owning claim.
-         * From BigScary:
-         *  - Could push into another land claim, don't want to spend CPU checking for that
-         *  - Push ice out, place torch, get water outside the claim
-         */
-        if (pistonMode == PistonMode.CLAIMS_ONLY)
-        {
-            Location minLoc = pistonClaim.getLesserBoundaryCorner();
-            Location maxLoc = pistonClaim.getGreaterBoundaryCorner();
-
-            if (minY < minLoc.getY() || minX < minLoc.getBlockX() || maxX > maxLoc.getBlockX() || minZ < minLoc.getBlockZ() || maxZ > maxLoc.getBlockZ())
-                event.setCancelled(true);
-
-            return;
-        }
-
-        // Ensure we have top level claim - piston ownership is only checked based on claim owner in everywhere mode.
-        while (pistonClaim != null && pistonClaim.parent != null) pistonClaim = pistonClaim.parent;
-
-        // Pushing down or pulling up is safe if all blocks are in line with the piston.
-        if (minX == maxX && minZ == maxZ && direction == (isRetract ? BlockFace.UP : BlockFace.DOWN)) return;
-
-        // Fast mode: Use the intersection of a cuboid containing all blocks instead of individual locations.
-        if (pistonMode == PistonMode.EVERYWHERE_SIMPLE)
-        {
-            ArrayList<Claim> intersectable = new ArrayList<>();
-            int chunkXMax = maxX >> 4;
-            int chunkZMax = maxZ >> 4;
-
-            for (int chunkX = minX >> 4; chunkX <= chunkXMax; ++chunkX)
-            {
-                for (int chunkZ = minZ >> 4; chunkZ <= chunkZMax; ++chunkZ)
-                {
-                    ArrayList<Claim> chunkClaims = dataStore.chunksToClaimsMap.get(DataStore.getChunkHash(chunkX, chunkZ));
-                    if (chunkClaims != null)
-                        intersectable.addAll(chunkClaims);
-                }
-            }
-
-            for (Claim claim : intersectable)
-            {
-                if (claim == pistonClaim) continue;
-
-                Location minLoc = claim.getLesserBoundaryCorner();
-                Location maxLoc = claim.getGreaterBoundaryCorner();
-
-                // Ensure claim intersects with bounding box.
-                if (maxY < minLoc.getBlockY() || minX > maxLoc.getBlockX() || maxX < minLoc.getBlockX() || minZ > maxLoc.getBlockZ() || maxZ < minLoc.getBlockZ())
-                    continue;
-
-                // If owners are different, cancel.
-                if (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), claim.getOwnerID()))
-                {
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-
-            return;
-        }
-
-        // Precise mode: Each block must be considered individually.
-        Claim lastClaim = pistonClaim;
-        HashSet<Block> checkBlocks = new HashSet<>(blocks);
-
-        // Add all blocks that will be occupied after the shift.
-        for (Block block : blocks)
-            if (block.getPistonMoveReaction() != PistonMoveReaction.BREAK)
-                checkBlocks.add(block.getRelative(direction));
-
-        for (Block block : checkBlocks)
-        {
-            // Reimplement DataStore#getClaimAt to ignore subclaims to maximize performance.
-            Location location = block.getLocation();
-            Claim claim = null;
-            if (lastClaim != null && lastClaim.inDataStore && lastClaim.contains(location, false, true))
-                claim = lastClaim;
-            else
-            {
-                ArrayList<Claim> chunkClaims = dataStore.chunksToClaimsMap.get(DataStore.getChunkHash(location));
-                if (chunkClaims != null)
-                {
-                    for (Claim chunkClaim : chunkClaims)
-                    {
-                        if (chunkClaim.contains(location, false, true))
-                        {
-                            claim = chunkClaim;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            if (claim == null) continue;
-
-            lastClaim = claim;
-
-            // If pushing this block will change ownership, cancel the event and take away the piston (for performance reasons).
-            if (pistonClaim == null || !Objects.equals(pistonClaim.getOwnerID(), claim.getOwnerID()))
+            /*
+             * In claims-only mode, all moved blocks must be inside of the owning claim.
+             * From BigScary:
+             *  - Could push into another land claim, don't want to spend CPU checking for that
+             *  - Push ice out, place torch, get water outside the claim
+             */
+            if (pistonMode == PistonMode.CLAIMS_ONLY)
             {
                 event.setCancelled(true);
-                if (GriefPrevention.instance.config_pistonExplosionSound)
-                {
-                    pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
-                }
-                pistonBlock.getWorld().dropItem(pistonBlock.getLocation(), new ItemStack(event.isSticky() ? Material.STICKY_PISTON : Material.PISTON));
-                pistonBlock.setType(Material.AIR);
                 return;
             }
+        }
+
+        // Check if blocks are in line vertically.
+        if (movedBlocks.getLength() == 1 && movedBlocks.getWidth() == 1)
+        {
+            // Pulling up is always safe. The claim may not contain the area pulled from, but claims cannot stack.
+            if (isRetract && direction == BlockFace.UP) return;
+
+            // Pushing down is always safe. The claim may not contain the area pushed into, but claims cannot stack.
+            if (!isRetract && direction == BlockFace.DOWN) return;
+        }
+
+        // Assemble list of potentially intersecting claims from chunks interacted with.
+        ArrayList<Claim> intersectable = new ArrayList<>();
+        int chunkXMax = movedBlocks.getMaxX() >> 4;
+        int chunkZMax = movedBlocks.getMaxZ() >> 4;
+
+        for (int chunkX = movedBlocks.getMinX() >> 4; chunkX <= chunkXMax; ++chunkX)
+        {
+            for (int chunkZ = movedBlocks.getMinZ() >> 4; chunkZ <= chunkZMax; ++chunkZ)
+            {
+                ArrayList<Claim> chunkClaims = dataStore.chunksToClaimsMap.get(DataStore.getChunkHash(chunkX, chunkZ));
+                if (chunkClaims == null) continue;
+
+                for (Claim claim : chunkClaims)
+                {
+                    // Ensure claim is not piston claim and is in same world.
+                    if (pistonClaim != claim && pistonBlock.getWorld().equals(claim.getLesserBoundaryCorner().getWorld()))
+                        intersectable.add(claim);
+                }
+            }
+        }
+
+        BiPredicate<Claim, BoundingBox> intersectionHandler;
+        final Claim finalPistonClaim = pistonClaim;
+
+        // Fast mode: Bounding box intersection always causes a conflict, even if blocks do not conflict.
+        if (pistonMode == PistonMode.EVERYWHERE_SIMPLE)
+        {
+            intersectionHandler = (claim, claimBoundingBox) ->
+            {
+                // If owners are different, cancel.
+                if (finalPistonClaim == null || !Objects.equals(finalPistonClaim.getOwnerID(), claim.getOwnerID()))
+                {
+                    event.setCancelled(true);
+                    return true;
+                }
+
+                // Otherwise, proceed to next claim.
+                return false;
+            };
+        }
+        // Precise mode: Bounding box intersection may not yield a conflict. Individual blocks must be considered.
+        else
+        {
+            // Set up list of affected blocks.
+            HashSet<Block> checkBlocks = new HashSet<>(blocks);
+
+            // Add all blocks that will be occupied after the shift.
+            for (Block block : blocks)
+                if (block.getPistonMoveReaction() != PistonMoveReaction.BREAK)
+                    checkBlocks.add(block.getRelative(direction));
+
+            intersectionHandler = (claim, claimBoundingBox) ->
+            {
+                // Ensure that the claim contains an affected block.
+                if (checkBlocks.stream().noneMatch(claimBoundingBox::contains)) return false;
+
+                // If pushing this block will change ownership, cancel the event and take away the piston (for performance reasons).
+                if (finalPistonClaim == null || !Objects.equals(finalPistonClaim.getOwnerID(), claim.getOwnerID()))
+                {
+                    event.setCancelled(true);
+                    if (GriefPrevention.instance.config_pistonExplosionSound)
+                    {
+                        pistonBlock.getWorld().createExplosion(pistonBlock.getLocation(), 0);
+                    }
+                    pistonBlock.getWorld().dropItem(pistonBlock.getLocation(), new ItemStack(event.isSticky() ? Material.STICKY_PISTON : Material.PISTON));
+                    pistonBlock.setType(Material.AIR);
+                    return true;
+                }
+
+                // Otherwise, proceed to next claim.
+                return false;
+            };
+        }
+
+        for (Claim claim : intersectable)
+        {
+            BoundingBox claimBoundingBox = new BoundingBox(claim);
+
+            // Ensure claim intersects with block bounding box.
+            if (!claimBoundingBox.intersects(movedBlocks)) continue;
+
+            // Do additional mode-based handling.
+            if (intersectionHandler.test(claim, claimBoundingBox)) return;
         }
     }
 
@@ -695,9 +720,7 @@ public class BlockEventHandler implements Listener
 
         if (igniteEvent.getCause() == IgniteCause.LIGHTNING && GriefPrevention.instance.dataStore.getClaimAt(igniteEvent.getIgnitingEntity().getLocation(), false, null) != null)
         {
-//        	if(igniteEvent.getIgnitingEntity().hasMetadata("GP_TRIDENT")){ //BlockIgniteEvent is called before LightningStrikeEvent. See #532
-            igniteEvent.setCancelled(true);
-//			}
+            igniteEvent.setCancelled(true); //BlockIgniteEvent is called before LightningStrikeEvent. See #532. However, see #1125 for further discussion on detecting trident-caused lightning.
         }
 
         // If a fire is started by a fireball from a dispenser, allow it if the dispenser is in the same claim.

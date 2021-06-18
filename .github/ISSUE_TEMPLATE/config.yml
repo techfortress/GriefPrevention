@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Feature Requests
+    url: https://github.com/TechFortress/GriefPrevention/discussions?discussions_q=category%3AIdeas
+    about: Improvements or ideas for GriefPrevention
+  - name: Questions
+    url: https://github.com/TechFortress/GriefPrevention/discussions
+    about: Got a question? Ask in Discussions

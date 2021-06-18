@@ -1,6 +1,8 @@
 package me.ryanhamshire.GriefPrevention.events;
 
 import me.ryanhamshire.GriefPrevention.Claim;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
@@ -17,15 +19,33 @@ public class PreventPvPEvent extends Event implements Cancellable
     }
 
     Claim claim;
+    Player attacker;
+    Entity defender;
 
-    public PreventPvPEvent(Claim claim)
+    public PreventPvPEvent(Claim claim, Player attacker, Entity defender)
     {
         this.claim = claim;
+        this.attacker = attacker;
+        this.defender = defender;
     }
 
     public Claim getClaim()
     {
         return this.claim;
+    }
+
+    public Player getAttacker()
+    {
+        return attacker;
+    }
+
+    /**
+     * @return The defender -- almost in all cases a player, unless the attacker damages a Tamable (pet),
+     *         in which case the pet is returned.
+     */
+    public Entity getDefender()
+    {
+        return defender;
     }
 
     @Override

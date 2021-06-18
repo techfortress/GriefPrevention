@@ -47,7 +47,11 @@ Paste the config.yml right here inside these backticks. Please do not use a past
 
 ### Debugging steps attempted
 <!--These will be checkboxes you can click after creating the issue)-->
+- [ ] (If applicable) I attempted running the server without GriefPrevention installed
+  - [ ] (If applicable) The problem does _not_ occur if GriefPrevention is removed from the server.
 - [ ] I attempted running only GriefPrevention on the server
   - [ ] Issue still occurs even if GriefPrevention is the only plugin running
 - [ ] I attempted testing for the issue on a new server
   - [ ] Issue still occurs even after testing on a new server
+- [ ] I attempted testing for the issue with the vanilla client (no mods)
+  - [ ] Issue still occurs even after testing with the vanilla Minecraft client

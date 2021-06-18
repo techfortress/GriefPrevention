@@ -18,6 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import me.ryanhamshire.GriefPrevention.util.BoundingBox;
 import me.ryanhamshire.GriefPrevention.events.ClaimPermissionCheckEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -42,6 +43,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -331,7 +333,8 @@ public class Claim
             Material.CARROTS,
             Material.POTATOES,
             Material.NETHER_WART,
-            Material.BEETROOTS);
+            Material.BEETROOTS,
+            Material.COCOA);
 
     private static boolean placeableForFarming(Material material)
     {
@@ -716,20 +719,22 @@ public class Claim
     public boolean contains(Location location, boolean ignoreHeight, boolean excludeSubdivisions)
     {
         //not in the same world implies false
-        if (!location.getWorld().equals(this.lesserBoundaryCorner.getWorld())) return false;
+        if (!Objects.equals(location.getWorld(), this.lesserBoundaryCorner.getWorld())) return false;
 
-        double x = location.getX();
-        double y = location.getY();
-        double z = location.getZ();
+        BoundingBox boundingBox = new BoundingBox(this);
+        int x = location.getBlockX();
+        int z = location.getBlockZ();
 
-        //main check
-        boolean inClaim = (ignoreHeight || y >= this.lesserBoundaryCorner.getY()) &&
-                x >= this.lesserBoundaryCorner.getX() &&
-                x < this.greaterBoundaryCorner.getX() + 1 &&
-                z >= this.lesserBoundaryCorner.getZ() &&
-                z < this.greaterBoundaryCorner.getZ() + 1;
-
-        if (!inClaim) return false;
+        // If we're ignoring height, use 2D containment check.
+        if (ignoreHeight && !boundingBox.contains2d(x, z))
+        {
+            return false;
+        }
+        // Otherwise use full containment check.
+        else if (!ignoreHeight && !boundingBox.contains(x, location.getBlockY(), z))
+        {
+            return false;
+        }
 
         //additional check for subdivisions
         //you're only in a subdivision when you're also in its parent claim
@@ -762,15 +767,9 @@ public class Claim
     //used internally to prevent overlaps when creating claims
     boolean overlaps(Claim otherClaim)
     {
-        // For help visualizing test cases, try https://silentmatt.com/rectangle-intersection/
+        if (!Objects.equals(this.lesserBoundaryCorner.getWorld(), otherClaim.getLesserBoundaryCorner().getWorld())) return false;
 
-        if (!this.lesserBoundaryCorner.getWorld().equals(otherClaim.getLesserBoundaryCorner().getWorld())) return false;
-
-        return !(this.getGreaterBoundaryCorner().getX() < otherClaim.getLesserBoundaryCorner().getX() ||
-                this.getLesserBoundaryCorner().getX() > otherClaim.getGreaterBoundaryCorner().getX() ||
-                this.getGreaterBoundaryCorner().getZ() < otherClaim.getLesserBoundaryCorner().getZ() ||
-                this.getLesserBoundaryCorner().getZ() > otherClaim.getGreaterBoundaryCorner().getZ());
-
+        return new BoundingBox(this).intersects(new BoundingBox(otherClaim));
     }
 
     //whether more entities may be added to a claim

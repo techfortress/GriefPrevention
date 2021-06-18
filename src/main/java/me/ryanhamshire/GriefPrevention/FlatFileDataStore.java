@@ -447,7 +447,7 @@ public class FlatFileDataStore extends DataStore
                 {
                     if (e.getMessage() != null && e.getMessage().contains("World not found"))
                     {
-                        files[i].delete();
+                        GriefPrevention.AddLogEntry("Failed to load a claim (ID:" + claimID + ") because its world isn't loaded (yet?).  If this is not expected, delete this claim.");
                     }
                     else
                     {
