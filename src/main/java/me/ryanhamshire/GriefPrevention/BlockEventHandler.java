@@ -76,6 +76,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiPredicate;
+import java.util.function.Supplier;
 
 //event handlers related to blocks
 public class BlockEventHandler implements Listener
@@ -271,12 +272,12 @@ public class BlockEventHandler implements Listener
                 if (claim != null)
                 {
                     playerData.lastClaim = claim;
-                    String noContainerReason = claim.checkPermission(player, ClaimPermission.Inventory, placeEvent);
+                    Supplier<String> noContainerReason = claim.checkPermission(player, ClaimPermission.Inventory, placeEvent);
                     if (noContainerReason == null)
                         return;
 
                     placeEvent.setCancelled(true);
-                    GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason);
+                    GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason.get());
                     return;
                 }
             }
@@ -945,13 +946,13 @@ public class BlockEventHandler implements Listener
             return;
         }
 
-        String allowContainer = claim.checkPermission(shooter, ClaimPermission.Inventory, event);
+        Supplier<String> allowContainer = claim.checkPermission(shooter, ClaimPermission.Inventory, event);
 
         if (allowContainer != null)
         {
             event.getHitBlock().setType(Material.AIR);
             Bukkit.getScheduler().runTask(GriefPrevention.instance, () -> event.getHitBlock().setBlockData(block.getBlockData()));
-            GriefPrevention.sendMessage(shooter, TextMode.Err, allowContainer);
+            GriefPrevention.sendMessage(shooter, TextMode.Err, allowContainer.get());
             return;
         }
     }

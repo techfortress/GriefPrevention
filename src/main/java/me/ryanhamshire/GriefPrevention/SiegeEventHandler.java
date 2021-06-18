@@ -32,7 +32,7 @@ public class SiegeEventHandler implements Listener
         if (event.getRequiredPermission() == ClaimPermission.Edit)
         {
             if (claim.siegeData != null)
-                event.setDenialReason(GriefPrevention.instance.dataStore.getMessage(Messages.NoModifyDuringSiege));
+                event.setDenialReason(() -> GriefPrevention.instance.dataStore.getMessage(Messages.NoModifyDuringSiege));
             return;
         }
 
@@ -51,7 +51,7 @@ public class SiegeEventHandler implements Listener
             GriefPrevention.instance.dataStore.tryExtendSiege(player, claim);
 
             if (claim.siegeData != null)
-                event.setDenialReason(GriefPrevention.instance.dataStore.getMessage(Messages.NoContainersSiege, claim.siegeData.attacker.getName()));
+                event.setDenialReason(() -> GriefPrevention.instance.dataStore.getMessage(Messages.NoContainersSiege, claim.siegeData.attacker.getName()));
 
             return;
         }
@@ -85,15 +85,15 @@ public class SiegeEventHandler implements Listener
         {
             // Error messages for siege mode.
             if (!GriefPrevention.instance.config_siege_blocks.contains(broken))
-                event.setDenialReason(GriefPrevention.instance.dataStore.getMessage(Messages.NonSiegeMaterial));
+                event.setDenialReason(() -> GriefPrevention.instance.dataStore.getMessage(Messages.NonSiegeMaterial));
             else if (player.getUniqueId().equals(claim.ownerID))
-                event.setDenialReason(GriefPrevention.instance.dataStore.getMessage(Messages.NoOwnerBuildUnderSiege));
+                event.setDenialReason(() -> GriefPrevention.instance.dataStore.getMessage(Messages.NoOwnerBuildUnderSiege));
             return;
         }
 
         // No building while under siege.
         if (claim.siegeData != null)
-            event.setDenialReason(GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildUnderSiege, claim.siegeData.attacker.getName()));
+            event.setDenialReason(() -> GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildUnderSiege, claim.siegeData.attacker.getName()));
 
     }
 

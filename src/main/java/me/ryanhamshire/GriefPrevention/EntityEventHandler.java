@@ -102,6 +102,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 //handles events related to entities
 public class EntityEventHandler implements Listener
@@ -997,12 +998,12 @@ public class EntityEventHandler implements Listener
                     }
 
                     //otherwise player must have container trust in the claim
-                    String failureReason = claim.checkPermission(attacker, ClaimPermission.Build, event);
+                    Supplier<String> failureReason = claim.checkPermission(attacker, ClaimPermission.Build, event);
                     if (failureReason != null)
                     {
                         event.setCancelled(true);
                         if (sendErrorMessagesToPlayers)
-                            GriefPrevention.sendMessage(attacker, TextMode.Err, failureReason);
+                            GriefPrevention.sendMessage(attacker, TextMode.Err, failureReason.get());
                         return;
                     }
                 }
@@ -1134,14 +1135,19 @@ public class EntityEventHandler implements Listener
                     //otherwise the player damaging the entity must have permission, unless it's a dog in a pvp world
                     else if (!(event.getEntity().getWorld().getPVP() && event.getEntity().getType() == EntityType.WOLF))
                     {
-                        String override = null;
+                        Supplier<String> override = null;
                         if (sendErrorMessagesToPlayers)
                         {
-                            override = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
-                            if (attacker.hasPermission("griefprevention.ignoreclaims"))
-                                override += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                            final Player finalAttacker = attacker;
+                            override = () ->
+                            {
+                                String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                                if (finalAttacker.hasPermission("griefprevention.ignoreclaims"))
+                                    message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                                return message;
+                            };
                         }
-                        String noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event, override);
+                        Supplier<String> noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event, override);
                         if (noContainersReason != null)
                         {
                             event.setCancelled(true);
@@ -1153,7 +1159,7 @@ public class EntityEventHandler implements Listener
 
                             if (sendErrorMessagesToPlayers)
                             {
-                                GriefPrevention.sendMessage(attacker, TextMode.Err, noContainersReason);
+                                GriefPrevention.sendMessage(attacker, TextMode.Err, noContainersReason.get());
                             }
                             event.setCancelled(true);
                         }
@@ -1352,14 +1358,19 @@ public class EntityEventHandler implements Listener
             //otherwise the player damaging the entity must have permission
             else
             {
-                String override = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
-                if (attacker.hasPermission("griefprevention.ignoreclaims"))
-                    override += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                String noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event, override);
+                final Player finalAttacker = attacker;
+                Supplier<String> override = () ->
+                {
+                    String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                    if (finalAttacker.hasPermission("griefprevention.ignoreclaims"))
+                        message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                    return message;
+                };
+                Supplier<String> noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event, override);
                 if (noContainersReason != null)
                 {
                     event.setCancelled(true);
-                    GriefPrevention.sendMessage(attacker, TextMode.Err, noContainersReason);
+                    GriefPrevention.sendMessage(attacker, TextMode.Err, noContainersReason.get());
                 }
 
                 //cache claim for later
@@ -1401,12 +1412,12 @@ public class EntityEventHandler implements Listener
                         if (claim != null)
                         {
                             cachedClaim = claim;
-                            String override = instance.dataStore.getMessage(Messages.NoDamageClaimedEntity);
-                            final String noContainersReason = claim.checkPermission(thrower, ClaimPermission.Inventory, event, override);
+                            Supplier<String> override = () -> instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                            final Supplier<String> noContainersReason = claim.checkPermission(thrower, ClaimPermission.Inventory, event, override);
                             if (thrower == null || noContainersReason != null)
                             {
                                 event.setIntensity(effected, 0);
-                                GriefPrevention.sendMessage(thrower, TextMode.Err, Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                                GriefPrevention.sendMessage(thrower, TextMode.Err, noContainersReason.get());
                                 return;
                             }
                         }

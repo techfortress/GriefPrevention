@@ -65,6 +65,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1158,7 +1159,7 @@ public class GriefPrevention extends JavaPlugin
             }
 
             //must have permission to edit the land claim you're in
-            String errorMessage = claim.checkPermission(player, ClaimPermission.Edit, null);
+            Supplier<String> errorMessage = claim.checkPermission(player, ClaimPermission.Edit, null);
             if (errorMessage != null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotYourClaim);
@@ -1441,10 +1442,10 @@ public class GriefPrevention extends JavaPlugin
             }
 
             //if no permission to manage permissions, error message
-            String errorMessage = claim.checkPermission(player, ClaimPermission.Manage, null);
+            Supplier<String> errorMessage = claim.checkPermission(player, ClaimPermission.Manage, null);
             if (errorMessage != null)
             {
-                GriefPrevention.sendMessage(player, TextMode.Err, errorMessage);
+                GriefPrevention.sendMessage(player, TextMode.Err, errorMessage.get());
                 return true;
             }
 
@@ -2019,10 +2020,10 @@ public class GriefPrevention extends JavaPlugin
             }
             else
             {
-                String noBuildReason = claim.checkPermission(player, ClaimPermission.Build, null);
+                Supplier<String> noBuildReason = claim.checkPermission(player, ClaimPermission.Build, null);
                 if (noBuildReason != null)
                 {
-                    GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
+                    GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason.get());
                     return true;
                 }
 
@@ -2986,7 +2987,7 @@ public class GriefPrevention extends JavaPlugin
             }
 
             //see if the player has the level of permission he's trying to grant
-            String errorMessage = null;
+            Supplier<String> errorMessage;
 
             //permission level null indicates granting permission trust
             if (permissionLevel == null)
@@ -2994,7 +2995,7 @@ public class GriefPrevention extends JavaPlugin
                 errorMessage = claim.checkPermission(player, ClaimPermission.Edit, null);
                 if (errorMessage != null)
                 {
-                    errorMessage = "Only " + claim.getOwnerName() + " can grant /PermissionTrust here.";
+                    errorMessage = () -> "Only " + claim.getOwnerName() + " can grant /PermissionTrust here.";
                 }
             }
 
@@ -3428,7 +3429,12 @@ public class GriefPrevention extends JavaPlugin
             //cache the claim for later reference
             playerData.lastClaim = claim;
             Block block = location.getBlock();
-            return claim.checkPermission(player, ClaimPermission.Build, new BlockPlaceEvent(block, block.getState(), block, new ItemStack(material), player, true, EquipmentSlot.HAND));
+
+            Supplier<String> supplier = claim.checkPermission(player, ClaimPermission.Build, new BlockPlaceEvent(block, block.getState(), block, new ItemStack(material), player, true, EquipmentSlot.HAND));
+
+            if (supplier == null) return null;
+
+            return supplier.get();
         }
     }
 
@@ -3472,7 +3478,7 @@ public class GriefPrevention extends JavaPlugin
             playerData.lastClaim = claim;
 
             //if not in the wilderness, then apply claim rules (permissions, etc)
-            String cancel = claim.checkPermission(player, ClaimPermission.Build, breakEvent);
+            Supplier<String> cancel = claim.checkPermission(player, ClaimPermission.Build, breakEvent);
             if (cancel != null && breakEvent != null)
             {
                 PreventBlockBreakEvent preventionEvent = new PreventBlockBreakEvent(breakEvent);
@@ -3483,7 +3489,9 @@ public class GriefPrevention extends JavaPlugin
                 }
             }
 
-            return cancel;
+            if (cancel == null) return null;
+
+            return cancel.get();
         }
     }
 

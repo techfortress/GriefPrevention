@@ -20,6 +20,8 @@ package me.ryanhamshire.GriefPrevention;
 
 import org.bukkit.entity.Player;
 
+import java.util.function.Supplier;
+
 //checks to see whether or not a siege should end based on the locations of the players
 //for example, defender escaped or attacker gave up and left
 class SiegeCheckupTask implements Runnable
@@ -44,7 +46,7 @@ class SiegeCheckupTask implements Runnable
         //if this is a new claim and he has some permission there, extend the siege to include it
         if (defenderClaim != null)
         {
-            String noAccessReason = defenderClaim.checkPermission(defender, ClaimPermission.Access, null);
+            Supplier<String> noAccessReason = defenderClaim.checkPermission(defender, ClaimPermission.Access, null);
             if (defenderClaim.canSiege(defender) && noAccessReason == null)
             {
                 this.siegeData.claims.add(defenderClaim);

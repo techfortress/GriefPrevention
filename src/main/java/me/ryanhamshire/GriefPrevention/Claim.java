@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 //represents a player claim
 //creating an instance doesn't make an effective claim
@@ -323,7 +324,7 @@ public class Claim
     @Deprecated
     public String allowEdit(Player player)
     {
-        return checkPermission(player, ClaimPermission.Edit, null);
+        return checkPermission(player, ClaimPermission.Edit, null).get();
     }
 
     private static final Set<Material> PLACEABLE_FARMING_BLOCKS = EnumSet.of(
@@ -350,7 +351,7 @@ public class Claim
     //build permission check
     public String allowBuild(Player player, Material material)
     {
-        return checkPermission(player, ClaimPermission.Build, new CompatBuildBreakEvent(material, false));
+        return checkPermission(player, ClaimPermission.Build, new CompatBuildBreakEvent(material, false)).get();
     }
 
     public static class CompatBuildBreakEvent extends Event
@@ -433,7 +434,7 @@ public class Claim
      * @param event the Event triggering the permission check
      * @return the denial message or null if permission is granted
      */
-    public String checkPermission(Player player, ClaimPermission permission, Event event)
+    public Supplier<String> checkPermission(Player player, ClaimPermission permission, Event event)
     {
         return checkPermission(player, permission, event, null);
     }
@@ -447,7 +448,7 @@ public class Claim
      * @param denialOverride a message overriding the default denial for clarity
      * @return the denial message or null if permission is granted
      */
-    String checkPermission(Player player, ClaimPermission permission, Event event, String denialOverride)
+    Supplier<String> checkPermission(Player player, ClaimPermission permission, Event event, Supplier<String> denialOverride)
     {
         return callPermissionCheck(new ClaimPermissionCheckEvent(player, this, permission, event), denialOverride);
     }
@@ -460,7 +461,7 @@ public class Claim
      * @param event the Event triggering the permission check
      * @return the denial reason or null if permission is granted
      */
-    public String checkPermission(UUID uuid, ClaimPermission permission, Event event)
+    public Supplier<String> checkPermission(UUID uuid, ClaimPermission permission, Event event)
     {
         return callPermissionCheck(new ClaimPermissionCheckEvent(uuid, this, permission, event), null);
     }
@@ -472,10 +473,10 @@ public class Claim
      * @param denialOverride a message overriding the default denial for clarity
      * @return the denial reason or null if permission is granted
      */
-    private String callPermissionCheck(ClaimPermissionCheckEvent event, String denialOverride)
+    private Supplier<String> callPermissionCheck(ClaimPermissionCheckEvent event, Supplier<String> denialOverride)
     {
         // Set denial message (if any) using default behavior.
-        String defaultDenial = getDefaultDenial(event.getCheckedPlayer(), event.getCheckedUUID(),
+        Supplier<String> defaultDenial = getDefaultDenial(event.getCheckedPlayer(), event.getCheckedUUID(),
                 event.getRequiredPermission(), event.getTriggeringEvent());
         // If permission is denied and a clarifying override is provided, use override.
         if (defaultDenial != null && denialOverride != null) {
@@ -498,7 +499,7 @@ public class Claim
      * @param event the Event triggering the permission check
      * @return the denial reason or null if permission is granted
      */
-    private String getDefaultDenial(Player player, UUID uuid, ClaimPermission permission, Event event)
+    private Supplier<String> getDefaultDenial(Player player, UUID uuid, ClaimPermission permission, Event event)
     {
         if (player != null)
         {
@@ -537,7 +538,7 @@ public class Claim
             PlayerData playerData = GriefPrevention.instance.dataStore.getPlayerData(uuid);
             if (playerData.inPvpCombat())
             {
-                return GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildPvP);
+                return () -> GriefPrevention.instance.dataStore.getMessage(Messages.NoBuildPvP);
             }
 
             // Allow farming crops with container trust.
@@ -558,10 +559,13 @@ public class Claim
         }
 
         // Catch-all error message for all other cases.
-        String reason = GriefPrevention.instance.dataStore.getMessage(permission.getDenialMessage(), this.getOwnerName());
-        if (player != null && player.hasPermission("griefprevention.ignoreclaims"))
-            reason += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-        return reason;
+        return () ->
+        {
+            String reason = GriefPrevention.instance.dataStore.getMessage(permission.getDenialMessage(), this.getOwnerName());
+            if (player != null && player.hasPermission("griefprevention.ignoreclaims"))
+                reason += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+            return reason;
+        };
     }
 
     /**
@@ -572,7 +576,7 @@ public class Claim
     @Deprecated
     public String allowBreak(Player player, Material material)
     {
-        return checkPermission(player, ClaimPermission.Build, new CompatBuildBreakEvent(material, true));
+        return checkPermission(player, ClaimPermission.Build, new CompatBuildBreakEvent(material, true)).get();
     }
 
     /**
@@ -583,7 +587,7 @@ public class Claim
     @Deprecated
     public String allowAccess(Player player)
     {
-        return checkPermission(player, ClaimPermission.Access, null);
+        return checkPermission(player, ClaimPermission.Access, null).get();
     }
 
     /**
@@ -594,7 +598,7 @@ public class Claim
     @Deprecated
     public String allowContainers(Player player)
     {
-        return checkPermission(player, ClaimPermission.Inventory, null);
+        return checkPermission(player, ClaimPermission.Inventory, null).get();
     }
 
     /**
@@ -605,7 +609,7 @@ public class Claim
     @Deprecated
     public String allowGrantPermission(Player player)
     {
-        return checkPermission(player, ClaimPermission.Manage, null);
+        return checkPermission(player, ClaimPermission.Manage, null).get();
     }
 
     public ClaimPermission getPermission(String playerID)

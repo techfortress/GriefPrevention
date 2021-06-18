@@ -8,6 +8,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 import java.util.UUID;
+import java.util.function.Supplier;
 
 /**
  * This event is called when a {@link Claim} requires a specific level of trust.
@@ -23,7 +24,7 @@ public class ClaimPermissionCheckEvent extends Event
     private final Claim claim;
     private final ClaimPermission requiredPermission;
     private final Event triggeringEvent;
-    private String denial;
+    private Supplier<String> denial;
 
     /**
      * Constructor for a ClaimPermissionCheckEvent.
@@ -116,16 +117,17 @@ public class ClaimPermissionCheckEvent extends Event
      *
      * @return the denial reason or null if permission is granted
      */
-    public String getDenialReason()
+    public Supplier<String> getDenialReason()
     {
         return denial;
     }
 
     /**
      * Sets the reason for denial.
+     *
      * @param denial the denial reason
      */
-    public void setDenialReason(String denial)
+    public void setDenialReason(Supplier<String> denial)
     {
         this.denial = denial;
     }
