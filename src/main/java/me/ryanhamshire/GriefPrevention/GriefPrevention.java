@@ -3443,6 +3443,11 @@ public class GriefPrevention extends JavaPlugin
         return this.allowBreak(player, block, location, new BlockBreakEvent(block, player));
     }
 
+    public String allowBreak(Player player, Material material, Location location, BlockBreakEvent breakEvent)
+    {
+        return this.allowBreak(player, location.getBlock(), location, breakEvent);
+    }
+
     public String allowBreak(Player player, Block block, Location location, BlockBreakEvent breakEvent)
     {
         if (!GriefPrevention.instance.claimsEnabledForWorld(location.getWorld())) return null;
