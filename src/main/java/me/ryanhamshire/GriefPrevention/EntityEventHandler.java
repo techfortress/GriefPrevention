@@ -959,6 +959,7 @@ public class EntityEventHandler implements Listener
 
             //if the damaged entity is a claimed item frame or armor stand, the damager needs to be a player with build trust in the claim
             if (subEvent.getEntityType() == EntityType.ITEM_FRAME
+                    || subEvent.getEntityType() == EntityType.GLOW_ITEM_FRAME
                     || subEvent.getEntityType() == EntityType.ARMOR_STAND
                     || subEvent.getEntityType() == EntityType.VILLAGER
                     || subEvent.getEntityType() == EntityType.ENDER_CRYSTAL)
