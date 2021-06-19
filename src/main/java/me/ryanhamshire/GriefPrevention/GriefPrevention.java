@@ -3440,7 +3440,11 @@ public class GriefPrevention extends JavaPlugin
         return this.allowBreak(player, block, location, null);
     }
 
-    public String allowBreak(Player player, Block block, Location location, BlockBreakEvent breakEvent)
+    public String allowBreak(Player player, Block block, Location location, BlockBreakEvent breakEvent) {
+        return this.allowBreak(player, block.getType(), location, breakEvent);
+    }
+
+    public String allowBreak(Player player, Material material, Location location, BlockBreakEvent breakEvent)
     {
         if (!GriefPrevention.instance.claimsEnabledForWorld(location.getWorld())) return null;
 
@@ -3475,7 +3479,7 @@ public class GriefPrevention extends JavaPlugin
             playerData.lastClaim = claim;
 
             //if not in the wilderness, then apply claim rules (permissions, etc)
-            String cancel = claim.allowBreak(player, block.getType());
+            String cancel = claim.allowBreak(player, material);
             if (cancel != null && breakEvent != null)
             {
                 PreventBlockBreakEvent preventionEvent = new PreventBlockBreakEvent(breakEvent);
