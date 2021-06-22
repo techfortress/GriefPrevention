@@ -1730,6 +1730,7 @@ class PlayerEventHandler implements Listener
                                 clickedBlockType == Material.CHIPPED_ANVIL ||
                                 clickedBlockType == Material.DAMAGED_ANVIL ||
                                 clickedBlockType == Material.CAKE ||
+                                Tag.CANDLE_CAKES.isTagged(clickedBlockType) ||
                                 clickedBlockType == Material.SWEET_BERRY_BUSH ||
                                 clickedBlockType == Material.BEE_NEST ||
                                 clickedBlockType == Material.BEEHIVE ||
@@ -1833,7 +1834,7 @@ class PlayerEventHandler implements Listener
         }
 
         //otherwise apply rule for cake
-        else if (clickedBlock != null && instance.config_claims_preventTheft && clickedBlockType == Material.CAKE)
+        else if (clickedBlock != null && instance.config_claims_preventTheft && (clickedBlockType == Material.CAKE || Tag.CANDLE_CAKES.isTagged(clickedBlockType)))
         {
             if (playerData == null) playerData = this.dataStore.getPlayerData(player.getUniqueId());
             Claim claim = this.dataStore.getClaimAt(clickedBlock.getLocation(), false, playerData.lastClaim);
