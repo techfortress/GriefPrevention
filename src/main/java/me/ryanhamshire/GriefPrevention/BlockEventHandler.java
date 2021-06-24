@@ -75,6 +75,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiPredicate;
+import java.util.function.Supplier;
 
 //event handlers related to blocks
 public class BlockEventHandler implements Listener
@@ -270,12 +271,12 @@ public class BlockEventHandler implements Listener
                 if (claim != null)
                 {
                     playerData.lastClaim = claim;
-                    String noContainerReason = claim.allowContainers(player);
+                    Supplier<String> noContainerReason = claim.checkPermission(player, ClaimPermission.Inventory, placeEvent);
                     if (noContainerReason == null)
                         return;
 
                     placeEvent.setCancelled(true);
-                    GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason);
+                    GriefPrevention.sendMessage(player, TextMode.Err, noContainerReason.get());
                     return;
                 }
             }
@@ -303,7 +304,7 @@ public class BlockEventHandler implements Listener
             }
 
             //if the player has permission for the claim and he's placing UNDER the claim
-            if (block.getY() <= claim.lesserBoundaryCorner.getBlockY() && claim.allowBuild(player, block.getType()) == null)
+            if (block.getY() <= claim.lesserBoundaryCorner.getBlockY() && claim.checkPermission(player, ClaimPermission.Build, placeEvent) == null)
             {
                 //extend the claim downward
                 this.dataStore.extendClaim(claim, block.getY() - GriefPrevention.instance.config_claims_claimsExtendIntoGroundDistance);
@@ -919,12 +920,12 @@ public class BlockEventHandler implements Listener
             return;
         }
 
-        String allowContainer = claim.allowContainers(shooter);
+        Supplier<String> allowContainer = claim.checkPermission(shooter, ClaimPermission.Inventory, event);
 
         if (allowContainer != null)
         {
             event.setCancelled(true);
-            GriefPrevention.sendMessage(shooter, TextMode.Err, allowContainer);
+            GriefPrevention.sendMessage(shooter, TextMode.Err, allowContainer.get());
             return;
         }
     }
