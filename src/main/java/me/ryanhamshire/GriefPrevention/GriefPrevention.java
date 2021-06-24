@@ -45,6 +45,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -64,6 +65,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.Vector;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Supplier;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -358,6 +360,10 @@ public class GriefPrevention extends JavaPlugin
         //entity events
         EntityEventHandler entityEventHandler = new EntityEventHandler(this.dataStore, this);
         pluginManager.registerEvents(entityEventHandler, this);
+
+        //siege events
+        SiegeEventHandler siegeEventHandler = new SiegeEventHandler();
+        pluginManager.registerEvents(siegeEventHandler, this);
 
         //vault-based economy integration
         economyHandler = new EconomyHandler(this);
@@ -1153,7 +1159,7 @@ public class GriefPrevention extends JavaPlugin
             }
 
             //must have permission to edit the land claim you're in
-            String errorMessage = claim.allowEdit(player);
+            Supplier<String> errorMessage = claim.checkPermission(player, ClaimPermission.Edit, null);
             if (errorMessage != null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotYourClaim);
@@ -1436,10 +1442,10 @@ public class GriefPrevention extends JavaPlugin
             }
 
             //if no permission to manage permissions, error message
-            String errorMessage = claim.allowGrantPermission(player);
+            Supplier<String> errorMessage = claim.checkPermission(player, ClaimPermission.Manage, null);
             if (errorMessage != null)
             {
-                GriefPrevention.sendMessage(player, TextMode.Err, errorMessage);
+                GriefPrevention.sendMessage(player, TextMode.Err, errorMessage.get());
                 return true;
             }
 
@@ -1528,7 +1534,7 @@ public class GriefPrevention extends JavaPlugin
             OfflinePlayer otherPlayer = null;
             if (args[0].equals("all"))
             {
-                if (claim == null || claim.allowEdit(player) == null)
+                if (claim == null || claim.checkPermission(player, ClaimPermission.Edit, null) == null)
                 {
                     clearPermissions = true;
                 }
@@ -1616,7 +1622,7 @@ public class GriefPrevention extends JavaPlugin
             }
 
             //otherwise, apply changes to only this claim
-            else if (claim.allowGrantPermission(player) != null)
+            else if (claim.checkPermission(player, ClaimPermission.Manage, null) != null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoPermissionTrust, claim.getOwnerName());
                 return true;
@@ -1627,7 +1633,7 @@ public class GriefPrevention extends JavaPlugin
                 if (clearPermissions)
                 {
                     //requires owner
-                    if (claim.allowEdit(player) != null)
+                    if (claim.checkPermission(player, ClaimPermission.Edit, null) != null)
                     {
                         GriefPrevention.sendMessage(player, TextMode.Err, Messages.UntrustAllOwnerOnly);
                         return true;
@@ -1655,7 +1661,7 @@ public class GriefPrevention extends JavaPlugin
                         idToDrop = otherPlayer.getUniqueId().toString();
                     }
                     boolean targetIsManager = claim.managers.contains(idToDrop);
-                    if (targetIsManager && claim.allowEdit(player) != null)  //only claim owners can untrust managers
+                    if (targetIsManager && claim.checkPermission(player, ClaimPermission.Edit, null) != null)  //only claim owners can untrust managers
                     {
                         GriefPrevention.sendMessage(player, TextMode.Err, Messages.ManagersDontUntrustManagers, claim.getOwnerName());
                         return true;
@@ -2014,10 +2020,10 @@ public class GriefPrevention extends JavaPlugin
             }
             else
             {
-                String noBuildReason = claim.allowBuild(player, Material.STONE);
+                Supplier<String> noBuildReason = claim.checkPermission(player, ClaimPermission.Build, null);
                 if (noBuildReason != null)
                 {
-                    GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason);
+                    GriefPrevention.sendMessage(player, TextMode.Err, noBuildReason.get());
                     return true;
                 }
 
@@ -2423,7 +2429,7 @@ public class GriefPrevention extends JavaPlugin
             }
 
             //if the player isn't in a claim or has permission to build, tell him to man up
-            if (claim == null || claim.allowBuild(player, Material.AIR) == null)
+            if (claim == null || claim.checkPermission(player, ClaimPermission.Build, null) == null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotTrappedHere);
                 return true;
@@ -2547,7 +2553,7 @@ public class GriefPrevention extends JavaPlugin
             Claim defenderClaim = this.dataStore.getClaimAt(defender.getLocation(), false, null);
 
             //defender must have some level of permission there to be protected
-            if (defenderClaim == null || defenderClaim.allowAccess(defender) != null)
+            if (defenderClaim == null || defenderClaim.checkPermission(defender, ClaimPermission.Access, null) != null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotSiegableThere);
                 return true;
@@ -2876,7 +2882,7 @@ public class GriefPrevention extends JavaPlugin
         }
 
         //verify ownership
-        else if (claim.allowEdit(player) != null)
+        else if (claim.checkPermission(player, ClaimPermission.Edit, null) != null)
         {
             GriefPrevention.sendMessage(player, TextMode.Err, Messages.NotYourClaim);
         }
@@ -2974,39 +2980,29 @@ public class GriefPrevention extends JavaPlugin
         else
         {
             //check permission here
-            if (claim.allowGrantPermission(player) != null)
+            if (claim.checkPermission(player, ClaimPermission.Manage, null) != null)
             {
                 GriefPrevention.sendMessage(player, TextMode.Err, Messages.NoPermissionTrust, claim.getOwnerName());
                 return;
             }
 
             //see if the player has the level of permission he's trying to grant
-            String errorMessage = null;
+            Supplier<String> errorMessage;
 
             //permission level null indicates granting permission trust
             if (permissionLevel == null)
             {
-                errorMessage = claim.allowEdit(player);
+                errorMessage = claim.checkPermission(player, ClaimPermission.Edit, null);
                 if (errorMessage != null)
                 {
-                    errorMessage = "Only " + claim.getOwnerName() + " can grant /PermissionTrust here.";
+                    errorMessage = () -> "Only " + claim.getOwnerName() + " can grant /PermissionTrust here.";
                 }
             }
 
             //otherwise just use the ClaimPermission enum values
             else
             {
-                switch (permissionLevel)
-                {
-                    case Access:
-                        errorMessage = claim.allowAccess(player);
-                        break;
-                    case Inventory:
-                        errorMessage = claim.allowContainers(player);
-                        break;
-                    default:
-                        errorMessage = claim.allowBuild(player, Material.AIR);
-                }
+                errorMessage = claim.checkPermission(player, permissionLevel, null);
             }
 
             //error message for trying to grant a permission the player doesn't have
@@ -3385,6 +3381,7 @@ public class GriefPrevention extends JavaPlugin
 
     public String allowBuild(Player player, Location location)
     {
+        // TODO check all derivatives and rework API
         return this.allowBuild(player, location, location.getBlock().getType());
     }
 
@@ -3431,20 +3428,27 @@ public class GriefPrevention extends JavaPlugin
         {
             //cache the claim for later reference
             playerData.lastClaim = claim;
-            return claim.allowBuild(player, material);
+            Block block = location.getBlock();
+
+            Supplier<String> supplier = claim.checkPermission(player, ClaimPermission.Build, new BlockPlaceEvent(block, block.getState(), block, new ItemStack(material), player, true, EquipmentSlot.HAND));
+
+            if (supplier == null) return null;
+
+            return supplier.get();
         }
     }
 
     public String allowBreak(Player player, Block block, Location location)
     {
-        return this.allowBreak(player, block, location, null);
-    }
-
-    public String allowBreak(Player player, Block block, Location location, BlockBreakEvent breakEvent) {
-        return this.allowBreak(player, block.getType(), location, breakEvent);
+        return this.allowBreak(player, block, location, new BlockBreakEvent(block, player));
     }
 
     public String allowBreak(Player player, Material material, Location location, BlockBreakEvent breakEvent)
+    {
+        return this.allowBreak(player, location.getBlock(), location, breakEvent);
+    }
+
+    public String allowBreak(Player player, Block block, Location location, BlockBreakEvent breakEvent)
     {
         if (!GriefPrevention.instance.claimsEnabledForWorld(location.getWorld())) return null;
 
@@ -3479,7 +3483,7 @@ public class GriefPrevention extends JavaPlugin
             playerData.lastClaim = claim;
 
             //if not in the wilderness, then apply claim rules (permissions, etc)
-            String cancel = claim.allowBreak(player, material);
+            Supplier<String> cancel = claim.checkPermission(player, ClaimPermission.Build, breakEvent);
             if (cancel != null && breakEvent != null)
             {
                 PreventBlockBreakEvent preventionEvent = new PreventBlockBreakEvent(breakEvent);
@@ -3490,7 +3494,9 @@ public class GriefPrevention extends JavaPlugin
                 }
             }
 
-            return cancel;
+            if (cancel == null) return null;
+
+            return cancel.get();
         }
     }
 

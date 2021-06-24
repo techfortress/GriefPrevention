@@ -85,7 +85,6 @@ import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
-import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
@@ -103,6 +102,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 //handles events related to entities
 public class EntityEventHandler implements Listener
@@ -281,14 +281,14 @@ public class EntityEventHandler implements Listener
 
         if (shooter instanceof Player)
         {
-            String denial = claim.allowBuild((Player) shooter, block.getType());
+            Supplier<String> denial = claim.checkPermission((Player) shooter, ClaimPermission.Build, event);
 
             // If the player cannot place the material being broken, disallow.
             if (denial != null)
             {
                 // Unlike entities where arrows rebound and may cause multiple alerts,
                 // projectiles lodged in blocks do not continuously re-trigger events.
-                GriefPrevention.sendMessage((Player) shooter, TextMode.Err, denial);
+                GriefPrevention.sendMessage((Player) shooter, TextMode.Err, denial.get());
                 event.setCancelled(true);
             }
 
@@ -1058,12 +1058,12 @@ public class EntityEventHandler implements Listener
                     }
 
                     //otherwise player must have container trust in the claim
-                    String failureReason = claim.allowBuild(attacker, Material.AIR);
+                    Supplier<String> failureReason = claim.checkPermission(attacker, ClaimPermission.Build, event);
                     if (failureReason != null)
                     {
                         event.setCancelled(true);
                         if (sendErrorMessagesToPlayers)
-                            GriefPrevention.sendMessage(attacker, TextMode.Err, failureReason);
+                            GriefPrevention.sendMessage(attacker, TextMode.Err, failureReason.get());
                         return;
                     }
                 }
@@ -1195,7 +1195,19 @@ public class EntityEventHandler implements Listener
                     //otherwise the player damaging the entity must have permission, unless it's a dog in a pvp world
                     else if (!(event.getEntity().getWorld().getPVP() && event.getEntity().getType() == EntityType.WOLF))
                     {
-                        String noContainersReason = claim.allowContainers(attacker);
+                        Supplier<String> override = null;
+                        if (sendErrorMessagesToPlayers)
+                        {
+                            final Player finalAttacker = attacker;
+                            override = () ->
+                            {
+                                String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                                if (finalAttacker.hasPermission("griefprevention.ignoreclaims"))
+                                    message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                                return message;
+                            };
+                        }
+                        Supplier<String> noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event, override);
                         if (noContainersReason != null)
                         {
                             event.setCancelled(true);
@@ -1207,10 +1219,7 @@ public class EntityEventHandler implements Listener
 
                             if (sendErrorMessagesToPlayers)
                             {
-                                String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
-                                if (attacker.hasPermission("griefprevention.ignoreclaims"))
-                                    message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                                GriefPrevention.sendMessage(attacker, TextMode.Err, message);
+                                GriefPrevention.sendMessage(attacker, TextMode.Err, noContainersReason.get());
                             }
                             event.setCancelled(true);
                         }
@@ -1409,15 +1418,19 @@ public class EntityEventHandler implements Listener
             //otherwise the player damaging the entity must have permission
             else
             {
-                String noContainersReason = claim.allowContainers(attacker);
+                final Player finalAttacker = attacker;
+                Supplier<String> override = () ->
+                {
+                    String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                    if (finalAttacker.hasPermission("griefprevention.ignoreclaims"))
+                        message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
+                    return message;
+                };
+                Supplier<String> noContainersReason = claim.checkPermission(attacker, ClaimPermission.Inventory, event, override);
                 if (noContainersReason != null)
                 {
                     event.setCancelled(true);
-                    String message = GriefPrevention.instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
-                    if (attacker.hasPermission("griefprevention.ignoreclaims"))
-                        message += "  " + GriefPrevention.instance.dataStore.getMessage(Messages.IgnoreClaimsAdvertisement);
-                    GriefPrevention.sendMessage(attacker, TextMode.Err, message);
-                    event.setCancelled(true);
+                    GriefPrevention.sendMessage(attacker, TextMode.Err, noContainersReason.get());
                 }
 
                 //cache claim for later
@@ -1459,10 +1472,12 @@ public class EntityEventHandler implements Listener
                         if (claim != null)
                         {
                             cachedClaim = claim;
-                            if (thrower == null || claim.allowContainers(thrower) != null)
+                            Supplier<String> override = () -> instance.dataStore.getMessage(Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                            final Supplier<String> noContainersReason = claim.checkPermission(thrower, ClaimPermission.Inventory, event, override);
+                            if (thrower == null || noContainersReason != null)
                             {
                                 event.setIntensity(effected, 0);
-                                GriefPrevention.sendMessage(thrower, TextMode.Err, Messages.NoDamageClaimedEntity, claim.getOwnerName());
+                                GriefPrevention.sendMessage(thrower, TextMode.Err, noContainersReason.get());
                                 return;
                             }
                         }
