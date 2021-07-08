@@ -20,8 +20,6 @@ import java.util.Objects;
  * <p>While similar to Bukkit's {@link org.bukkit.util.BoundingBox BoundingBox},
  * this implementation is much more focused on performance and does not use as
  * many input sanitization operations.
- *
- * @author Jikoo
  */
 public class BoundingBox implements Cloneable
 {
@@ -143,7 +141,8 @@ public class BoundingBox implements Cloneable
      */
     public BoundingBox(Claim claim)
     {
-        this(claim.getLesserBoundaryCorner(), claim.getGreaterBoundaryCorner().clone().add(0, 319, 0), false);
+        this(claim.getLesserBoundaryCorner(), claim.getGreaterBoundaryCorner(), false);
+        this.maxY = Objects.requireNonNull(claim.getLesserBoundaryCorner().getWorld()).getMaxHeight();
     }
 
     /**
