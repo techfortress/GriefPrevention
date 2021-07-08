@@ -2234,7 +2234,7 @@ class PlayerEventHandler implements Listener
                 int minz = centerBlock.getZ() - playerData.fillRadius;
                 int maxz = centerBlock.getZ() + playerData.fillRadius;
                 int minHeight = maxHeight - 10;
-                if (minHeight < 0) minHeight = 0;
+                minHeight = Math.max(minHeight, clickedBlock.getWorld().getMinHeight());
 
                 Claim cachedClaim = null;
                 for (int x = minx; x <= maxx; x++)
