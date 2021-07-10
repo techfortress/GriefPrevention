@@ -47,6 +47,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 //represents a player claim
 //creating an instance doesn't make an effective claim
@@ -662,6 +663,34 @@ public class Claim
         {
             child.clearPermissions();
         }
+    }
+
+    public List<String> getBuildTrustList()
+    {
+        return getPermissions(ClaimPermission.Build);
+    }
+
+    public List<String> getContainerTrustList()
+    {
+        return getPermissions(ClaimPermission.Inventory);
+    }
+
+    public List<String> getAccessTrustList()
+    {
+        return getPermissions(ClaimPermission.Access);
+    }
+
+    public List<String> getManagerTrustList()
+    {
+        return new ArrayList<>(managers);
+    }
+
+    private List<String> getPermissions(ClaimPermission level)
+    {
+        return playerIDToClaimPermissionMap.entrySet().stream()
+                .filter(entry -> entry.getValue() == level)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
     }
 
     //gets ALL permissions
