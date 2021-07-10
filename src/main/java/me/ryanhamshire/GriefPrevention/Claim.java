@@ -335,7 +335,10 @@ public class Claim
             Material.POTATOES,
             Material.NETHER_WART,
             Material.BEETROOTS,
-            Material.COCOA);
+            Material.COCOA,
+            Material.GLOW_BERRIES,
+            Material.CAVE_VINES,
+            Material.CAVE_VINES_PLANT);
 
     private static boolean placeableForFarming(Material material)
     {
@@ -576,7 +579,8 @@ public class Claim
     @Deprecated
     public String allowBreak(Player player, Material material)
     {
-        return checkPermission(player, ClaimPermission.Build, new CompatBuildBreakEvent(material, true)).get();
+        Supplier<String> supplier = checkPermission(player, ClaimPermission.Build, new CompatBuildBreakEvent(material, true));
+        return supplier != null ? supplier.get() : null;
     }
 
     /**
@@ -587,7 +591,8 @@ public class Claim
     @Deprecated
     public String allowAccess(Player player)
     {
-        return checkPermission(player, ClaimPermission.Access, null).get();
+        Supplier<String> supplier = checkPermission(player, ClaimPermission.Access, null);
+        return supplier != null ? supplier.get() : null;
     }
 
     /**
@@ -598,7 +603,8 @@ public class Claim
     @Deprecated
     public String allowContainers(Player player)
     {
-        return checkPermission(player, ClaimPermission.Inventory, null).get();
+        Supplier<String> supplier = checkPermission(player, ClaimPermission.Inventory, null);
+        return supplier != null ? supplier.get() : null;
     }
 
     /**
@@ -609,7 +615,8 @@ public class Claim
     @Deprecated
     public String allowGrantPermission(Player player)
     {
-        return checkPermission(player, ClaimPermission.Manage, null).get();
+        Supplier<String> supplier = checkPermission(player, ClaimPermission.Manage, null);
+        return supplier != null ? supplier.get() : null;
     }
 
     public ClaimPermission getPermission(String playerID)
