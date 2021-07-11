@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableList;
 import org.bukkit.command.Command;
 import org.bukkit.entity.Player;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import static me.ryanhamshire.GriefPrevention.CommandTabCompleter.onTabComplete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -52,6 +54,12 @@ class TabCompleterTest
     void beforeEach()
     {
         when(delegate.isPlayer(sender)).thenReturn(true);
+    }
+
+    @AfterEach
+    void afterEach()
+    {
+        reset(delegate);
     }
 
     @Test
@@ -122,6 +130,7 @@ class TabCompleterTest
     @Test
     void verifyResultsForUntrustInClaimWithTrustList()
     {
+        when(delegate.trustListToNameList(anyCollection())).thenAnswer(invocation -> invocation.getArgument(0));
         when(delegate.getCurrentClaim(sender)).thenReturn(claim);
         when(claim.getAccessTrustList()).thenReturn(ImmutableList.of("Nouish"));
         when(claim.getBuildTrustList()).thenReturn(ImmutableList.of("Jikoo"));
