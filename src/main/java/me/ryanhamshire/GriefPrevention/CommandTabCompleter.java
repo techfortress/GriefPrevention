@@ -34,7 +34,7 @@ class CommandTabCompleter
             return null;
         }
 
-        final String label = alias.toLowerCase(Locale.ROOT);
+        final String label = command.getName().toLowerCase(Locale.ROOT);
         final Player player = (Player) sender;
         List<String> options = new ArrayList<>();
 
@@ -45,8 +45,8 @@ class CommandTabCompleter
             {
                 options.add(THE_PUBLIC);
                 options.addAll(delegate.listOnlineNames());
-                removeIfNotNull(options, claim.getOwnerName());
                 options.removeAll(delegate.trustListToNameList(claim.getContainerTrustList()));
+                removeIfNotNull(options, claim.getOwnerName());
             }
         }
 

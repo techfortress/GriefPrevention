@@ -18,6 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import com.google.common.collect.ImmutableList;
 import me.ryanhamshire.GriefPrevention.util.BoundingBox;
 import me.ryanhamshire.GriefPrevention.events.ClaimPermissionCheckEvent;
 import org.bukkit.Bukkit;
@@ -677,32 +678,32 @@ public class Claim
         }
     }
 
-    public List<String> getBuildTrustList()
+    public ImmutableList<String> getBuildTrustList()
     {
-        return getPermissions(ClaimPermission.Build);
+        return getTrustList(ClaimPermission.Build);
     }
 
-    public List<String> getContainerTrustList()
+    public ImmutableList<String> getContainerTrustList()
     {
-        return getPermissions(ClaimPermission.Inventory);
+        return getTrustList(ClaimPermission.Inventory);
     }
 
-    public List<String> getAccessTrustList()
+    public ImmutableList<String> getAccessTrustList()
     {
-        return getPermissions(ClaimPermission.Access);
+        return getTrustList(ClaimPermission.Access);
     }
 
-    public List<String> getManagerTrustList()
+    public ImmutableList<String> getManagerTrustList()
     {
-        return new ArrayList<>(managers);
+        return ImmutableList.copyOf(managers);
     }
 
-    private List<String> getPermissions(ClaimPermission level)
+    private ImmutableList<String> getTrustList(ClaimPermission level)
     {
         return playerIDToClaimPermissionMap.entrySet().stream()
                 .filter(entry -> entry.getValue() == level)
                 .map(Map.Entry::getKey)
-                .collect(Collectors.toList());
+                .collect(ImmutableList.toImmutableList());
     }
 
     //gets ALL permissions

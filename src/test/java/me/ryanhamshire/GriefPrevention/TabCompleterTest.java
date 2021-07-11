@@ -3,9 +3,7 @@ package me.ryanhamshire.GriefPrevention;
 import com.google.common.collect.ImmutableList;
 import org.bukkit.command.Command;
 import org.bukkit.entity.Player;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -14,12 +12,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 
-import static me.ryanhamshire.GriefPrevention.CommandTabCompleter.onTabComplete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyCollection;
-import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -27,7 +22,8 @@ import static org.mockito.Mockito.when;
 class TabCompleterTest
 {
 
-    private static CommandTabCompleter.Delegate delegate;
+    @Mock
+    private CommandTabCompleter.Delegate delegate;
 
     @Mock
     private Player sender;
@@ -38,30 +34,17 @@ class TabCompleterTest
     @Mock
     private Command command;
 
-    @BeforeAll
-    static void beforeAll()
-    {
-        delegate = mock(CommandTabCompleter.Delegate.class);
-        CommandTabCompleter.setDelegate(delegate);
-    }
-
-    @AfterAll
-    static void afterAll()
-    {
-        delegate = null;
-        CommandTabCompleter.setDelegate(null);
-    }
-
     @BeforeEach
     void beforeEach()
     {
+        CommandTabCompleter.setDelegate(delegate);
         when(delegate.isPlayer(sender)).thenReturn(true);
     }
 
     @AfterEach
     void afterEach()
     {
-        reset(delegate);
+        CommandTabCompleter.setDelegate(null);
     }
 
     @Test
@@ -69,7 +52,7 @@ class TabCompleterTest
     {
         when(delegate.isPlayer(sender)).thenReturn(false);
 
-        List<String> options = onTabComplete(sender, command, "anything", noArguments());
+        List<String> options = CommandTabCompleter.onTabComplete(sender, command, "anything", noArguments());
 
         assertThat(options).isNull();
     }
@@ -77,7 +60,7 @@ class TabCompleterTest
     @Test
     void noResultsForContainertrustInWilderness()
     {
-        List<String> options = onTabComplete(sender, command, "containertrust", noArguments());
+        List<String> options = onTabComplete("containertrust", noArguments());
         assertThat(options).isEmpty();
     }
 
@@ -87,7 +70,7 @@ class TabCompleterTest
         when(delegate.getCurrentClaim(sender)).thenReturn(claim);
         when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(false);
 
-        List<String> options = onTabComplete(sender, command, "containertrust", noArguments());
+        List<String> options = onTabComplete("containertrust", noArguments());
 
         assertThat(options).isEmpty();
         verify(delegate, never()).listOnlineNames();
@@ -97,12 +80,12 @@ class TabCompleterTest
     void verifyResultsForContainertrustInClaimWithEmptyTrustList()
     {
         when(delegate.getCurrentClaim(sender)).thenReturn(claim);
-        when(delegate.listOnlineNames()).thenReturn(ImmutableList.of("Nouish", "RoboMWM"));
+        when(delegate.listOnlineNames()).thenReturn(listOf("Nouish", "RoboMWM"));
         when(claim.getOwnerName()).thenReturn("Nouish");
-        when(claim.getContainerTrustList()).thenReturn(ImmutableList.of());
+        when(claim.getContainerTrustList()).thenReturn(emptyList());
         when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(true);
 
-        List<String> options = onTabComplete(sender, command, "containertrust", noArguments());
+        List<String> options = onTabComplete("containertrust", noArguments());
 
         assertThat(options).containsExactlyInAnyOrder("public", "RoboMWM");
     }
@@ -112,12 +95,12 @@ class TabCompleterTest
     {
         when(delegate.trustListToNameList(anyCollection())).thenAnswer(invocation -> invocation.getArgument(0));
         when(delegate.getCurrentClaim(sender)).thenReturn(claim);
-        when(delegate.listOnlineNames()).thenReturn(ImmutableList.of("Nouish", "RoboMWM", "Jikoo"));
+        when(delegate.listOnlineNames()).thenReturn(listOf("Nouish", "RoboMWM", "Jikoo"));
         when(claim.getOwnerName()).thenReturn("RoboMWM");
-        when(claim.getContainerTrustList()).thenReturn(ImmutableList.of("Nouish"));
+        when(claim.getContainerTrustList()).thenReturn(listOf("Nouish"));
         when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(true);
 
-        List<String> options = onTabComplete(sender, command, "containertrust", noArguments());
+        List<String> options = onTabComplete("containertrust", noArguments());
 
         assertThat(options).containsExactlyInAnyOrder("public", "Jikoo");
     }
@@ -125,7 +108,7 @@ class TabCompleterTest
     @Test
     void noResultsForUntrustInWilderness()
     {
-        List<String> options = onTabComplete(sender, command, "untrust", noArguments());
+        List<String> options = onTabComplete("untrust", noArguments());
         assertThat(options).isEmpty();
     }
 
@@ -135,7 +118,7 @@ class TabCompleterTest
         when(delegate.getCurrentClaim(sender)).thenReturn(claim);
         when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(false);
 
-        List<String> options = onTabComplete(sender, command, "untrust", noArguments());
+        List<String> options = onTabComplete("untrust", noArguments());
 
         assertThat(options).isEmpty();
         verify(claim, never()).getAccessTrustList();
@@ -148,13 +131,13 @@ class TabCompleterTest
     void verifyResultsForUntrustInClaimWithEmptyTrustList()
     {
         when(delegate.getCurrentClaim(sender)).thenReturn(claim);
-        when(claim.getAccessTrustList()).thenReturn(ImmutableList.of());
-        when(claim.getBuildTrustList()).thenReturn(ImmutableList.of());
-        when(claim.getContainerTrustList()).thenReturn(ImmutableList.of());
-        when(claim.getManagerTrustList()).thenReturn(ImmutableList.of());
+        when(claim.getAccessTrustList()).thenReturn(emptyList());
+        when(claim.getBuildTrustList()).thenReturn(emptyList());
+        when(claim.getContainerTrustList()).thenReturn(emptyList());
+        when(claim.getManagerTrustList()).thenReturn(emptyList());
         when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(true);
 
-        List<String> options = onTabComplete(sender, command, "untrust", noArguments());
+        List<String> options = onTabComplete("untrust", noArguments());
 
         assertThat(options).isEmpty();
     }
@@ -164,13 +147,13 @@ class TabCompleterTest
     {
         when(delegate.trustListToNameList(anyCollection())).thenAnswer(invocation -> invocation.getArgument(0));
         when(delegate.getCurrentClaim(sender)).thenReturn(claim);
-        when(claim.getAccessTrustList()).thenReturn(ImmutableList.of("Nouish"));
-        when(claim.getBuildTrustList()).thenReturn(ImmutableList.of("Jikoo"));
-        when(claim.getContainerTrustList()).thenReturn(ImmutableList.of("public"));
-        when(claim.getManagerTrustList()).thenReturn(ImmutableList.of("RoboMWM"));
+        when(claim.getAccessTrustList()).thenReturn(listOf("Nouish"));
+        when(claim.getBuildTrustList()).thenReturn(listOf("Jikoo"));
+        when(claim.getContainerTrustList()).thenReturn(listOf("public"));
+        when(claim.getManagerTrustList()).thenReturn(listOf("RoboMWM"));
         when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(true);
 
-        List<String> options = onTabComplete(sender, command, "untrust", noArguments());
+        List<String> options = onTabComplete("untrust", noArguments());
 
         assertThat(options).containsExactlyInAnyOrder("public", "Nouish", "Jikoo", "RoboMWM");
     }
@@ -180,15 +163,22 @@ class TabCompleterTest
     {
         when(delegate.trustListToNameList(anyCollection())).thenAnswer(invocation -> invocation.getArgument(0));
         when(delegate.getCurrentClaim(sender)).thenReturn(claim);
-        when(claim.getAccessTrustList()).thenReturn(ImmutableList.of("Nouish"));
-        when(claim.getBuildTrustList()).thenReturn(ImmutableList.of("Jikoo"));
-        when(claim.getContainerTrustList()).thenReturn(ImmutableList.of("Nouish"));
-        when(claim.getManagerTrustList()).thenReturn(ImmutableList.of("RoboMWM"));
+        when(claim.getAccessTrustList()).thenReturn(listOf("Nouish"));
+        when(claim.getBuildTrustList()).thenReturn(listOf("Jikoo"));
+        when(claim.getContainerTrustList()).thenReturn(listOf("Nouish"));
+        when(claim.getManagerTrustList()).thenReturn(listOf("RoboMWM"));
         when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(true);
 
-        List<String> options = onTabComplete(sender, command, "untrust", noArguments());
+        List<String> options = onTabComplete("untrust", noArguments());
 
         assertThat(options).containsExactlyInAnyOrder("Nouish", "Jikoo", "RoboMWM");
+    }
+
+    private List<String> onTabComplete(String name, String[] args)
+    {
+        // TabCompleter depends on command.getName() to handle aliases.
+        when(command.getName()).thenReturn(name);
+        return CommandTabCompleter.onTabComplete(sender, command, name, args);
     }
 
     // Bukkit never returns a completely empty args-array.
@@ -197,4 +187,23 @@ class TabCompleterTest
         return new String[] { "" };
     }
 
+    private static <E> ImmutableList<E> emptyList()
+    {
+        return ImmutableList.of();
+    }
+
+    private static <E> ImmutableList<E> listOf(E e)
+    {
+        return ImmutableList.of(e);
+    }
+    
+    private static <E> ImmutableList<E> listOf(E e1, E e2)
+    {
+        return ImmutableList.of(e1, e2);
+    }
+
+    private static <E> ImmutableList<E> listOf(E e1, E e2, E e3)
+    {
+        return ImmutableList.of(e1, e2, e3);
+    }
 }
