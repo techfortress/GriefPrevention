@@ -35,23 +35,25 @@ class CommandTabCompleter
         }
 
         final String label = alias.toLowerCase(Locale.ROOT);
+        final Player player = (Player) sender;
         List<String> options = new ArrayList<>();
 
         if (args.length == 1 && label.equals("containertrust"))
         {
-            Claim claim = delegate.getCurrentClaim(sender);
-            if (claim != null)
+            Claim claim = delegate.getCurrentClaim(player);
+            if (claim != null && claim.hasPermission(player, ClaimPermission.Manage))
             {
                 options.add(THE_PUBLIC);
                 options.addAll(delegate.listOnlineNames());
-                options.removeAll(delegate.trustListToNameList(claim.getContainerTrustList()));
                 removeIfNotNull(options, claim.getOwnerName());
+                options.removeAll(delegate.trustListToNameList(claim.getContainerTrustList()));
             }
         }
 
-        if (args.length == 1 && label.equals("untrust")) {
-            Claim claim = delegate.getCurrentClaim(sender);
-            if (claim != null)
+        if (args.length == 1 && label.equals("untrust"))
+        {
+            Claim claim = delegate.getCurrentClaim(player);
+            if (claim != null && claim.hasPermission(player, ClaimPermission.Manage))
             {
                 // One person may have multiple trust types, so this avoids duplicate options
                 Set<String> trustees = new HashSet<>();
@@ -78,7 +80,7 @@ class CommandTabCompleter
     interface Delegate
     {
         boolean isPlayer(CommandSender sender);
-        Claim getCurrentClaim(CommandSender sender);
+        Claim getCurrentClaim(Player player);
         Collection<String> trustListToNameList(Collection<String> trustList);
         Collection<String> listOnlineNames();
     }
@@ -93,9 +95,8 @@ class CommandTabCompleter
             }
 
             @Override
-            public Claim getCurrentClaim(CommandSender sender)
+            public Claim getCurrentClaim(Player player)
             {
-                Player player = (Player) sender;
                 PlayerData playerData =  GriefPrevention.instance.dataStore.getPlayerData(player.getUniqueId());
                 return GriefPrevention.instance.dataStore.getClaimAt(player.getLocation(), false, playerData.lastClaim);
             }

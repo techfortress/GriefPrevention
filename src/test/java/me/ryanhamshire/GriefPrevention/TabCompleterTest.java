@@ -18,7 +18,9 @@ import static me.ryanhamshire.GriefPrevention.CommandTabCompleter.onTabComplete;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyCollection;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -80,12 +82,25 @@ class TabCompleterTest
     }
 
     @Test
+    void noResultsForContainertrustInClaimWithoutManagePermission()
+    {
+        when(delegate.getCurrentClaim(sender)).thenReturn(claim);
+        when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(false);
+
+        List<String> options = onTabComplete(sender, command, "containertrust", noArguments());
+
+        assertThat(options).isEmpty();
+        verify(delegate, never()).listOnlineNames();
+    }
+
+    @Test
     void verifyResultsForContainertrustInClaimWithEmptyTrustList()
     {
         when(delegate.getCurrentClaim(sender)).thenReturn(claim);
         when(delegate.listOnlineNames()).thenReturn(ImmutableList.of("Nouish", "RoboMWM"));
         when(claim.getOwnerName()).thenReturn("Nouish");
         when(claim.getContainerTrustList()).thenReturn(ImmutableList.of());
+        when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(true);
 
         List<String> options = onTabComplete(sender, command, "containertrust", noArguments());
 
@@ -100,6 +115,7 @@ class TabCompleterTest
         when(delegate.listOnlineNames()).thenReturn(ImmutableList.of("Nouish", "RoboMWM", "Jikoo"));
         when(claim.getOwnerName()).thenReturn("RoboMWM");
         when(claim.getContainerTrustList()).thenReturn(ImmutableList.of("Nouish"));
+        when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(true);
 
         List<String> options = onTabComplete(sender, command, "containertrust", noArguments());
 
@@ -114,6 +130,21 @@ class TabCompleterTest
     }
 
     @Test
+    void noResultsForUntrustInClaimWithoutManagePermission()
+    {
+        when(delegate.getCurrentClaim(sender)).thenReturn(claim);
+        when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(false);
+
+        List<String> options = onTabComplete(sender, command, "untrust", noArguments());
+
+        assertThat(options).isEmpty();
+        verify(claim, never()).getAccessTrustList();
+        verify(claim, never()).getBuildTrustList();
+        verify(claim, never()).getContainerTrustList();
+        verify(claim, never()).getManagerTrustList();
+    }
+
+    @Test
     void verifyResultsForUntrustInClaimWithEmptyTrustList()
     {
         when(delegate.getCurrentClaim(sender)).thenReturn(claim);
@@ -121,6 +152,7 @@ class TabCompleterTest
         when(claim.getBuildTrustList()).thenReturn(ImmutableList.of());
         when(claim.getContainerTrustList()).thenReturn(ImmutableList.of());
         when(claim.getManagerTrustList()).thenReturn(ImmutableList.of());
+        when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(true);
 
         List<String> options = onTabComplete(sender, command, "untrust", noArguments());
 
@@ -136,6 +168,7 @@ class TabCompleterTest
         when(claim.getBuildTrustList()).thenReturn(ImmutableList.of("Jikoo"));
         when(claim.getContainerTrustList()).thenReturn(ImmutableList.of("public"));
         when(claim.getManagerTrustList()).thenReturn(ImmutableList.of("RoboMWM"));
+        when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(true);
 
         List<String> options = onTabComplete(sender, command, "untrust", noArguments());
 
@@ -151,6 +184,7 @@ class TabCompleterTest
         when(claim.getBuildTrustList()).thenReturn(ImmutableList.of("Jikoo"));
         when(claim.getContainerTrustList()).thenReturn(ImmutableList.of("Nouish"));
         when(claim.getManagerTrustList()).thenReturn(ImmutableList.of("RoboMWM"));
+        when(claim.hasPermission(sender, ClaimPermission.Manage)).thenReturn(true);
 
         List<String> options = onTabComplete(sender, command, "untrust", noArguments());
 

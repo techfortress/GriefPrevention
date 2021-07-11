@@ -435,6 +435,18 @@ public class Claim
      *
      * @param player the Player being checked for permissions
      * @param permission the ClaimPermission level required
+     * @return {@code true} if the player has the specified permission, {@code false} otherwise.
+     */
+    boolean hasPermission(Player player, ClaimPermission permission)
+    {
+        return checkPermission(player, permission, null, null) == null;
+    }
+
+    /**
+     * Check whether or not a Player has a certain level of trust.
+     *
+     * @param player the Player being checked for permissions
+     * @param permission the ClaimPermission level required
      * @param event the Event triggering the permission check
      * @return the denial message or null if permission is granted
      */
