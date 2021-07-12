@@ -12,6 +12,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -176,6 +177,37 @@ class TabCompleterTest
         assertThat(options).containsExactlyInAnyOrder("Nouish", "Jikoo", "RoboMWM");
     }
 
+    @Test
+    void verifyResultsForAdjustBonusClaimBlocksAll()
+    {
+        when(sender.hasPermission("griefprevention.adjustclaimblocks")).thenReturn(true);
+
+        List<String> options = onTabComplete("adjustbonusclaimblocksall", noArguments());
+
+        assertThat(options).containsExactlyInAnyOrder("10", "100", "1000", "10000");
+    }
+
+    @Test
+    void verifyResultsForAdjustBonusClaimBlocksWithNoArgs()
+    {
+        when(sender.hasPermission("griefprevention.adjustclaimblocks")).thenReturn(true);
+        when(delegate.listOnlineNames()).thenReturn(listOf("Jikoo", "BigScary"));
+
+        List<String> options = onTabComplete("adjustbonusclaimblocks", noArguments());
+
+        assertThat(options).containsExactlyInAnyOrder("Jikoo", "BigScary");
+    }
+
+    @Test
+    void verifyResultsForAdjustBonusClaimBlocksWithTarget()
+    {
+        when(sender.hasPermission("griefprevention.adjustclaimblocks")).thenReturn(true);
+
+        List<String> options = onTabComplete("adjustbonusclaimblocks", withArguments("Notch"));
+
+        assertThat(options).containsExactlyInAnyOrder("10", "100", "1000", "10000");
+    }
+
 
     // Verify that commands that don't take arguments don't suggest any options
     @ParameterizedTest(name = "no options: {0}")
@@ -205,6 +237,13 @@ class TabCompleterTest
     private static String[] noArguments()
     {
         return new String[] { "" };
+    }
+
+    private static String[] withArguments(String... args)
+    {
+        String[] arguments = Arrays.copyOf(args, args.length + 1);
+        arguments[args.length] = "";
+        return arguments;
     }
 
     private static <E> ImmutableList<E> emptyList()

@@ -65,6 +65,22 @@ class CommandTabCompleter
             }
         }
 
+        if (sender.hasPermission("griefprevention.adjustclaimblocks"))
+        {
+            if (args.length == 1 && label.equals("adjustbonusclaimblocks"))
+            {
+                options.addAll(delegate.listOnlineNames());
+            }
+            else if ((args.length == 1 && label.equals("adjustbonusclaimblocksall"))
+                    || (args.length == 2 && label.equals("adjustbonusclaimblocks")))
+            {
+                options.add("10");
+                options.add("100");
+                options.add("1000");
+                options.add("10000");
+            }
+        }
+
         return options;
     }
 
