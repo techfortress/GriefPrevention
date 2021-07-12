@@ -970,7 +970,19 @@ public class GriefPrevention extends JavaPlugin
         }
     }
 
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args)
+    {
+        // Rather than make the already rather large GriefPrevention class larger,
+        // the actual implementation has been extracted out.
+        // Bukkit will automatically call the onTabComplete() on the CommandExecutor, if it happens to
+        // implement the TabCompleter interface. JavaPlugin, which is the superclass of this one,
+        // happens to implement both, which is why onCommand is in here from old times.
+        return CommandTabCompleter.onTabComplete(sender, command, alias, args);
+    }
+
     //handles slash commands
+    @Override
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args)
     {
 
@@ -2853,7 +2865,7 @@ public class GriefPrevention extends JavaPlugin
     public enum IgnoreMode
     {None, StandardIgnore, AdminIgnore}
 
-    private String trustEntryToPlayerName(String entry)
+    public String trustEntryToPlayerName(String entry)
     {
         if (entry.startsWith("[") || entry.equals("public"))
         {

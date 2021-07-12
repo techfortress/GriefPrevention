@@ -18,6 +18,7 @@
 
 package me.ryanhamshire.GriefPrevention;
 
+import com.google.common.collect.ImmutableList;
 import me.ryanhamshire.GriefPrevention.util.BoundingBox;
 import me.ryanhamshire.GriefPrevention.events.ClaimPermissionCheckEvent;
 import org.bukkit.Bukkit;
@@ -434,6 +435,18 @@ public class Claim
      *
      * @param player the Player being checked for permissions
      * @param permission the ClaimPermission level required
+     * @return {@code true} if the player has the specified permission, {@code false} otherwise.
+     */
+    boolean hasPermission(Player player, ClaimPermission permission)
+    {
+        return checkPermission(player, permission, null, null) == null;
+    }
+
+    /**
+     * Check whether or not a Player has a certain level of trust.
+     *
+     * @param player the Player being checked for permissions
+     * @param permission the ClaimPermission level required
      * @param event the Event triggering the permission check
      * @return the denial message or null if permission is granted
      */
@@ -662,6 +675,34 @@ public class Claim
         {
             child.clearPermissions();
         }
+    }
+
+    public ImmutableList<String> getBuildTrustList()
+    {
+        return getTrustList(ClaimPermission.Build);
+    }
+
+    public ImmutableList<String> getContainerTrustList()
+    {
+        return getTrustList(ClaimPermission.Inventory);
+    }
+
+    public ImmutableList<String> getAccessTrustList()
+    {
+        return getTrustList(ClaimPermission.Access);
+    }
+
+    public ImmutableList<String> getManagerTrustList()
+    {
+        return ImmutableList.copyOf(managers);
+    }
+
+    private ImmutableList<String> getTrustList(ClaimPermission level)
+    {
+        return playerIDToClaimPermissionMap.entrySet().stream()
+                .filter(entry -> entry.getValue() == level)
+                .map(Map.Entry::getKey)
+                .collect(ImmutableList.toImmutableList());
     }
 
     //gets ALL permissions
