@@ -7,6 +7,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -173,6 +175,24 @@ class TabCompleterTest
 
         assertThat(options).containsExactlyInAnyOrder("Nouish", "Jikoo", "RoboMWM");
     }
+
+
+    // Verify that commands that don't take arguments don't suggest any options
+    @ParameterizedTest(name = "no options: {0}")
+    @ValueSource(strings = {
+        "abandonclaim", "abandontoplevelclaim", "abandonallclaims", "subdivideclaims", "restrictsubclaim",
+        "deleteclaim", "adminclaims", "restorenature", "restorenatureaggressive", "basicclaims", "trapped",
+        "trustlist", "ignoreclaims", "deletealladminclaims", "adminclaimslist", "unlockdrops", "claimexplosions",
+        "gpreload", "gpblockinfo", "ignoredplayerlist"
+    })
+    void verifyNoResultsForAbandonClaim(String name)
+    {
+        List<String> options = onTabComplete(name, noArguments());
+        assertThat(options).isEmpty();
+    }
+
+    // Following are helper functions for the tests
+
 
     private List<String> onTabComplete(String name, String[] args)
     {
