@@ -85,13 +85,13 @@ import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
-import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.projectiles.BlockProjectileSource;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.util.Vector;
 
@@ -149,41 +149,50 @@ public class EntityEventHandler implements Listener
         {
             event.setCancelled(true);
         }
-        else if (GriefPrevention.instance.config_claims_worldModes.get(event.getBlock().getWorld()) != ClaimsMode.Disabled)
+        else if (!GriefPrevention.instance.config_claims_ravagersBreakBlocks && event.getEntityType() == EntityType.RAVAGER)
         {
-            if (event.getEntityType() == EntityType.WITHER)
-            {
-                Claim claim = this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null);
-                if (claim == null || !claim.areExplosivesAllowed || !GriefPrevention.instance.config_blockClaimExplosions)
-                {
-                    event.setCancelled(true);
-                }
-            }
-            else if (!GriefPrevention.instance.config_claims_ravagersBreakBlocks && event.getEntityType() == EntityType.RAVAGER)
+            event.setCancelled(true);
+        }
+        // All other handling depends on claims being enabled.
+        else if (GriefPrevention.instance.config_claims_worldModes.get(event.getBlock().getWorld()) == ClaimsMode.Disabled)
+        {
+            return;
+        }
+
+        // Handle projectiles changing blocks: TNT ignition, tridents knocking down pointed dripstone, etc.
+        if (event.getEntity() instanceof Projectile)
+        {
+            handleProjectileChangeBlock(event, (Projectile) event.getEntity());
+        }
+
+        else if (event.getEntityType() == EntityType.WITHER)
+        {
+            Claim claim = this.dataStore.getClaimAt(event.getBlock().getLocation(), false, null);
+            if (claim == null || !claim.areExplosivesAllowed || !GriefPrevention.instance.config_blockClaimExplosions)
             {
                 event.setCancelled(true);
             }
+        }
 
-            //don't allow crops to be trampled, except by a player with build permission
-            else if (event.getTo() == Material.DIRT && event.getBlock().getType() == Material.FARMLAND)
+        //don't allow crops to be trampled, except by a player with build permission
+        else if (event.getTo() == Material.DIRT && event.getBlock().getType() == Material.FARMLAND)
+        {
+            if (event.getEntityType() != EntityType.PLAYER)
             {
-                if (event.getEntityType() != EntityType.PLAYER)
+                event.setCancelled(true);
+            }
+            else
+            {
+                Player player = (Player) event.getEntity();
+                Block block = event.getBlock();
+                if (GriefPrevention.instance.allowBreak(player, block, block.getLocation()) != null)
                 {
                     event.setCancelled(true);
-                }
-                else
-                {
-                    Player player = (Player) event.getEntity();
-                    Block block = event.getBlock();
-                    if (GriefPrevention.instance.allowBreak(player, block, block.getLocation()) != null)
-                    {
-                        event.setCancelled(true);
-                    }
                 }
             }
         }
 
-        //Prevent breaking lilypads via collision with a boat. Thanks Jikoo.
+        // Prevent breaking lily pads via collision with a boat.
         else if (event.getEntity() instanceof Vehicle && !event.getEntity().getPassengers().isEmpty())
         {
             Entity driver = event.getEntity().getPassengers().get(0);
@@ -226,6 +235,7 @@ public class EntityEventHandler implements Listener
                     if (GriefPrevention.instance.config_claims_worldModes.get(newLocation.getWorld()) == ClaimsMode.Creative)
                     {
                         event.setCancelled(true);
+                        entity.remove();
                         return;
                     }
 
@@ -236,13 +246,75 @@ public class EntityEventHandler implements Listener
                         //when not allowed, drop as item instead of forming a block
                         event.setCancelled(true);
 
-                        ItemStack itemStack = new ItemStack(entity.getMaterial(), 1);
-                        Item item = block.getWorld().dropItem(entity.getLocation(), itemStack);
-                        item.setVelocity(new Vector());
+                        // Just in case, skip already dead entities.
+                        if (entity.isDead())
+                        {
+                            return;
+                        }
+
+                        // Remove entity so it doesn't continuously spawn drops.
+                        entity.remove();
+
+                        ItemStack itemStack = new ItemStack(entity.getBlockData().getMaterial(), 1);
+                        block.getWorld().dropItemNaturally(entity.getLocation(), itemStack);
                     }
                 }
             }
         }
+    }
+
+    private void handleProjectileChangeBlock(EntityChangeBlockEvent event, Projectile projectile)
+    {
+        Block block = event.getBlock();
+        Claim claim = this.dataStore.getClaimAt(block.getLocation(), false, null);
+
+        // Wilderness rules
+        if (claim == null)
+        {
+            // TNT change means ignition. If no claim is present, use global fire rules.
+            if (block.getType() == Material.TNT)
+            {
+                if (!GriefPrevention.instance.config_fireDestroys || !GriefPrevention.instance.config_fireSpreads)
+                    event.setCancelled(true);
+                return;
+            }
+
+            // No modification in the wilderness in creative mode.
+            if (instance.creativeRulesApply(block.getLocation()) || instance.config_claims_worldModes.get(block.getWorld()) == ClaimsMode.SurvivalRequiringClaims)
+            {
+                event.setCancelled(true);
+                return;
+            }
+
+            // Unclaimed area is fair game.
+            return;
+        }
+
+        ProjectileSource shooter = projectile.getShooter();
+
+        if (shooter instanceof Player)
+        {
+            Supplier<String> denial = claim.checkPermission((Player) shooter, ClaimPermission.Build, event);
+
+            // If the player cannot place the material being broken, disallow.
+            if (denial != null)
+            {
+                // Unlike entities where arrows rebound and may cause multiple alerts,
+                // projectiles lodged in blocks do not continuously re-trigger events.
+                GriefPrevention.sendMessage((Player) shooter, TextMode.Err, denial.get());
+                event.setCancelled(true);
+            }
+
+            return;
+        }
+
+        // Allow change if projectile was shot by a dispenser in the same claim.
+        if (shooter instanceof BlockProjectileSource &&
+                GriefPrevention.instance.dataStore.getClaimAt(((BlockProjectileSource) shooter).getBlock().getLocation(), false, claim) == claim)
+            return;
+
+        // Prevent change in all other cases.
+        event.setCancelled(true);
     }
 
     //Used by "sand cannon" fix to ignore fallingblocks that fell through End Portals
